@@ -1,11 +1,215 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
-@source '../**/*.js';
+@source '../**/*.{js,jsx,ts,tsx}';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/*
+|--------------------------------------------------------------------------
+| SPIN Gombe — Design tokens
+|--------------------------------------------------------------------------
+| This is the ONLY place brand colours are defined. The official SPIN Gombe
+| colour codes have not yet been supplied, so the values below are a
+| professional working palette (white + medium green + restrained gold).
+| Changing the values in this block re-themes the entire application —
+| no component hard-codes a brand colour.
+|
+|  Brand green   -> --primary, --brand-*     (identity, structure, actions)
+|  Gold accent   -> --accent, --gold-*       (highlights only, used sparingly)
+|  Neutrals      -> --background, --muted, --border, --foreground
+*/
+
+:root {
+    /* ---- Brand green scale (medium, professional, AA-contrast) ---- */
+    --brand-50: oklch(0.975 0.022 160);
+    --brand-100: oklch(0.945 0.04 160);
+    --brand-200: oklch(0.895 0.068 160);
+    --brand-300: oklch(0.83 0.09 160);
+    --brand-400: oklch(0.72 0.108 160);
+    --brand-500: oklch(0.61 0.115 160);
+    /* Primary: medium green, 5.2:1 against white — comfortable, not dark. */
+    --brand-600: oklch(0.52 0.11 160);
+    --brand-700: oklch(0.44 0.095 160);
+    --brand-800: oklch(0.37 0.078 160);
+    --brand-900: oklch(0.31 0.062 160);
+    --brand-950: oklch(0.22 0.045 160);
+
+    /* ---- Gold / orange accent scale (used sparingly) ---- */
+    --gold-50: oklch(0.978 0.022 78);
+    --gold-100: oklch(0.955 0.046 78);
+    --gold-200: oklch(0.91 0.082 78);
+    --gold-300: oklch(0.86 0.108 76);
+    --gold-400: oklch(0.78 0.13 72);
+    --gold-500: oklch(0.72 0.145 68);
+    --gold-600: oklch(0.63 0.14 66);
+    --gold-700: oklch(0.54 0.12 64);
+
+    /* ---- Semantic surfaces ---- */
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.22 0.015 165);
+
+    --card: oklch(1 0 0);
+    --card-foreground: var(--foreground);
+
+    --popover: oklch(1 0 0);
+    --popover-foreground: var(--foreground);
+
+    --muted: oklch(0.978 0.006 160);
+    --muted-foreground: oklch(0.48 0.02 160);
+
+    --border: oklch(0.9 0.008 160);
+    --input: oklch(0.87 0.008 160);
+    --ring: var(--brand-600);
+
+    /* ---- Actions ---- */
+    --primary: var(--brand-600);
+    --primary-foreground: oklch(0.99 0 0);
+    --primary-hover: var(--brand-700);
+
+    --secondary: oklch(0.965 0.018 160);
+    --secondary-foreground: var(--brand-800);
+    --secondary-hover: oklch(0.94 0.032 160);
+
+    --accent: var(--gold-400);
+    --accent-foreground: oklch(0.26 0.06 66);
+
+    --success: oklch(0.52 0.11 160);
+    --warning: oklch(0.72 0.145 68);
+    --destructive: oklch(0.54 0.19 27);
+    --destructive-foreground: oklch(0.99 0 0);
+
+    /* ---- Shape & elevation: institutional, not bubbly ---- */
+    --radius: 0.5rem;
+    --radius-sm: 0.375rem;
+    --radius-lg: 0.75rem;
+
+    --shadow-subtle: 0 1px 2px oklch(0.22 0.015 165 / 0.05);
+    --shadow-card: 0 1px 3px oklch(0.22 0.015 165 / 0.07), 0 1px 2px oklch(0.22 0.015 165 / 0.04);
+    --shadow-raised: 0 10px 24px -12px oklch(0.22 0.015 165 / 0.18);
+
+    /* ---- Typography ---- */
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Plus Jakarta Sans Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+    --color-brand-50: var(--brand-50);
+    --color-brand-100: var(--brand-100);
+    --color-brand-200: var(--brand-200);
+    --color-brand-300: var(--brand-300);
+    --color-brand-400: var(--brand-400);
+    --color-brand-500: var(--brand-500);
+    --color-brand-600: var(--brand-600);
+    --color-brand-700: var(--brand-700);
+    --color-brand-800: var(--brand-800);
+    --color-brand-900: var(--brand-900);
+    --color-brand-950: var(--brand-950);
+
+    --color-gold-50: var(--gold-50);
+    --color-gold-100: var(--gold-100);
+    --color-gold-200: var(--gold-200);
+    --color-gold-300: var(--gold-300);
+    --color-gold-400: var(--gold-400);
+    --color-gold-500: var(--gold-500);
+    --color-gold-600: var(--gold-600);
+    --color-gold-700: var(--gold-700);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary-hover: var(--primary-hover);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary-hover: var(--secondary-hover);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+
+    --font-sans: var(--font-sans);
+    --font-display: var(--font-display);
+
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius);
+    --radius-lg: var(--radius-lg);
+
+    --shadow-subtle: var(--shadow-subtle);
+    --shadow-card: var(--shadow-card);
+    --shadow-raised: var(--shadow-raised);
+
+    --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+    * {
+        border-color: var(--color-border);
+    }
+
+    html {
+        -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        font-family: var(--font-sans);
+        font-synthesis-weight: none;
+        text-rendering: optimizeLegibility;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        text-wrap: balance;
+    }
+
+    p {
+        text-wrap: pretty;
+    }
+
+    /* Visible, consistent keyboard focus everywhere. */
+    :focus-visible {
+        outline: 2px solid var(--color-ring);
+        outline-offset: 2px;
+    }
+
+    ::selection {
+        background-color: var(--color-brand-100);
+        color: var(--color-brand-900);
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

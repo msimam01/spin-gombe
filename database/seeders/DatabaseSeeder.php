@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,14 +11,16 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * Only supplied SPIN content is seeded. No placeholder records, sample
+     * projects, news, events, documents or team members are created, and no
+     * test users are inserted — administrator accounts must be created
+     * deliberately for real SPIN staff.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            ProjectComponentSeeder::class,
         ]);
     }
 }
