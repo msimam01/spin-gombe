@@ -174,12 +174,12 @@ return [
      * these as the categories that approved documents will be published into.
      */
     'document_categories' => [
-        ['key' => 'annual', 'label' => 'Annual Reports'],
-        ['key' => 'quarterly', 'label' => 'Quarterly Reports'],
-        ['key' => 'guidelines', 'label' => 'Project Guidelines'],
-        ['key' => 'policy', 'label' => 'Policy Documents'],
-        ['key' => 'training', 'label' => 'Training Materials'],
-        ['key' => 'manuals', 'label' => 'Operational Manuals'],
+        ['key' => 'annual-reports', 'label' => 'Annual Reports'],
+        ['key' => 'quarterly-reports', 'label' => 'Quarterly Reports'],
+        ['key' => 'project-guidelines', 'label' => 'Project Guidelines'],
+        ['key' => 'policy-documents', 'label' => 'Policy Documents'],
+        ['key' => 'training-materials', 'label' => 'Training Materials'],
+        ['key' => 'operational-manuals', 'label' => 'Operational Manuals'],
         ['key' => 'presentations', 'label' => 'Presentations'],
     ],
 

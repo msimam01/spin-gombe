@@ -3,6 +3,7 @@
 use App\Http\Controllers\Site\AboutController;
 use App\Http\Controllers\Site\ComponentsIndexController;
 use App\Http\Controllers\Site\ComponentsShowController;
+use App\Http\Controllers\Site\DocumentDownloadController;
 use App\Http\Controllers\Site\EventsIndexController;
 use App\Http\Controllers\Site\EventsShowController;
 use App\Http\Controllers\Site\HomeController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Site\NewsIndexController;
 use App\Http\Controllers\Site\NewsShowController;
 use App\Http\Controllers\Site\ProjectsIndexController;
 use App\Http\Controllers\Site\ProjectsShowController;
+use App\Http\Controllers\Site\ResourcesIndexController;
 use App\Http\Controllers\Site\SitemapController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,8 +62,16 @@ Route::get('/events/{slug}', EventsShowController::class)
     ->where('slug', '[a-z0-9-]+')
     ->name('events.show');
 
-Route::inertia('/resources', 'Section', ['section' => 'resources'])
+Route::get('/resources', ResourcesIndexController::class)
     ->name('resources.index');
+
+Route::get('/resources/category/{category}', ResourcesIndexController::class)
+    ->where('category', '[a-z0-9-]+')
+    ->name('resources.category');
+
+Route::get('/documents/{document}/download', DocumentDownloadController::class)
+    ->whereNumber('document')
+    ->name('resources.download');
 
 Route::prefix('media')->name('media.')->group(function () {
     Route::redirect('/', '/media/photos')->name('index');

@@ -12,6 +12,9 @@ class PublicWebsiteTest extends TestCase
 {
     use RefreshDatabase;
 
+    /** Run DatabaseSeeder with every refresh (official project content). */
+    protected bool $seed = true;
+
     /**
      * Every named public route must respond successfully and render the
      * Inertia root view with the shared props.
@@ -225,5 +228,91 @@ class PublicWebsiteTest extends TestCase
             ->assertOk()
             ->assertSee(route('news.show', ['slug' => $post->slug]), false)
             ->assertSee(route('events.show', ['slug' => $event->slug]), false);
+    }
+
+    /**
+     * Resources & Documents: the official categories are seeded, the listing
+     * renders with no published documents, drafts stay private, downloads
+     * stream real files, external documents redirect, and invalid identifiers
+     * are 404s.
+     */
+    public function test_resources_listing_categories_and_downloads(): void
+    {
+        // The seven official categories exist and the empty listing renders.
+        $this->assertDatabaseCount('document_categories', 7);
+        $this->get(route('resources.index'))
+            ->assertOk()
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('Resources/Index')
+                    ->has('categories', 7)
+                    ->has('documents', 0)
+            );
+
+        // Category pages render; an unknown category slug is a 404.
+        $this->get(route('resources.category', ['category' => 'annual-reports']))->assertOk();
+        $this->get(route('resources.category', ['category' => 'not-a-category']))->assertNotFound();
+
+        $category = \App\Models\DocumentCategory::query()->where('slug', 'annual-reports')->firstOrFail();
+
+        // Invalid document identifiers are 404s.
+        $this->get(route('resources.download', ['document' => 99999]))->assertNotFound();
+
+        // A draft document is neither listed nor downloadable.
+        $draft = \App\Models\Document::factory()->for($category, 'category')->create();
+        $this->get(route('resources.index'))->assertInertia(fn ($page) => $page->has('documents', 0));
+        $this->get(route('resources.download', ['document' => $draft->id]))->assertNotFound();
+
+        // Publishing makes it visible with its metadata.
+        $draft->forceFill(['status' => 'published', 'published_at' => now()])->save();
+
+        $this->get(route('resources.index'))
+            ->assertOk()
+            ->assertInertia(
+                fn ($page) => $page
+                    ->has('documents', 1)
+                    ->where('documents.0.title', $draft->title)
+                    ->where('documents.0.category.slug', 'annual-reports')
+            );
+
+        $this->get(route('resources.category', ['category' => 'annual-reports']))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('documents', 1));
+
+        // An external document redirects to the official location.
+        $external = \App\Models\Document::factory()->external()->create([
+            'document_category_id' => $category->id,
+        ]);
+        $this->get(route('resources.download', ['document' => $external->id]))
+            ->assertRedirect($external->external_url);
+    }
+
+    /**
+     * An uploaded document file streams as a download under its derived name.
+     */
+    public function test_uploaded_document_downloads(): void
+    {
+        $category = \App\Models\DocumentCategory::query()->where('slug', 'annual-reports')->firstOrFail();
+
+        \Illuminate\Support\Facades\Storage::fake('public');
+        // Content starts with a real PDF signature so content-type detection behaves.
+        \Illuminate\Support\Facades\Storage::disk('public')->put('documents/test/report.pdf', '%PDF-1.4 test');
+
+        $document = \App\Models\Document::factory()->published()->create([
+            'document_category_id' => $category->id,
+            'file_path' => 'documents/test/report.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size' => 14,
+        ]);
+
+        $response = $this->get(route('resources.download', ['document' => $document->id]));
+        $response->assertOk();
+
+        $this->assertStringContainsString('application/pdf', (string) $response->headers->get('Content-Type'));
+        $this->assertFileExists(\Illuminate\Support\Facades\Storage::disk('public')->path($document->file_path));
+
+        // A published record pointing at a missing file is a 404, not an error.
+        $document->forceFill(['file_path' => 'documents/missing/nowhere.pdf'])->save();
+        $this->get(route('resources.download', ['document' => $document->id]))->assertNotFound();
     }
 }

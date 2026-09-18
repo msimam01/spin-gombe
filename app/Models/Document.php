@@ -5,12 +5,14 @@ namespace App\Models;
 use App\Enums\PublicationStatus;
 use App\Models\Concerns\HasPublication;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** An official downloadable document or publication. */
 class Document extends Model
 {
+    use HasFactory;
     use HasPublication;
 
     protected $fillable = [

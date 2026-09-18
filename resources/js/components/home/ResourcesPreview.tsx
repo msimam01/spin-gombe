@@ -16,14 +16,14 @@ import { Reveal } from '@/components/shared/Reveal';
 import { route } from '@/lib/routes';
 import type { SharedProps } from '@/types';
 
-/** Icon per document category, keyed by config key. */
+/** Icon per document category, keyed by category slug. */
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
-    annual: BarChart3,
-    quarterly: FileText,
-    guidelines: BookMarked,
-    policy: ScrollText,
-    training: GraduationCap,
-    manuals: FolderOpen,
+    'annual-reports': BarChart3,
+    'quarterly-reports': FileText,
+    'project-guidelines': BookMarked,
+    'policy-documents': ScrollText,
+    'training-materials': GraduationCap,
+    'operational-manuals': FolderOpen,
     presentations: BookOpenText,
 };
 
@@ -96,7 +96,7 @@ export function ResourcesPreview({
                         <Reveal key={category.key} delay={(index + 1) * 40}>
                             <li className="h-full">
                                 <Link
-                                    href={route('resources.index')}
+                                    href={route('resources.category', { category: category.key })}
                                     className="group flex h-full flex-col gap-3 rounded-md border border-border bg-card p-5 transition-all duration-200 hover:border-brand-300 hover:shadow-card"
                                 >
                                     <span className="flex size-10 items-center justify-center rounded-sm bg-brand-50 text-brand-700 ring-1 ring-brand-100 transition-colors group-hover:bg-background">
@@ -109,7 +109,7 @@ export function ResourcesPreview({
                                         <p className="mt-1 text-xs text-muted-foreground">
                                             {typeof count === 'number'
                                                 ? `${count} published`
-                                                : 'Coming soon'}
+                                                : 'Publications coming soon'}
                                         </p>
                                     </div>
                                 </Link>
