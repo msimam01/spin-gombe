@@ -11,6 +11,7 @@ use App\Models\Photo;
 use App\Models\Project;
 use App\Models\ProjectComponent;
 use App\Models\Video;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,9 +31,7 @@ class HomeController extends Controller
     public function __invoke(): Response
     {
         return Inertia::render('Home', [
-            'components' => ProjectComponentResource::collection(
-                $this->collect(ProjectComponent::query()->published()->ordered())
-            )->resolve(),
+            'components' => $this->publishedComponents(),
 
             'projects' => $this->collect(
                 Project::query()->published()->ordered()->limit(3)
@@ -56,6 +55,26 @@ class HomeController extends Controller
 
             'documentCounts' => $this->documentCounts(),
         ]);
+    }
+
+    /**
+     * Published components with their compact URL slug, so the homepage cards
+     * can link straight to each component's detail page. An empty array when
+     * the table does not exist yet (fresh clone mid-migration).
+     */
+    private function publishedComponents(): array
+    {
+        try {
+            return ProjectComponent::query()
+                ->published()
+                ->ordered()
+                ->get()
+                ->map(fn (ProjectComponent $component) => (new ProjectComponentResource($component))->resolve()
+                    + ['url_slug' => Str::slug($component->short_name ?? $component->name)])
+                ->all();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**

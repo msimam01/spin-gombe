@@ -125,6 +125,8 @@ export interface ProjectComponent {
     name: string;
     short_name: string | null;
     summary: string | null;
+    /** Long-form official description (component detail pages). */
+    description: string | null;
     icon: string | null;
     cover_image: string | null;
     objectives: string[];

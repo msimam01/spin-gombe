@@ -25,6 +25,10 @@ export function normalizePath(url: string): string {
 
 /**
  * Whether a navigation item (or one of its children) matches the current page.
+ *
+ * A section stays active on its nested pages too (e.g. "Components" remains
+ * highlighted on `/components/irrigation-modernization`). The home route only
+ * matches exactly, so `/` never swallows the rest of the site.
  */
 export function isActive(
     currentUrl: string,
@@ -34,5 +38,12 @@ export function isActive(
     const current = normalizePath(currentUrl);
     const names = [routeName, ...(children?.map((child) => child.route) ?? [])];
 
-    return names.some((name) => normalizePath(route(name)) === current);
+    return names.some((name) => {
+        const path = normalizePath(route(name));
+        if (path === '/') {
+            return current === '/';
+        }
+
+        return current === path || current.startsWith(`${path}/`);
+    });
 }

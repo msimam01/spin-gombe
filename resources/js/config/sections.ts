@@ -24,19 +24,6 @@ export interface SectionDefinition {
 }
 
 export const sections: Record<string, SectionDefinition> = {
-    components: {
-        title: 'Project Components',
-        eyebrow: 'What We Do',
-        description:
-            'The four components through which the SPIN Project is implemented in Gombe State.',
-        planned: [
-            'Institutional strengthening and capacity building',
-            'Irrigation modernization',
-            'Dam operations and dam safety improvements',
-            'Project management',
-            'Objectives, activities and related documents for each component',
-        ],
-    },
     projects: {
         title: 'Projects & Activities',
         eyebrow: 'Implementation',

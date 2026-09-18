@@ -13,10 +13,12 @@ use Illuminate\Database\Seeder;
  * Information Collection Form — nothing here is invented, and no additional
  * components are created.
  *
- * They are seeded as DRAFTS on purpose: the text is supplied but not yet
- * editorially approved. Publish each component through the CMS (or by setting
- * `status` to published) once SPIN signs off, and then fill in the objectives
- * and activities the form left open.
+ * The component text is the supplied description; the collection form does
+ * not supply per-component objectives or activities, so none are seeded —
+ * the pages show content-ready empty states until the CMS adds them. The
+ * records are seeded as PUBLISHED: this is the official project information
+ * already on the public site's source document, and the CMS can unpublish or
+ * edit each component at any time.
  */
 class ProjectComponentSeeder extends Seeder
 {
@@ -69,7 +71,8 @@ class ProjectComponentSeeder extends Seeder
                 ['slug' => $component['slug']],
                 [
                     ...$component,
-                    'status' => PublicationStatus::Draft,
+                    'status' => PublicationStatus::Published,
+                    'published_at' => now(),
                     'sort' => $index + 1,
                 ],
             );

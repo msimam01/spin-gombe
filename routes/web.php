@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Site\AboutController;
+use App\Http\Controllers\Site\ComponentsIndexController;
+use App\Http\Controllers\Site\ComponentsShowController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\SitemapController;
 use Illuminate\Support\Facades\Route;
@@ -28,8 +30,11 @@ Route::get('/', HomeController::class)->name('home');
 
 Route::get('/about', AboutController::class)->name('about');
 
-Route::inertia('/components', 'Components', ['section' => 'components'])
-    ->name('components.index');
+Route::get('/components', ComponentsIndexController::class)->name('components.index');
+
+Route::get('/components/{urlSlug}', ComponentsShowController::class)
+    ->where('urlSlug', '[a-z0-9-]+')
+    ->name('components.show');
 
 Route::inertia('/projects-activities', 'Projects', ['section' => 'projects'])
     ->name('projects.index');

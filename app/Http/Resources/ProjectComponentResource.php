@@ -25,6 +25,7 @@ class ProjectComponentResource extends JsonResource
             'name' => $this->name,
             'short_name' => $this->short_name,
             'summary' => $this->summary,
+            'description' => $this->description,
             'icon' => $this->icon,
             'cover_image' => $this->cover_image,
             'objectives' => $this->objectives ?? [],
