@@ -155,6 +155,11 @@ return [
                 .'activities, institutional collaboration, monitoring and reporting, and '
                 .'compliance with project requirements.',
 
+            'His professional interests and areas of expertise include water resources '
+                .'management, irrigation development, dam infrastructure, environmental and '
+                .'social management, rural water supply, climate-resilient infrastructure and '
+                .'sustainable development.',
+
             'Through his combined experience in engineering, public administration and '
                 .'development project coordination, Dr. Kabir is committed to '
                 .'strengthening water infrastructure, improving agricultural '

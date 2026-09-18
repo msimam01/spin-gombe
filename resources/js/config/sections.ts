@@ -24,18 +24,6 @@ export interface SectionDefinition {
 }
 
 export const sections: Record<string, SectionDefinition> = {
-    about: {
-        title: 'About SPIN',
-        eyebrow: 'The Project',
-        description:
-            'Official background, vision, mission and objectives of the SPIN Project in Gombe State.',
-        planned: [
-            'Project background and rationale',
-            'Vision and mission statements',
-            'Project objectives',
-            'Implementing ministry and development partners',
-        ],
-    },
     components: {
         title: 'Project Components',
         eyebrow: 'What We Do',
