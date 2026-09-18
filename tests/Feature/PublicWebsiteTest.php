@@ -509,4 +509,58 @@ class PublicWebsiteTest extends TestCase
         \App\Models\TeamMember::query()->where('is_coordinator', false)->get()
             ->each(fn ($member) => $this->assertNull($member->bio));
     }
+
+    /**
+     * Contact: the official supplied channels render, proper mailto/tel
+     * affordances exist in the page component's data, the office map stays
+     * unconfirmed (no invented coordinates or embed), and the page is listed
+     * in the sitemap.
+     */
+    public function test_contact_page_renders_official_information(): void
+    {
+        $this->get(route('contact'))
+            ->assertOk()
+            ->assertSee(config('spin.contact.email'), false)
+            ->assertSee(config('spin.contact.phone'), false)
+            ->assertSee('No2 Alkaleri Road', false)
+            ->assertInertia(fn ($page) => $page->component('Contact'));
+
+        // The official contact values flow through the shared site config —
+        // exactly as supplied, and usable by the page for mailto:/tel: links.
+        $this->get(route('contact'))
+            ->assertInertia(fn ($page) => $page
+                ->where('site.contact.email', 'spinprojectgombe@gmail.com')
+                ->where('site.contact.phone', '08028744223')
+                ->where('site.contact.address_lines.0', 'No2 Alkaleri Road')
+            );
+
+        // No map has been fabricated: the office pin is unconfirmed, no
+        // coordinates exist, and no map embed URL is rendered.
+        $html = $this->get(route('contact'))->content();
+        $this->assertStringNotContainsString('openstreetmap.org/export/embed', $html);
+        $this->assertStringNotContainsString('google.com/maps', $html);
+
+        $this->get(route('contact'))
+            ->assertInertia(fn ($page) => $page
+                ->where('site.office_map.confirmed', false)
+                ->where('site.office_map.latitude', null)
+                ->where('site.office_map.longitude', null)
+            );
+
+        // The sitemap lists the contact page.
+        $this->get(route('sitemap'))->assertOk()->assertSee(route('contact'), false);
+    }
+
+    /**
+     * Every page shares the official contact details, so mailto/tel links
+     * can be built anywhere without hard-coding values in components.
+     */
+    public function test_official_contact_details_are_shared_with_every_page(): void
+    {
+        $this->get(route('home'))
+            ->assertInertia(fn ($page) => $page
+                ->where('site.contact.email', 'spinprojectgombe@gmail.com')
+                ->where('site.contact.phone', '08028744223')
+            );
+    }
 }

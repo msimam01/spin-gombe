@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Site\AboutController;
 use App\Http\Controllers\Site\ComponentsIndexController;
+use App\Http\Controllers\Site\ContactController;
 use App\Http\Controllers\Site\ComponentsShowController;
 use App\Http\Controllers\Site\DocumentDownloadController;
 use App\Http\Controllers\Site\EventsIndexController;
@@ -92,7 +93,7 @@ Route::prefix('media')->name('media.')->group(function () {
 
 Route::get('/team', TeamController::class)->name('team');
 
-Route::inertia('/contact', 'Section', ['section' => 'contact'])->name('contact');
+Route::get('/contact', ContactController::class)->name('contact');
 
 // SEO
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
