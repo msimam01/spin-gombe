@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event;
+use App\Models\NewsPost;
+use App\Models\Project;
 use App\Models\ProjectComponent;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
@@ -65,8 +68,58 @@ class SitemapController extends Controller
             // No component table yet — the static routes above are enough.
         }
 
-        // Reserved for later phases: published CMS pages, projects, news and
-        // events will be appended here once their routes exist.
+        // Published news detail pages.
+        try {
+            NewsPost::query()
+                ->published()
+                ->latestFirst()
+                ->get(['slug'])
+                ->each(function (NewsPost $post) use (&$urls) {
+                    $urls[] = [
+                        'loc' => route('news.show', ['slug' => $post->slug]),
+                        'changefreq' => 'monthly',
+                        'priority' => '0.6',
+                    ];
+                });
+        } catch (\Throwable) {
+            // No news table yet.
+        }
+
+        // Published event detail pages.
+        try {
+            Event::query()
+                ->published()
+                ->get(['slug'])
+                ->each(function (Event $event) use (&$urls) {
+                    $urls[] = [
+                        'loc' => route('events.show', ['slug' => $event->slug]),
+                        'changefreq' => 'monthly',
+                        'priority' => '0.6',
+                    ];
+                });
+        } catch (\Throwable) {
+            // No events table yet.
+        }
+
+        // Published project and activity detail pages.
+        try {
+            Project::query()
+                ->published()
+                ->ordered()
+                ->get(['slug'])
+                ->each(function (Project $project) use (&$urls) {
+                    $urls[] = [
+                        'loc' => route('projects.show', ['slug' => $project->slug]),
+                        'changefreq' => 'monthly',
+                        'priority' => '0.6',
+                    ];
+                });
+        } catch (\Throwable) {
+            // No project table yet.
+        }
+
+        // Reserved for later phases: published CMS pages will be appended
+        // here once their routes exist.
 
         return response()
             ->view('sitemap', ['urls' => $urls])

@@ -36,26 +36,6 @@ export const sections: Record<string, SectionDefinition> = {
             'Project and intervention location map',
         ],
     },
-    news: {
-        title: 'News & Updates',
-        eyebrow: 'Latest',
-        description: 'Official news, updates and announcements from the SPIN Project in Gombe State.',
-        planned: [
-            'Official news and press updates',
-            'Project milestones and field reports',
-            'Announcements',
-        ],
-    },
-    events: {
-        title: 'Events',
-        eyebrow: 'Calendar',
-        description: 'Upcoming and past SPIN Project events, engagements and stakeholder activities.',
-        planned: [
-            'Upcoming events with date and venue',
-            'Past events archive',
-            'Related photographs and reports',
-        ],
-    },
     resources: {
         title: 'Resources & Documents',
         eyebrow: 'Publications',

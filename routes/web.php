@@ -3,7 +3,13 @@
 use App\Http\Controllers\Site\AboutController;
 use App\Http\Controllers\Site\ComponentsIndexController;
 use App\Http\Controllers\Site\ComponentsShowController;
+use App\Http\Controllers\Site\EventsIndexController;
+use App\Http\Controllers\Site\EventsShowController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\NewsIndexController;
+use App\Http\Controllers\Site\NewsShowController;
+use App\Http\Controllers\Site\ProjectsIndexController;
+use App\Http\Controllers\Site\ProjectsShowController;
 use App\Http\Controllers\Site\SitemapController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,27 +42,36 @@ Route::get('/components/{urlSlug}', ComponentsShowController::class)
     ->where('urlSlug', '[a-z0-9-]+')
     ->name('components.show');
 
-Route::inertia('/projects-activities', 'Projects', ['section' => 'projects'])
-    ->name('projects.index');
+Route::get('/projects', ProjectsIndexController::class)->name('projects.index');
 
-Route::inertia('/news-updates', 'News', ['section' => 'news'])
-    ->name('news.index');
+Route::get('/projects/{slug}', ProjectsShowController::class)
+    ->where('slug', '[a-z0-9-]+')
+    ->name('projects.show');
 
-Route::inertia('/events', 'Events', ['section' => 'events'])
-    ->name('events.index');
+Route::get('/news', NewsIndexController::class)->name('news.index');
 
-Route::inertia('/resources', 'Resources', ['section' => 'resources'])
+Route::get('/news/{slug}', NewsShowController::class)
+    ->where('slug', '[a-z0-9-]+')
+    ->name('news.show');
+
+Route::get('/events', EventsIndexController::class)->name('events.index');
+
+Route::get('/events/{slug}', EventsShowController::class)
+    ->where('slug', '[a-z0-9-]+')
+    ->name('events.show');
+
+Route::inertia('/resources', 'Section', ['section' => 'resources'])
     ->name('resources.index');
 
 Route::prefix('media')->name('media.')->group(function () {
     Route::redirect('/', '/media/photos')->name('index');
-    Route::inertia('/photos', 'Media/Photos', ['section' => 'media.photos'])->name('photos');
-    Route::inertia('/videos', 'Media/Videos', ['section' => 'media.videos'])->name('videos');
+    Route::inertia('/photos', 'Section', ['section' => 'media.photos'])->name('photos');
+    Route::inertia('/videos', 'Section', ['section' => 'media.videos'])->name('videos');
 });
 
-Route::inertia('/team', 'Team', ['section' => 'team'])->name('team');
+Route::inertia('/team', 'Section', ['section' => 'team'])->name('team');
 
-Route::inertia('/contact', 'Contact', ['section' => 'contact'])->name('contact');
+Route::inertia('/contact', 'Section', ['section' => 'contact'])->name('contact');
 
 // SEO
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');

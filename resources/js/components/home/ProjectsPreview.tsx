@@ -35,7 +35,10 @@ export function ProjectsPreview({ projects }: { projects: Project[] }) {
                 <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {projects.map((project) => (
                         <li key={project.id}>
-                            <article className="group h-full rounded-md border border-border bg-card shadow-card transition-all duration-200 hover:border-brand-300 hover:shadow-raised">
+                            <Link
+                                href={route('projects.show', { slug: project.slug })}
+                                className="group block h-full rounded-md border border-border bg-card shadow-card transition-all duration-200 hover:border-brand-300 hover:shadow-raised"
+                            >
                                 {project.cover_image && (
                                     <img
                                         src={project.cover_image}
@@ -55,8 +58,12 @@ export function ProjectsPreview({ projects }: { projects: Project[] }) {
                                             {project.summary}
                                         </p>
                                     )}
+                                    <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+                                        View details
+                                        <ArrowRight aria-hidden="true" className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                                    </span>
                                 </div>
-                            </article>
+                            </Link>
                         </li>
                     ))}
                 </ul>

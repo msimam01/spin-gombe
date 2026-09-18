@@ -83,4 +83,147 @@ class PublicWebsiteTest extends TestCase
             );
         }
     }
+
+    /**
+     * Projects & Activities: the listing renders even with no published
+     * records, drafts never appear, and a published record resolves with its
+     * component and location data.
+     */
+    public function test_projects_listing_and_detail_pages(): void
+    {
+        // No published projects yet: the listing still renders.
+        $this->get(route('projects.index'))->assertOk();
+
+        // An unknown slug is a 404, never an error page.
+        $this->get(route('projects.show', ['slug' => 'missing-project']))->assertNotFound();
+
+        // A draft project must not be reachable on the public site.
+        $component = \App\Models\ProjectComponent::factory()->create();
+        $draft = \App\Models\Project::factory()->for($component, 'component')->create();
+        $this->get(route('projects.show', ['slug' => $draft->slug]))->assertNotFound();
+
+        // Publishing the record makes it (and its component) public.
+        $draft->forceFill(['status' => 'published', 'published_at' => now()])->save();
+
+        $this->get(route('projects.index'))
+            ->assertOk()
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('Projects/Index')
+                    ->has('projects', 1)
+                    ->has('projects.0.component')
+            );
+
+        $this->get(route('projects.show', ['slug' => $draft->slug]))
+            ->assertOk()
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('Projects/Show')
+                    ->where('project.slug', $draft->slug)
+                    ->where('project.component.name', fn ($value) => is_string($value) && $value !== '')
+            );
+    }
+
+    /**
+     * The sitemap includes published component and project detail pages.
+     */
+    public function test_sitemap_includes_published_details(): void
+    {
+        $component = \App\Models\ProjectComponent::factory()->create();
+        \App\Models\Project::factory()
+            ->for($component, 'component')
+            ->create(['status' => 'published', 'published_at' => now()]);
+
+        $this->get(route('sitemap'))
+            ->assertOk()
+            ->assertSee(route('components.show', ['urlSlug' => \Illuminate\Support\Str::slug($component->short_name)]), false)
+            ->assertSee(route('projects.show', ['slug' => \App\Models\Project::first()->slug]), false);
+    }
+
+    /**
+     * News & Updates: the listing renders with no published records, drafts
+     * stay private, and a published post resolves with its component.
+     */
+    public function test_news_listing_and_detail_pages(): void
+    {
+        $this->get(route('news.index'))->assertOk();
+
+        $this->get(route('news.show', ['slug' => 'missing-news']))->assertNotFound();
+
+        $component = \App\Models\ProjectComponent::factory()->create();
+        $post = \App\Models\NewsPost::factory()->for($component, 'component')->create();
+
+        // Draft (or future-dated) news is never public.
+        $this->get(route('news.show', ['slug' => $post->slug]))->assertNotFound();
+
+        $post->forceFill(['status' => 'published', 'published_at' => now()])->save();
+
+        $this->get(route('news.index'))
+            ->assertOk()
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('News/Index')
+                    ->has('posts', 1)
+                    ->has('posts.0.component')
+            );
+
+        $this->get(route('news.show', ['slug' => $post->slug]))
+            ->assertOk()
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('News/Show')
+                    ->where('post.slug', $post->slug)
+                    ->where('post.component.name', fn ($value) => is_string($value) && $value !== '')
+            );
+    }
+
+    /**
+     * Events: the listing renders with no published records, drafts stay
+     * private, upcoming/past are classified by each event's own date, and a
+     * published detail resolves with its payload.
+     */
+    public function test_events_listing_and_detail_pages(): void
+    {
+        $this->get(route('events.index'))->assertOk();
+
+        $this->get(route('events.show', ['slug' => 'missing-event']))->assertNotFound();
+
+        $upcoming = \App\Models\Event::factory()->upcoming()->create();
+        $past = \App\Models\Event::factory()->past()->create();
+
+        $this->get(route('events.index'))
+            ->assertOk()
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('Events/Index')
+                    ->has('upcoming', 1)
+                    ->has('past', 1)
+            );
+
+        $this->get(route('events.show', ['slug' => $upcoming->slug]))
+            ->assertOk()
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('Events/Show')
+                    ->where('event.slug', $upcoming->slug)
+            );
+
+        // Drafts are never public.
+        $draft = \App\Models\Event::factory()->create();
+        $this->get(route('events.show', ['slug' => $draft->slug]))->assertNotFound();
+    }
+
+    /**
+     * The sitemap includes published news and event detail pages.
+     */
+    public function test_sitemap_includes_news_and_events(): void
+    {
+        $post = \App\Models\NewsPost::factory()->published()->create();
+        $event = \App\Models\Event::factory()->upcoming()->create();
+
+        $this->get(route('sitemap'))
+            ->assertOk()
+            ->assertSee(route('news.show', ['slug' => $post->slug]), false)
+            ->assertSee(route('events.show', ['slug' => $event->slug]), false);
+    }
 }

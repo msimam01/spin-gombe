@@ -64,11 +64,14 @@ export function NewsEventsPreview({
                                 <ul className="flex flex-1 flex-col divide-y divide-border">
                                     {news.slice(0, 3).map((post) => (
                                         <li key={post.id}>
-                                            <article className="group py-4">
+                                            <Link
+                                                href={route('news.show', { slug: post.slug })}
+                                                className="group block py-4"
+                                            >
                                                 <p className="text-xs font-medium text-muted-foreground">
                                                     {formatDate(post.published_at)}
                                                 </p>
-                                                <h4 className="mt-1 text-base leading-snug font-semibold text-foreground group-hover:text-brand-800">
+                                                <h4 className="mt-1 text-base leading-snug font-semibold text-foreground transition-colors group-hover:text-brand-800">
                                                     {post.title}
                                                 </h4>
                                                 {post.excerpt && (
@@ -76,7 +79,7 @@ export function NewsEventsPreview({
                                                         {post.excerpt}
                                                     </p>
                                                 )}
-                                            </article>
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>
@@ -112,18 +115,23 @@ export function NewsEventsPreview({
                                 <ul className="flex flex-1 flex-col divide-y divide-border">
                                     {events.slice(0, 3).map((event) => (
                                         <li key={event.id} className="group py-4">
-                                            <p className="text-xs font-medium text-muted-foreground">
-                                                {formatDate(event.starts_at)}
-                                                {event.venue ? ` · ${event.venue}` : ''}
-                                            </p>
-                                            <h4 className="mt-1 text-base leading-snug font-semibold text-foreground">
-                                                {event.title}
-                                            </h4>
-                                            {event.description && (
-                                                <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                                                    {event.description}
+                                            <Link
+                                                href={route('events.show', { slug: event.slug })}
+                                                className="block"
+                                            >
+                                                <p className="text-xs font-medium text-muted-foreground">
+                                                    {formatDate(event.starts_at)}
+                                                    {event.venue ? ` · ${event.venue}` : ''}
                                                 </p>
-                                            )}
+                                                <h4 className="mt-1 text-base leading-snug font-semibold text-foreground transition-colors group-hover:text-brand-800">
+                                                    {event.title}
+                                                </h4>
+                                                {event.description && (
+                                                    <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                                                        {event.description}
+                                                    </p>
+                                                )}
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>

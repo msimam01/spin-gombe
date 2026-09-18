@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PublicationStatus;
 use App\Models\Concerns\HasPublication;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -12,7 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class ProjectComponent extends Model
 {
-    use HasPublication;
+    /** @use HasFactory<ProjectComponentFactory> */
+    use HasFactory, HasPublication;
 
     protected $fillable = [
         'slug',
