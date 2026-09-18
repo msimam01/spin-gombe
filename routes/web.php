@@ -6,13 +6,18 @@ use App\Http\Controllers\Site\ComponentsShowController;
 use App\Http\Controllers\Site\DocumentDownloadController;
 use App\Http\Controllers\Site\EventsIndexController;
 use App\Http\Controllers\Site\EventsShowController;
+use App\Http\Controllers\Site\GalleryShowController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\MediaHubController;
+use App\Http\Controllers\Site\MediaPhotosController;
+use App\Http\Controllers\Site\MediaVideosController;
 use App\Http\Controllers\Site\NewsIndexController;
 use App\Http\Controllers\Site\NewsShowController;
 use App\Http\Controllers\Site\ProjectsIndexController;
 use App\Http\Controllers\Site\ProjectsShowController;
 use App\Http\Controllers\Site\ResourcesIndexController;
 use App\Http\Controllers\Site\SitemapController;
+use App\Http\Controllers\Site\TeamController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -74,12 +79,18 @@ Route::get('/documents/{document}/download', DocumentDownloadController::class)
     ->name('resources.download');
 
 Route::prefix('media')->name('media.')->group(function () {
-    Route::redirect('/', '/media/photos')->name('index');
-    Route::inertia('/photos', 'Section', ['section' => 'media.photos'])->name('photos');
-    Route::inertia('/videos', 'Section', ['section' => 'media.videos'])->name('videos');
+    Route::get('/', MediaHubController::class)->name('index');
+
+    Route::get('/photos', MediaPhotosController::class)->name('photos');
+
+    Route::get('/photos/{gallery}', GalleryShowController::class)
+        ->where('gallery', '[a-z0-9-]+')
+        ->name('galleries.show');
+
+    Route::get('/videos', MediaVideosController::class)->name('videos');
 });
 
-Route::inertia('/team', 'Section', ['section' => 'team'])->name('team');
+Route::get('/team', TeamController::class)->name('team');
 
 Route::inertia('/contact', 'Section', ['section' => 'contact'])->name('contact');
 

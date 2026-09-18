@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Enums\PublicationStatus;
 use App\Models\Concerns\HasPublication;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** A photograph in the media library. */
 class Photo extends Model
 {
-    use HasPublication;
+    use HasFactory, HasPublication;
 
     protected $fillable = [
         'gallery_id',

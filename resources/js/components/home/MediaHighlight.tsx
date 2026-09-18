@@ -30,7 +30,7 @@ export function MediaHighlight({
             tone="tint"
             action={
                 <Link
-                    href={route('media.photos')}
+                    href={route('media.index')}
                     className="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-brand-700"
                 >
                     Visit the media centre
@@ -60,9 +60,10 @@ export function MediaHighlight({
                             {[firstPhoto, ...morePhotos.slice(0, 5)].map((photo) => (
                                 <img
                                     key={photo.id}
-                                    src={photo.url ?? photo.image_path ?? ''}
-                                    alt={photo.alt_text ?? ''}
+                                    src={photo.url ?? ''}
+                                    alt={photo.alt_text || photo.caption || 'SPIN Gombe project photograph'}
                                     className="aspect-square w-full rounded-sm object-cover"
+                                    loading="lazy"
                                 />
                             ))}
                         </div>
@@ -103,12 +104,7 @@ export function MediaHighlight({
                             {videos.slice(0, 2).map((video) => (
                                 <li key={video.id}>
                                     <a
-                                        href={
-                                            video.youtube_url ??
-                                            (video.youtube_id
-                                                ? `https://www.youtube.com/watch?v=${video.youtube_id}`
-                                                : '#')
-                                        }
+                                        href={video.watch_url ?? undefined}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="group flex items-center gap-4 rounded-md border border-border p-3 transition-colors hover:border-brand-300"

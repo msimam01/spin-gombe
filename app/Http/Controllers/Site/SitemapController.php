@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\Gallery;
 use App\Models\NewsPost;
 use App\Models\Project;
 use App\Models\ProjectComponent;
@@ -30,6 +31,7 @@ class SitemapController extends Controller
         'news.index',
         'events.index',
         'resources.index',
+        'media.index',
         'media.photos',
         'media.videos',
         'team',
@@ -116,6 +118,23 @@ class SitemapController extends Controller
                 });
         } catch (\Throwable) {
             // No project table yet.
+        }
+
+        // Published gallery detail pages.
+        try {
+            Gallery::query()
+                ->published()
+                ->ordered()
+                ->get(['slug'])
+                ->each(function (Gallery $gallery) use (&$urls) {
+                    $urls[] = [
+                        'loc' => route('media.galleries.show', ['gallery' => $gallery->slug]),
+                        'changefreq' => 'monthly',
+                        'priority' => '0.6',
+                    ];
+                });
+        } catch (\Throwable) {
+            // No gallery table yet.
         }
 
         // Reserved for later phases: published CMS pages will be appended

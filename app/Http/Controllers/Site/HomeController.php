@@ -95,12 +95,18 @@ class HomeController extends Controller
                 'description' => $model->description ?? null,
                 'venue' => $model->venue ?? null,
                 'image_path' => $model->image_path ?? null,
-                'url' => $model->url ?? null,
+                'url' => $model instanceof \App\Models\Photo && $model->image_path
+                    ? asset('storage/'.$model->image_path)
+                    : ($model->url ?? null),
                 'alt_text' => $model->alt_text ?? null,
                 'caption' => $model->caption ?? null,
                 'cover_image' => $model->cover_image ?? null,
                 'youtube_url' => $model->youtube_url ?? null,
                 'youtube_id' => $model->youtube_id ?? null,
+                'watch_url' => $model->youtube_id
+                    ? "https://www.youtube.com/watch?v={$model->youtube_id}"
+                    : ($model->youtube_url ?? null),
+                'embed_url' => method_exists($model, 'embedUrl') ? $model->embedUrl() : null,
                 'thumbnail_url' => method_exists($model, 'thumbnailUrl') ? $model->thumbnailUrl() : null,
                 'starts_at' => $model->starts_at?->toIso8601String(),
                 'published_at' => isset($model->published_at) && $model->published_at

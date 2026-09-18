@@ -27,7 +27,7 @@ return [
         ['label' => 'Resources', 'route' => 'resources.index'],
         [
             'label' => 'Media',
-            'route' => 'media.photos',
+            'route' => 'media.index',
             'children' => [
                 ['label' => 'Photo Gallery', 'route' => 'media.photos', 'description' => 'Staff, activities and programme events'],
                 ['label' => 'Video Gallery', 'route' => 'media.videos', 'description' => 'Official project video coverage'],

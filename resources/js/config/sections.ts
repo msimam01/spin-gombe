@@ -36,46 +36,6 @@ export const sections: Record<string, SectionDefinition> = {
             'Project and intervention location map',
         ],
     },
-    resources: {
-        title: 'Resources & Documents',
-        eyebrow: 'Publications',
-        description: 'Official SPIN Project documents and publications available for download.',
-        planned: [
-            'Annual and quarterly reports',
-            'Project guidelines and policy documents',
-            'Training materials and operational manuals',
-            'Presentations',
-            'Filtering and search by document category',
-        ],
-    },
-    'media.photos': {
-        title: 'Photo Gallery',
-        eyebrow: 'Media',
-        description: 'Photographs of the SPIN Project, its staff, events and field activities.',
-        planned: [
-            'Staff photographs',
-            'Project activity photographs',
-            'Programme and event coverage',
-            'Field activity coverage',
-        ],
-    },
-    'media.videos': {
-        title: 'Video Gallery',
-        eyebrow: 'Media',
-        description: 'Official SPIN Project videos and documentary coverage.',
-        planned: ['Official project videos', 'Activity and event coverage', 'Documentary features'],
-    },
-    team: {
-        title: 'Project Team',
-        eyebrow: 'People',
-        description:
-            'The SPIN Gombe State Project Coordination team, led by the State Project Coordinator.',
-        planned: [
-            'State Project Coordinator profile',
-            'Key management team members and their roles',
-            'Office contact information',
-        ],
-    },
     contact: {
         title: 'Contact Us',
         eyebrow: 'Get in Touch',

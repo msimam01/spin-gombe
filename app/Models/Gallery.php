@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PublicationStatus;
 use App\Models\Concerns\HasPublication;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** A photo gallery grouping related photographs. */
 class Gallery extends Model
 {
-    use HasPublication;
+    use HasFactory, HasPublication;
 
     protected $fillable = [
         'slug',

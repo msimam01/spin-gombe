@@ -42,9 +42,16 @@ class PublicWebsiteTest extends TestCase
         }
     }
 
-    public function test_media_index_redirects_to_photo_gallery(): void
+    public function test_media_index_renders_the_media_hub(): void
     {
-        $this->get(route('media.index'))->assertRedirect(route('media.photos'));
+        $this->get(route('media.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Media/Index')
+                ->has('galleries', 0)
+                ->has('photos', 0)
+                ->has('videos', 0)
+            );
     }
 
     public function test_sitemap_lists_public_routes(): void
@@ -314,5 +321,192 @@ class PublicWebsiteTest extends TestCase
         // A published record pointing at a missing file is a 404, not an error.
         $document->forceFill(['file_path' => 'documents/missing/nowhere.pdf'])->save();
         $this->get(route('resources.download', ['document' => $document->id]))->assertNotFound();
+    }
+
+    /**
+     * Media: photo galleries and videos behave like every other content type
+     * — listings render when empty, drafts stay private, published records
+     * resolve with their payload, and a missing photo file degrades to the
+     * designed placeholder instead of a broken image.
+     */
+    public function test_media_galleries_and_videos(): void
+    {
+        // All three media pages render with no published records.
+        foreach (['media.index', 'media.photos', 'media.videos'] as $name) {
+            $this->get(route($name))->assertOk();
+        }
+
+        // Unknown gallery slugs are 404s, never error pages.
+        $this->get(route('media.galleries.show', ['gallery' => 'missing-album']))->assertNotFound();
+
+        $gallery = \App\Models\Gallery::factory()->create();
+        $photoInAlbum = \App\Models\Photo::factory()->for($gallery, 'gallery')->create();
+        \App\Models\Photo::factory()->create(); // loose, also draft
+
+        // Drafts are invisible in listings and the album is unreachable.
+        $this->get(route('media.photos'))->assertInertia(fn ($page) => $page
+            ->component('Media/Photos')
+            ->has('galleries', 0)
+            ->has('photos', 0)
+        );
+        $this->get(route('media.galleries.show', ['gallery' => $gallery->slug]))->assertNotFound();
+
+        // Publishing exposes the album, its photo and the loose photo.
+        $gallery->forceFill(['status' => 'published', 'published_at' => now()])->save();
+        $photoInAlbum->forceFill(['status' => 'published', 'published_at' => now()])->save();
+        \App\Models\Photo::query()->whereNull('gallery_id')->firstOrFail()
+            ->forceFill(['status' => 'published', 'published_at' => now()])->save();
+
+        $this->get(route('media.photos'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Media/Photos')
+                ->has('galleries', 1)
+                ->has('galleries.0.cover')
+                ->where('galleries.0.photo_count', 1)
+                ->has('photos', 1)
+            );
+
+        $this->get(route('media.galleries.show', ['gallery' => $gallery->slug]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Media/GalleryShow')
+                ->where('gallery.slug', $gallery->slug)
+                ->has('gallery.photos', 1)
+            );
+
+        // A published photo pointing at a missing file degrades gracefully:
+        // the record is still listed, but its URL resolves to null instead
+        // of a broken image link, while a real file resolves normally.
+        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::disk('public')->put('photos/test/real.jpg', 'jpeg-bytes');
+        $withFile = \App\Models\Photo::factory()->published()->create(['image_path' => 'photos/test/real.jpg']);
+        $missing = \App\Models\Photo::factory()->published()->create(['image_path' => 'photos/missing/nowhere.jpg']);
+
+        $this->get(route('media.photos'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('photos', 3)
+                ->where('photos.1.url', fn ($url) => is_string($url) && str_contains($url, 'photos/test/real.jpg'))
+                ->where('photos.2.url', null)
+            );
+
+        $withFile->delete();
+        $missing->delete();
+
+        // Videos: drafts stay private; published videos resolve with a safe
+        // nocookie embed URL derived from their official YouTube reference.
+        $video = \App\Models\Video::factory()->create();
+        $this->get(route('media.videos'))->assertInertia(fn ($page) => $page->has('videos', 0));
+
+        $video->forceFill(['status' => 'published', 'published_at' => now()])->save();
+
+        $this->get(route('media.videos'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('videos', 1)
+                ->where('videos.0.title', $video->title)
+                ->where('videos.0.embed_url', 'https://www.youtube-nocookie.com/embed/'.$video->youtube_id)
+            );
+
+        $this->get(route('media.index'))->assertInertia(fn ($page) => $page
+            ->has('galleries', 1)
+            ->has('videos', 1)
+        );
+
+        // The sitemap lists the hub and the published album.
+        $this->get(route('sitemap'))
+            ->assertOk()
+            ->assertSee(route('media.index'), false)
+            ->assertSee(route('media.galleries.show', ['gallery' => $gallery->slug]), false);
+    }
+
+    /**
+     * Homepage media links resolve to the real Phase 8 routes. The homepage
+     * renders client-side from Inertia props, so the server-side guarantees
+     * are: the routes exist and the shared navigation exposes them.
+     */
+    public function test_homepage_media_links_resolve(): void
+    {
+        foreach (['media.index', 'media.photos', 'media.videos'] as $name) {
+            $this->assertTrue(app('router')->has($name), "Route [{$name}] is missing.");
+        }
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Home')
+                ->has('navigation.primary')
+                ->where('navigation.primary.7.route', 'media.index')
+                ->has('navigation.primary.7.children', 2)
+            );
+    }
+
+    /**
+     * Team: the supplied members are seeded and published, the coordinator
+     * leads the page with his supplied biography, drafts stay private, and
+     * personal email/phone numbers never appear in the public payload.
+     */
+    public function test_team_page_and_member_privacy(): void
+    {
+        // The official team was seeded by DatabaseSeeder (21 supplied rows,
+        // one duplicated in the form — 20 unique members).
+        $this->assertDatabaseCount('team_members', 20);
+
+        $this->get(route('team'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Team')
+                ->has('coordinator')
+                ->where('coordinator.is_coordinator', true)
+                ->has('coordinator.bio', 6)
+                ->has('team', 19)
+                ->where('team.0.is_coordinator', false)
+            );
+
+        // The coordinator renders with his official name and supplied bio.
+        $this->get(route('team'))
+            ->assertSee('Engr. Dr. Mohammed Kabir Aliyu', false)
+            ->assertSee('State Project Coordinator', false);
+
+        // Personal contact details are never serialised publicly (the
+        // official project-office email in the footer is intentional and
+        // does not belong to any team member).
+        $html = $this->get(route('team'))->content();
+        $this->assertStringNotContainsString('mk4aliyu@gmail.com', $html);
+        $this->assertStringNotContainsString('Habilmuhammad35@gmail.com', $html);
+        $this->assertStringNotContainsString('09068774040', $html);
+
+        // A draft member never appears on the public page.
+        $draft = \App\Models\TeamMember::factory()->create(['sort' => 999]);
+        $this->get(route('team'))
+            ->assertInertia(fn ($page) => $page->has('team', 19));
+
+        // Publishing exposes the member with only public fields (sorted last
+        // via its manual display order). The hidden email/phone keys are
+        // absent from the payload entirely — never merely nulled.
+        $draft->forceFill(['status' => 'published', 'published_at' => now()])->save();
+        $this->get(route('team'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('team', 20)
+                ->where('team.19.name', $draft->name)
+                ->missing('team.19.email')
+                ->missing('team.19.phone')
+            );
+    }
+
+    /**
+     * A supplied coordinator record carries the official biography from
+     * config; team records without supplied biographies stay null — nothing
+     * is invented.
+     */
+    public function test_team_biographies_are_not_invented(): void
+    {
+        $coordinator = \App\Models\TeamMember::query()->where('is_coordinator', true)->firstOrFail();
+        $this->assertNotNull($coordinator->bio);
+
+        \App\Models\TeamMember::query()->where('is_coordinator', false)->get()
+            ->each(fn ($member) => $this->assertNull($member->bio));
     }
 }

@@ -164,22 +164,49 @@ export interface Project {
     cover_image: string | null;
 }
 
-/** Public shape of a photo (homepage media preview). */
+/** A photograph as delivered by PhotoResource. */
 export interface Photo {
     id: number;
-    image_path: string | null;
-    url?: string | null;
+    url: string | null;
     alt_text: string | null;
     caption: string | null;
+    credit?: string | null;
+    taken_on?: string | null;
 }
 
-/** Public shape of a video (homepage media preview). */
+/** A gallery as delivered by GalleryResource (cover carries its first photo). */
+export interface Gallery {
+    id: number;
+    slug: string;
+    title: string;
+    description: string | null;
+    cover: Photo | null;
+    photo_count: number;
+    date: string | null;
+    photos?: Photo[];
+}
+
+/** A team member as delivered by TeamMemberResource (contact fields are private). */
+export interface TeamMember {
+    id: number;
+    name: string;
+    position: string;
+    department: string | null;
+    bio: string[] | null;
+    photo_url: string | null;
+    is_coordinator: boolean;
+}
+
+/** A video as delivered by VideoResource (embed_url is always nocookie). */
 export interface Video {
     id: number;
     title: string;
-    youtube_url: string | null;
+    description: string | null;
     youtube_id: string | null;
-    thumbnail_url?: string | null;
+    watch_url: string | null;
+    embed_url: string | null;
+    thumbnail_url: string | null;
+    published_on?: string | null;
 }
 
 /** Props present on every Inertia page. */
