@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Contracts\Publishable;
 use App\Enums\PublicationStatus;
 use App\Models\Concerns\HasPublication;
+use App\Models\Concerns\HasPublishing;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,10 +15,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * A project or an activity (see `type`).
  */
-class Project extends Model
+class Project extends Model implements Publishable
 {
     /** @use HasFactory<ProjectFactory> */
-    use HasFactory, HasPublication;
+    use HasFactory, HasPublication, HasPublishing;
 
     public const TYPE_PROJECT = 'project';
 

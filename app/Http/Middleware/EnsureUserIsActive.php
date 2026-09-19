@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
+
+/**
+ * Deactivated accounts cannot proceed.
+ *
+ * Checked server-side on every authenticated admin request so toggling
+ * `is_active` in the database takes effect immediately, regardless of what
+ * the browser shows.
+ */
+class EnsureUserIsActive
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if ($request->user() && ! $request->user()->is_active) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->to(route('admin.login', absolute: false))
+                ->with('error', 'This account has been deactivated.');
+        }
+
+        return $next($request);
+    }
+}

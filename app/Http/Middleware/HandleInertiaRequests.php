@@ -39,9 +39,9 @@ class HandleInertiaRequests extends Middleware
             // SEO defaults used when a page does not override them.
             'seo' => fn () => config('spin.seo'),
 
-            // Reserved for the administration area (role-based access).
-            'auth' => [
-                'user' => null,
+            // Administration area (role-based access).
+            'auth' => fn () => [
+                'user' => $request->user()?->only(['id', 'name', 'role']),
             ],
 
             'flash' => fn () => [

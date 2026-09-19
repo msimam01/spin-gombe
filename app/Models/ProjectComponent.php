@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Contracts\Publishable;
 use App\Enums\PublicationStatus;
 use App\Models\Concerns\HasPublication;
+use App\Models\Concerns\HasPublishing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,10 +13,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One of the four official SPIN project components.
  */
-class ProjectComponent extends Model
+class ProjectComponent extends Model implements Publishable
 {
     /** @use HasFactory<ProjectComponentFactory> */
-    use HasFactory, HasPublication;
+    use HasFactory, HasPublication, HasPublishing;
 
     protected $fillable = [
         'slug',

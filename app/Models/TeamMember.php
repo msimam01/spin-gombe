@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Contracts\Publishable;
 use App\Enums\PublicationStatus;
 use App\Models\Concerns\HasPublication;
+use App\Models\Concerns\HasPublishing;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,9 +16,9 @@ use Illuminate\Database\Eloquent\Model;
  * Email and phone are private by default: they are only exposed publicly when
  * SPIN explicitly enables `show_public_contact` for that person.
  */
-class TeamMember extends Model
+class TeamMember extends Model implements Publishable
 {
-    use HasFactory, HasPublication;
+    use HasFactory, HasPublication, HasPublishing;
 
     protected $fillable = [
         'name',

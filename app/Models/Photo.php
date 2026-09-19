@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use App\Contracts\Publishable;
 use App\Enums\PublicationStatus;
 use App\Models\Concerns\HasPublication;
+use App\Models\Concerns\HasPublishing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** A photograph in the media library. */
-class Photo extends Model
+class Photo extends Model implements Publishable
 {
-    use HasFactory, HasPublication;
+    use HasFactory, HasPublication, HasPublishing;
 
     protected $fillable = [
         'gallery_id',

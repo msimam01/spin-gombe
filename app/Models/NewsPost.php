@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+use App\Contracts\Publishable;
 use App\Enums\PublicationStatus;
 use App\Models\Concerns\HasPublication;
+use App\Models\Concerns\HasPublishing;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** A news item or update. */
-class NewsPost extends Model
+class NewsPost extends Model implements Publishable
 {
     use HasFactory;
     use HasPublication;
+    use HasPublishing;
 
     protected $fillable = [
         'slug',
