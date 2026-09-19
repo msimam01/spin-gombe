@@ -76,8 +76,8 @@ Fortify, Jetstream, Sanctum, Spatie). Only raw material existed:
 - `EnsureUserIsActive` middleware — rejects deactivated accounts (server-side, not UI hiding).
 - `AdminAuthenticate` middleware — redirects guests to `admin.login`, non-administrators to `admin.login` with an error.
 - `Authenticate` rewritten to redirect unauthenticated web users to `admin.login` (no public auth surfaces exist; keeps every future admin route protected by default).
-- Inertia `auth.user` now resolves the real session user (id, name, role) or null.
-- `AdminUserSeeder` — one active administrator from `config/admin.php` (`admin.name/email/password`, env-overridable), skipped when the email already exists.
+- Inertia `auth.user` now resolves the real session user (id, name, role) or null. - `AdminUserSeeder` — one active administrator from `config/admin.php` (`admin.name/email/password`, env-overridable), skipped when the email already exists.
+ - **Credential sync:** `ADMIN_PASSWORD` in `.env` is read only at seed time. The seeder never resets the password of an existing account (protecting staff-changed credentials), so changing `.env` later does not update the stored hash. To re-sync a local environment: delete the admin row (or `php artisan tinker` → `User::where('email', env('ADMIN_EMAIL'))->delete()`), then `php artisan db:seed --class=AdminUserSeeder --force` — the account is recreated from the current `.env` values.
 
 **Roles: recommendation (NOT implemented — requirements unconfirmed by SPIN).** The codebase
 deliberately encodes a single role. Proposed progression when SPIN confirms:

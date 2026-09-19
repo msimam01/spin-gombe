@@ -30,10 +30,21 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             enabled: true,
             description: 'The four official SPIN programme components',
         },
+        {
+            label: 'Projects & Activities',
+            href: route('admin.projects.index'),
+            enabled: true,
+            description: 'Programme projects and activities, published and in draft',
+        },
+        {
+            label: 'Locations',
+            href: route('admin.locations.index'),
+            enabled: true,
+            description: 'Confirmed places for records and the public map',
+        },
     ];
 
     const upcomingSections = [
-        'Projects & Activities',
         'News',
         'Events',
         'Documents',
@@ -69,8 +80,8 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 Skip to admin content
             </a>
 
-            <header className="border-b border-border bg-background">
-                <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+            <header className="sticky top-0 z-40 border-b border-border bg-background">
+                <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
                     <Link
                         href={route('admin.dashboard')}
                         className="flex items-center gap-3 rounded-sm font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
@@ -107,7 +118,10 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             </header>
 
             <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-5 py-8 sm:px-8 lg:flex-row">
-                <nav aria-label="Administration sections" className="lg:w-56 lg:shrink-0">
+                <nav
+                    aria-label="Administration sections"
+                    className="lg:sticky lg:top-16 lg:max-h-[calc(100vh-4rem)] lg:w-56 lg:shrink-0 lg:self-start lg:overflow-y-auto lg:pb-4"
+                >
                     <ul className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
                         <li className="shrink-0">
                             <Link

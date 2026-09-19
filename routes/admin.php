@@ -11,6 +11,20 @@ use App\Http\Controllers\Admin\Components\IndexController;
 use App\Http\Controllers\Admin\Components\PublishController;
 use App\Http\Controllers\Admin\Components\StoreController;
 use App\Http\Controllers\Admin\Components\UpdateController;
+use App\Http\Controllers\Admin\Locations\CreateController as LocationCreateController;
+use App\Http\Controllers\Admin\Locations\DestroyController as LocationDestroyController;
+use App\Http\Controllers\Admin\Locations\EditController as LocationEditController;
+use App\Http\Controllers\Admin\Locations\IndexController as LocationIndexController;
+use App\Http\Controllers\Admin\Locations\PublishController as LocationPublishController;
+use App\Http\Controllers\Admin\Locations\StoreController as LocationStoreController;
+use App\Http\Controllers\Admin\Locations\UpdateController as LocationUpdateController;
+use App\Http\Controllers\Admin\Projects\CreateController as ProjectCreateController;
+use App\Http\Controllers\Admin\Projects\DestroyController as ProjectDestroyController;
+use App\Http\Controllers\Admin\Projects\EditController as ProjectEditController;
+use App\Http\Controllers\Admin\Projects\IndexController as ProjectIndexController;
+use App\Http\Controllers\Admin\Projects\PublishController as ProjectPublishController;
+use App\Http\Controllers\Admin\Projects\StoreController as ProjectStoreController;
+use App\Http\Controllers\Admin\Projects\UpdateController as ProjectUpdateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,5 +72,38 @@ Route::middleware(AdminAuthenticate::class)->group(function () {
         Route::put('{component}', UpdateController::class)->name('update');
         Route::patch('{component}/publication', PublishController::class)->name('publish');
         Route::delete('{component}', DestroyController::class)->name('destroy');
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Projects & Activities — one table, two record types (`projects.type`).
+    | URLs use the model's slug route key, the same identifier the public
+    | website uses.
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('projects')->name('projects.')->group(function () {
+        Route::get('/', ProjectIndexController::class)->name('index');
+        Route::get('create', ProjectCreateController::class)->name('create');
+        Route::post('/', ProjectStoreController::class)->name('store');
+        Route::get('{project}/edit', ProjectEditController::class)->name('edit');
+        Route::put('{project}', ProjectUpdateController::class)->name('update');
+        Route::patch('{project}/publication', ProjectPublishController::class)->name('publish');
+        Route::delete('{project}', ProjectDestroyController::class)->name('destroy');
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Locations — named places in Gombe State; coordinates only ever come
+    | from confirmed SPIN information. Referenced by projects and events.
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('locations')->name('locations.')->group(function () {
+        Route::get('/', LocationIndexController::class)->name('index');
+        Route::get('create', LocationCreateController::class)->name('create');
+        Route::post('/', LocationStoreController::class)->name('store');
+        Route::get('{location}/edit', LocationEditController::class)->name('edit');
+        Route::put('{location}', LocationUpdateController::class)->name('update');
+        Route::patch('{location}/publication', LocationPublishController::class)->name('publish');
+        Route::delete('{location}', LocationDestroyController::class)->name('destroy');
     });
 });

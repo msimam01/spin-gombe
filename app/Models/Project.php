@@ -92,12 +92,14 @@ class Project extends Model implements Publishable
         return $query->where('type', self::TYPE_PROJECT);
     }
 
-    /** Projects with confirmed coordinates, for the location map. */
+    /** Projects whose location carries confirmed, geographically valid coordinates. */
     public function scopeMappable(Builder $query): Builder
     {
         return $query->whereNotNull('location_id')
             ->whereHas('location', fn (Builder $query) => $query
                 ->whereNotNull('latitude')
-                ->whereNotNull('longitude'));
+                ->whereNotNull('longitude')
+                ->whereBetween('latitude', [-90, 90])
+                ->whereBetween('longitude', [-180, 180]));
     }
 }

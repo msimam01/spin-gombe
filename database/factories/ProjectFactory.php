@@ -37,6 +37,18 @@ class ProjectFactory extends Factory
         ];
     }
 
+    /** The record is an activity (implementation update). */
+    public function activity(): static
+    {
+        return $this->state(fn () => ['type' => Project::TYPE_ACTIVITY]);
+    }
+
+    /** The record is a project (intervention). */
+    public function project(): static
+    {
+        return $this->state(fn () => ['type' => Project::TYPE_PROJECT]);
+    }
+
     /** The record is publicly visible. */
     public function published(): static
     {
