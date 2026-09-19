@@ -48,11 +48,15 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             enabled: true,
             description: 'Articles for the public news section',
         },
+        {
+            label: 'Events',
+            href: route('admin.events.index'),
+            enabled: true,
+            description: 'Public events, engagements and stakeholder activities',
+        },
     ];
 
     const upcomingSections = [
-        'News',
-        'Events',
         'Documents',
         'Media',
         'Team',

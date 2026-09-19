@@ -128,6 +128,35 @@ export interface AdminNewsPost {
     component: { slug: string; name: string } | null;
 }
 
+/** An admin-side event row or full edit payload. */
+export interface AdminEvent {
+    id: number;
+    slug: string;
+    title: string;
+    /** Listing rows carry the venue; edit payloads add the rest. */
+    venue: string | null;
+    /** Edit payload only. */
+    description?: string | null;
+    /** Edit payload only. */
+    location_id?: number | null;
+    starts_at: string;
+    ends_at: string | null;
+    status: PublicationStatusValue;
+    sort: number;
+    published_at: string | null;
+    /** Edit payload only. */
+    created_at?: string;
+    updated_at: string;
+    location: { name: string; lga: string | null; mappable: boolean } | null;
+}
+
+/** The events listing filters, echoed back by the controller. */
+export interface EventFilters {
+    search: string | null;
+    status: PublicationStatusValue | null;
+    location: string | null;
+}
+
 /** The news listing filters, echoed back by the controller. */
 export interface NewsFilters {
     search: string | null;

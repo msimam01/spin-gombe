@@ -4,6 +4,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AdminAuthenticate;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AuthenticatedSessionController;
+use App\Http\Controllers\Admin\Events\CreateController as EventCreateController;
+use App\Http\Controllers\Admin\Events\DestroyController as EventDestroyController;
+use App\Http\Controllers\Admin\Events\EditController as EventEditController;
+use App\Http\Controllers\Admin\Events\IndexController as EventIndexController;
+use App\Http\Controllers\Admin\Events\PublishController as EventPublishController;
+use App\Http\Controllers\Admin\Events\StoreController as EventStoreController;
+use App\Http\Controllers\Admin\Events\UpdateController as EventUpdateController;
 use App\Http\Controllers\Admin\Components\CreateController;
 use App\Http\Controllers\Admin\Components\DestroyController;
 use App\Http\Controllers\Admin\Components\EditController;
@@ -121,6 +128,23 @@ Route::middleware(AdminAuthenticate::class)->group(function () {
     | uses; slugs are created once and never renamed.
     |----------------------------------------------------------------------
     */
+    /*
+    |----------------------------------------------------------------------
+    | Events — the model carries no stored upcoming/past status: that
+    | classification is always derived from `starts_at`. URLs use the
+    | model's slug route key, the same identifier the public website uses.
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('events')->name('events.')->group(function () {
+        Route::get('/', EventIndexController::class)->name('index');
+        Route::get('create', EventCreateController::class)->name('create');
+        Route::post('/', EventStoreController::class)->name('store');
+        Route::get('{event}/edit', EventEditController::class)->name('edit');
+        Route::put('{event}', EventUpdateController::class)->name('update');
+        Route::patch('{event}/publication', EventPublishController::class)->name('publish');
+        Route::delete('{event}', EventDestroyController::class)->name('destroy');
+    });
+
     Route::prefix('news')->name('news.')->group(function () {
         Route::get('/', NewsIndexController::class)->name('index');
         Route::get('create', NewsCreateController::class)->name('create');
