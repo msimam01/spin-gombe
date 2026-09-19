@@ -42,6 +42,12 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             enabled: true,
             description: 'Confirmed places for records and the public map',
         },
+        {
+            label: 'News & Updates',
+            href: route('admin.news.index'),
+            enabled: true,
+            description: 'Articles for the public news section',
+        },
     ];
 
     const upcomingSections = [

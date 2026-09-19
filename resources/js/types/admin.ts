@@ -104,6 +104,37 @@ export interface LocationFilters {
     status: PublicationStatusValue | null;
 }
 
+/** An admin-side news post row or full edit payload. */
+export interface AdminNewsPost {
+    id: number;
+    slug: string;
+    title: string;
+    /** Listing rows carry the excerpt; edit payloads add the full record. */
+    excerpt: string | null;
+    /** Edit payload only. */
+    body?: string | null;
+    /** Edit payload only. */
+    cover_image?: string | null;
+    /** Edit payload only. */
+    project_component_id?: number | null;
+    /** Edit payload only. */
+    author?: string | null;
+    status: PublicationStatusValue;
+    sort: number;
+    published_at: string | null;
+    /** Edit payload only. */
+    created_at?: string;
+    updated_at: string;
+    component: { slug: string; name: string } | null;
+}
+
+/** The news listing filters, echoed back by the controller. */
+export interface NewsFilters {
+    search: string | null;
+    status: PublicationStatusValue | null;
+    component: string | null;
+}
+
 /** A { value, label } option pair for select fields. */
 export interface SelectOption {
     value: string;

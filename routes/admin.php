@@ -11,6 +11,13 @@ use App\Http\Controllers\Admin\Components\IndexController;
 use App\Http\Controllers\Admin\Components\PublishController;
 use App\Http\Controllers\Admin\Components\StoreController;
 use App\Http\Controllers\Admin\Components\UpdateController;
+use App\Http\Controllers\Admin\News\CreateController as NewsCreateController;
+use App\Http\Controllers\Admin\News\DestroyController as NewsDestroyController;
+use App\Http\Controllers\Admin\News\EditController as NewsEditController;
+use App\Http\Controllers\Admin\News\IndexController as NewsIndexController;
+use App\Http\Controllers\Admin\News\PublishController as NewsPublishController;
+use App\Http\Controllers\Admin\News\StoreController as NewsStoreController;
+use App\Http\Controllers\Admin\News\UpdateController as NewsUpdateController;
 use App\Http\Controllers\Admin\Locations\CreateController as LocationCreateController;
 use App\Http\Controllers\Admin\Locations\DestroyController as LocationDestroyController;
 use App\Http\Controllers\Admin\Locations\EditController as LocationEditController;
@@ -105,5 +112,22 @@ Route::middleware(AdminAuthenticate::class)->group(function () {
         Route::put('{location}', LocationUpdateController::class)->name('update');
         Route::patch('{location}/publication', LocationPublishController::class)->name('publish');
         Route::delete('{location}', LocationDestroyController::class)->name('destroy');
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | News & Updates — articles owned by the communications team. URLs use
+    | the model's slug route key, the same identifier the public website
+    | uses; slugs are created once and never renamed.
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('news')->name('news.')->group(function () {
+        Route::get('/', NewsIndexController::class)->name('index');
+        Route::get('create', NewsCreateController::class)->name('create');
+        Route::post('/', NewsStoreController::class)->name('store');
+        Route::get('{post}/edit', NewsEditController::class)->name('edit');
+        Route::put('{post}', NewsUpdateController::class)->name('update');
+        Route::patch('{post}/publication', NewsPublishController::class)->name('publish');
+        Route::delete('{post}', NewsDestroyController::class)->name('destroy');
     });
 });
