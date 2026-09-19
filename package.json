@@ -30,5 +30,8 @@
         "typescript": "^7.0.2",
         "vite": "^7.0.7",
         "ziggy-js": "^2.6.4"
+    },
+    "dependencies": {
+        "react-hot-toast": "^2.6.1"
     }
 }
