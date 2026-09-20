@@ -4,6 +4,28 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AdminAuthenticate;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AuthenticatedSessionController;
+use App\Http\Controllers\Admin\Media\DashboardController as MediaDashboardController;
+use App\Http\Controllers\Admin\Media\Galleries\CreateController as GalleryCreateController;
+use App\Http\Controllers\Admin\Media\Galleries\DestroyController as GalleryDestroyController;
+use App\Http\Controllers\Admin\Media\Galleries\EditController as GalleryEditController;
+use App\Http\Controllers\Admin\Media\Galleries\IndexController as GalleryIndexController;
+use App\Http\Controllers\Admin\Media\Galleries\PublishController as GalleryPublishController;
+use App\Http\Controllers\Admin\Media\Galleries\StoreController as GalleryStoreController;
+use App\Http\Controllers\Admin\Media\Galleries\UpdateController as GalleryUpdateController;
+use App\Http\Controllers\Admin\Media\Photos\CreateController as PhotoCreateController;
+use App\Http\Controllers\Admin\Media\Photos\DestroyController as PhotoDestroyController;
+use App\Http\Controllers\Admin\Media\Photos\EditController as PhotoEditController;
+use App\Http\Controllers\Admin\Media\Photos\IndexController as PhotoIndexController;
+use App\Http\Controllers\Admin\Media\Photos\PublishController as PhotoPublishController;
+use App\Http\Controllers\Admin\Media\Photos\StoreController as PhotoStoreController;
+use App\Http\Controllers\Admin\Media\Photos\UpdateController as PhotoUpdateController;
+use App\Http\Controllers\Admin\Media\Videos\CreateController as VideoCreateController;
+use App\Http\Controllers\Admin\Media\Videos\DestroyController as VideoDestroyController;
+use App\Http\Controllers\Admin\Media\Videos\EditController as VideoEditController;
+use App\Http\Controllers\Admin\Media\Videos\IndexController as VideoIndexController;
+use App\Http\Controllers\Admin\Media\Videos\PublishController as VideoPublishController;
+use App\Http\Controllers\Admin\Media\Videos\StoreController as VideoStoreController;
+use App\Http\Controllers\Admin\Media\Videos\UpdateController as VideoUpdateController;
 use App\Http\Controllers\Admin\Events\CreateController as EventCreateController;
 use App\Http\Controllers\Admin\Events\DestroyController as EventDestroyController;
 use App\Http\Controllers\Admin\Events\EditController as EventEditController;
@@ -153,5 +175,47 @@ Route::middleware(AdminAuthenticate::class)->group(function () {
         Route::put('{post}', NewsUpdateController::class)->name('update');
         Route::patch('{post}/publication', NewsPublishController::class)->name('publish');
         Route::delete('{post}', NewsDestroyController::class)->name('destroy');
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Media — the single central interface for photographs, official
+    | YouTube videos and photo galleries. Relationships use the existing
+    | nullable foreign keys; the UI speaks human labels ("Related to"),
+    | never database terminology.
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('media')->name('media.')->group(function () {
+        Route::get('/', MediaDashboardController::class)->name('index');
+    });
+
+    Route::prefix('media/photos')->name('photos.')->group(function () {
+        Route::get('/', PhotoIndexController::class)->name('index');
+        Route::get('create', PhotoCreateController::class)->name('create');
+        Route::post('/', PhotoStoreController::class)->name('store');
+        Route::get('{photo}/edit', PhotoEditController::class)->name('edit');
+        Route::put('{photo}', PhotoUpdateController::class)->name('update');
+        Route::patch('{photo}/publication', PhotoPublishController::class)->name('publish');
+        Route::delete('{photo}', PhotoDestroyController::class)->name('destroy');
+    });
+
+    Route::prefix('media/galleries')->name('galleries.')->group(function () {
+        Route::get('/', GalleryIndexController::class)->name('index');
+        Route::get('create', GalleryCreateController::class)->name('create');
+        Route::post('/', GalleryStoreController::class)->name('store');
+        Route::get('{gallery}/edit', GalleryEditController::class)->name('edit');
+        Route::put('{gallery}', GalleryUpdateController::class)->name('update');
+        Route::patch('{gallery}/publication', GalleryPublishController::class)->name('publish');
+        Route::delete('{gallery}', GalleryDestroyController::class)->name('destroy');
+    });
+
+    Route::prefix('media/videos')->name('videos.')->group(function () {
+        Route::get('/', VideoIndexController::class)->name('index');
+        Route::get('create', VideoCreateController::class)->name('create');
+        Route::post('/', VideoStoreController::class)->name('store');
+        Route::get('{video}/edit', VideoEditController::class)->name('edit');
+        Route::put('{video}', VideoUpdateController::class)->name('update');
+        Route::patch('{video}/publication', VideoPublishController::class)->name('publish');
+        Route::delete('{video}', VideoDestroyController::class)->name('destroy');
     });
 });

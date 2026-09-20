@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\Event;
 use App\Models\Gallery;
 use App\Models\NewsPost;
+use App\Models\Photo;
 use App\Models\Project;
 use App\Models\ProjectComponent;
 use App\Models\TeamMember;
@@ -34,6 +35,7 @@ class DashboardController extends Controller
             'news' => NewsPost::published()->count(),
             'events' => Event::published()->count(),
             'documents' => Document::published()->count(),
+            'photos' => Photo::published()->count(),
             'galleries' => Gallery::published()->count(),
             'videos' => Video::published()->count(),
             'team' => TeamMember::published()->count(),
@@ -46,6 +48,7 @@ class DashboardController extends Controller
             'news' => NewsPost::where('status', PublicationStatus::Draft)->count(),
             'events' => Event::where('status', PublicationStatus::Draft)->count(),
             'documents' => Document::where('status', PublicationStatus::Draft)->count(),
+            'photos' => Photo::where('status', PublicationStatus::Draft)->count(),
             'galleries' => Gallery::where('status', PublicationStatus::Draft)->count(),
             'videos' => Video::where('status', PublicationStatus::Draft)->count(),
             'team' => TeamMember::where('status', PublicationStatus::Draft)->count(),
@@ -58,6 +61,7 @@ class DashboardController extends Controller
             'news' => NewsPost::where('status', PublicationStatus::Archived)->count(),
             'events' => Event::where('status', PublicationStatus::Archived)->count(),
             'documents' => Document::where('status', PublicationStatus::Archived)->count(),
+            'photos' => Photo::where('status', PublicationStatus::Archived)->count(),
             'galleries' => Gallery::where('status', PublicationStatus::Archived)->count(),
             'videos' => Video::where('status', PublicationStatus::Archived)->count(),
             'team' => TeamMember::where('status', PublicationStatus::Archived)->count(),

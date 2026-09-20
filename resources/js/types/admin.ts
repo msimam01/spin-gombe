@@ -115,6 +115,8 @@ export interface AdminNewsPost {
     body?: string | null;
     /** Edit payload only. */
     cover_image?: string | null;
+    /** Edit payload only: resolved public URL of the current cover photo. */
+    cover_image_url?: string | null;
     /** Edit payload only. */
     project_component_id?: number | null;
     /** Edit payload only. */
@@ -148,6 +150,8 @@ export interface AdminEvent {
     created_at?: string;
     updated_at: string;
     location: { name: string; lga: string | null; mappable: boolean } | null;
+    /** Edit payload only: resolved public URL of the current cover photo. */
+    cover_image_url?: string | null;
 }
 
 /** The events listing filters, echoed back by the controller. */
@@ -168,6 +172,116 @@ export interface NewsFilters {
 export interface SelectOption {
     value: string;
     label: string;
+}
+
+/** The human "Related to" description of a media record. */
+export interface MediaRelated {
+    type: 'general' | 'project' | 'component' | 'gallery';
+    label: string;
+    name: string | null;
+}
+
+/** An admin-side photograph row or full edit payload. */
+export interface AdminPhoto {
+    id: number;
+    thumb_url: string | null;
+    alt_text: string | null;
+    caption: string | null;
+    /** Listing rows carry the credit; edit payloads add the rest. */
+    credit?: string | null;
+    taken_on: string | null;
+    status: PublicationStatusValue;
+    sort: number;
+    updated_at: string;
+    related: MediaRelated;
+    /** Edit payload only. */
+    image_url?: string | null;
+    /** Edit payload only. */
+    published_at?: string | null;
+}
+
+/** An admin-side gallery row or full edit payload. */
+export interface AdminGallery {
+    id: number;
+    slug: string;
+    title: string;
+    /** Listing rows carry the description; edit payloads add the rest. */
+    description?: string | null;
+    status: PublicationStatusValue;
+    sort: number;
+    updated_at: string;
+    event: { slug: string; title: string } | null;
+    photo_count: number;
+    /** Edit payload only. */
+    event_id?: number | null;
+    /** Edit payload only: resolved public URL of the current cover image. */
+    cover_image_url?: string | null;
+    /** Edit payload only. */
+    published_at?: string | null;
+    /** Edit payload only: the photographs currently in this gallery. */
+    photos?: GalleryPhotoRow[];
+}
+
+/** A photograph row inside the gallery editor. */
+export interface GalleryPhotoRow {
+    id: number;
+    thumb_url: string | null;
+    alt_text: string | null;
+    caption: string | null;
+    status: PublicationStatusValue;
+    taken_on: string | null;
+}
+
+/** An admin-side video row or full edit payload. */
+export interface AdminVideo {
+    id: number;
+    title: string;
+    /** Listing rows may omit the description. */
+    description?: string | null;
+    youtube_id: string | null;
+    /** Edit payload only: the raw stored URL. */
+    youtube_url?: string | null;
+    thumbnail_url: string | null;
+    published_on: string | null;
+    status: PublicationStatusValue;
+    sort: number;
+    updated_at: string;
+    related: MediaRelated;
+    /** Edit payload only. */
+    published_at?: string | null;
+}
+
+/** The photos listing filters, echoed back by the controller. */
+export interface PhotoFilters {
+    search: string | null;
+    status: PublicationStatusValue | null;
+    related: string | null;
+}
+
+/** The galleries listing filters, echoed back by the controller. */
+export interface GalleryFilters {
+    search: string | null;
+    status: PublicationStatusValue | null;
+}
+
+/** The videos listing filters, echoed back by the controller. */
+export interface VideoFilters {
+    search: string | null;
+    status: PublicationStatusValue | null;
+    related: string | null;
+}
+
+/** The Media landing page's live overview data. */
+export interface MediaOverview {
+    counts: {
+        photos: number;
+        videos: number;
+        galleries: number;
+        published: number;
+    };
+    recent_photos: AdminPhoto[];
+    recent_videos: AdminVideo[];
+    recent_galleries: AdminGallery[];
 }
 
 /** The projects listing filters, echoed back by the controller. */

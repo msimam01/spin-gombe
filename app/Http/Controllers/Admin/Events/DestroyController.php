@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Support\CoverImage;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 
@@ -15,7 +16,8 @@ use Illuminate\Http\RedirectResponse;
  * a deleted event rather than fail. Per the established rule (never silently
  * detach related content), deletion is refused server-side while any gallery
  * still references the event. Once galleries are detached explicitly (a
- * future Media-phase concern), deletion succeeds.
+ * future Media-phase concern), deletion succeeds. The event's managed cover
+ * file, if any, is removed with it.
  */
 class DestroyController extends Controller
 {
@@ -34,7 +36,11 @@ class DestroyController extends Controller
         }
 
         $title = $event->title;
+        $cover = $event->cover_image;
+
         $event->delete();
+
+        CoverImage::deleteManaged($cover);
 
         return redirect()
             ->route('admin.events.index')

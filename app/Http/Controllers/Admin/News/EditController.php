@@ -25,6 +25,9 @@ class EditController extends Controller
                 'id' => $post->id,
                 'slug' => $post->slug,
                 'title' => $post->title,
+                // Public URL of the current cover photo (null when none or
+                // the file is missing) for the edit form's preview.
+                'cover_image_url' => \App\Support\CoverImage::url($post->cover_image),
                 'excerpt' => $post->excerpt,
                 'body' => $post->body,
                 'cover_image' => $post->cover_image,

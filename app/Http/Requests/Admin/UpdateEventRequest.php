@@ -30,6 +30,12 @@ class UpdateEventRequest extends StoreEventRequest
             $normalised['sort'] = $this->filled('sort') ? (int) $this->input('sort') : 0;
         }
 
+        // The removal flag is a boolean from a checkbox — normalise its
+        // common client encodings, only when actually sent.
+        if ($this->exists('remove_cover')) {
+            $normalised['remove_cover'] = in_array($this->input('remove_cover'), [true, 'true', '1', 1], true);
+        }
+
         $this->merge($normalised);
     }
 

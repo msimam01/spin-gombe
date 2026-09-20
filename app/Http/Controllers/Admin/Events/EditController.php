@@ -24,6 +24,9 @@ class EditController extends Controller
                 'id' => $event->id,
                 'slug' => $event->slug,
                 'title' => $event->title,
+                // Public URL of the current cover photo (null when none or
+                // the file is missing) for the edit form's preview.
+                'cover_image_url' => \App\Support\CoverImage::url($event->cover_image),
                 'description' => $event->description,
                 'venue' => $event->venue,
                 'location_id' => $event->location_id,

@@ -81,6 +81,15 @@ class StoreEventRequest extends FormRequest
             // scope hides them until due).
             'published_at' => ['nullable', 'date'],
 
+            // The uploaded cover photo. MIME sniffing — not the filename —
+            // decides whether this really is an image; jpeg/png/webp are the
+            // common web formats the public site renders.
+            'cover' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+
+            // Explicit cover removal is its own checkbox so that a plain
+            // save never clears an existing photo by accident.
+            'remove_cover' => ['nullable', 'boolean'],
+
             'status' => ['required', new Enum(PublicationStatus::class)],
             'sort' => ['required', 'integer', 'min:0', 'max:10000'],
         ];
@@ -98,6 +107,7 @@ class StoreEventRequest extends FormRequest
             'starts_at' => 'start date & time',
             'ends_at' => 'end date & time',
             'published_at' => 'publication date',
+            'cover' => 'cover photo',
         ];
     }
 }

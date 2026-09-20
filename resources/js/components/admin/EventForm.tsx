@@ -1,6 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { CoverImageField } from '@/components/admin/CoverImageField';
 import { AdminSelectField, AdminTextField, AdminTextareaField } from '@/components/admin/FormControls';
 import { Button } from '@/components/ui/button';
 import { route } from '@/lib/routes';
@@ -23,6 +24,10 @@ interface EventFormData {
     published_at: string;
     status: string;
     sort: number;
+    /** Newly selected cover photo; uploaded with the next save. */
+    cover: File | null;
+    /** Explicit removal of the stored cover photo. */
+    remove_cover: boolean;
 }
 
 /** ISO date-time → the local wall-clock value a datetime-local input shows. */
@@ -70,6 +75,8 @@ export function EventForm({ event, statuses, locations }: EventFormProps) {
             : '',
         status: event?.status ?? 'draft',
         sort: event?.sort ?? 0,
+        cover: null,
+        remove_cover: false,
     });
 
     const [dirtyNotified, setDirtyNotified] = useState(false);
@@ -114,14 +121,27 @@ export function EventForm({ event, statuses, locations }: EventFormProps) {
             return;
         }
 
+        // A single transform: local datetimes become ISO instants for the
+        // server, and a file-bearing EDIT travels as POST with Laravel's
+        // method spoofing (a multipart body only parses as POST). Creation
+        // is already a POST, so it needs no spoofing.
+        const uploading = isEdit && form.data.cover !== null;
+
         form.transform((data) => ({
             ...data,
             starts_at: toIso(data.starts_at),
             ends_at: toIso(data.ends_at),
+            ...(uploading ? { _method: 'put' } : {}),
         }));
 
         if (isEdit) {
-            form.put(route('admin.events.update', { event: event.slug }));
+            const url = route('admin.events.update', { event: event.slug });
+
+            if (uploading) {
+                form.post(url);
+            } else {
+                form.put(url);
+            }
         } else {
             form.post(route('admin.events.store'));
         }
@@ -158,6 +178,18 @@ export function EventForm({ event, statuses, locations }: EventFormProps) {
                         value={form.data.description}
                         onChange={(event) => form.setData('description', event.target.value)}
                         error={form.errors.description}
+                    />
+
+                    <CoverImageField
+                        id="cover"
+                        name="cover"
+                        existingUrl={event?.cover_image_url ?? null}
+                        file={form.data.cover}
+                        onFileChange={(file) => form.setData('cover', file)}
+                        remove={form.data.remove_cover}
+                        onRemoveChange={(remove) => form.setData('remove_cover', remove)}
+                        error={form.errors.cover}
+                        disabled={form.processing}
                     />
                 </div>
             </div>

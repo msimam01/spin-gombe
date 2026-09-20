@@ -1,6 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { CoverImageField } from '@/components/admin/CoverImageField';
 import { AdminSelectField, AdminTextField, AdminTextareaField } from '@/components/admin/FormControls';
 import { Button } from '@/components/ui/button';
 import { route } from '@/lib/routes';
@@ -21,6 +22,10 @@ interface NewsPostFormData {
     published_at: string;
     status: string;
     sort: number;
+    /** Newly selected cover photo; uploaded with the next save. */
+    cover: File | null;
+    /** Explicit removal of the stored cover photo. */
+    remove_cover: boolean;
 }
 
 /**
@@ -47,6 +52,8 @@ export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) 
             : '',
         status: post?.status ?? 'draft',
         sort: post?.sort ?? 0,
+        cover: null,
+        remove_cover: false,
     });
 
     const [dirtyNotified, setDirtyNotified] = useState(false);
@@ -83,7 +90,17 @@ export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) 
         event.preventDefault();
 
         if (isEdit) {
-            form.put(route('admin.news.update', { post: post.slug }));
+            const url = route('admin.news.update', { post: post.slug });
+
+            if (form.data.cover !== null) {
+                // A multipart body only parses as a POST request on the
+                // server, so the upload travels via POST with Laravel's
+                // method spoofing; text-only saves keep the PUT verb.
+                form.transform((data) => ({ ...data, _method: 'put' }));
+                form.post(url);
+            } else {
+                form.put(url);
+            }
         } else {
             form.post(route('admin.news.store'));
         }
@@ -130,6 +147,18 @@ export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) 
                         value={form.data.body}
                         onChange={(event) => form.setData('body', event.target.value)}
                         error={form.errors.body}
+                    />
+
+                    <CoverImageField
+                        id="cover"
+                        name="cover"
+                        existingUrl={post?.cover_image_url ?? null}
+                        file={form.data.cover}
+                        onFileChange={(file) => form.setData('cover', file)}
+                        remove={form.data.remove_cover}
+                        onRemoveChange={(remove) => form.setData('remove_cover', remove)}
+                        error={form.errors.cover}
+                        disabled={form.processing}
                     />
                 </div>
             </div>

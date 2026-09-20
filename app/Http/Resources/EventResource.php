@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Event;
+use App\Support\CoverImage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -25,7 +26,9 @@ class EventResource extends JsonResource
             'title' => $this->title,
             'description' => $this->description,
             'venue' => $this->venue,
-            'cover_image' => $this->cover_image,
+            // Resolved against the public disk (null when the file is
+            // missing), so the UI always receives a usable URL or nothing.
+            'cover_image' => CoverImage::url($this->cover_image),
             'starts_at' => $this->starts_at?->toIso8601String(),
             'ends_at' => $this->ends_at?->toIso8601String(),
             'location' => $this->whenLoaded('location', fn () => $this->location ? [

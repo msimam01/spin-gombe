@@ -1,5 +1,18 @@
 # SPIN CMS — Architecture Audit & Foundation (Phase 11)
 
+> **Phase 15.1 addendum — file uploads in admin forms.** Cover photos for
+> News and Events are stored on the `public` disk under managed folders
+> (`news/covers/…`, `events/covers/…`) via `App\Support\CoverImage`, and the
+> database keeps the disk-relative path; public resources resolve it through
+> `asset('storage/…')` with an existence check (missing files render as
+> null, never broken images). Two conventions future upload features must
+> follow: (1) a multipart body is only parsed as a POST by PHP, so a
+> file-bearing **edit** must travel as POST with `_method: 'put'` spoofing —
+> see the submit handlers in `NewsPostForm.tsx` / `EventForm.tsx`; (2)
+> replacement/removal deletes only files inside the managed folders, after
+> the database record is committed, so a failed save can never destroy an
+> existing image.
+
 Audited against the codebase as built (Phases 1–10). Everything marked **Verified** was read
 from source; DB counts were checked live.
 

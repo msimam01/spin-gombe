@@ -200,10 +200,17 @@ export default function EventsShow({ event }: { event: EventDetail }) {
                 <Container className="py-14 sm:py-16">
                     <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
                         <div className="lg:col-span-7">
+                            {event.cover_image && (
+                                <img
+                                    src={event.cover_image}
+                                    alt={event.title}
+                                    className="mb-10 aspect-[16/9] w-full rounded-md border border-border object-cover shadow-card"
+                                />
+                            )}
                             <h2 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
                                 About this event
                             </h2>
-                            <p className="mt-4 text-lg leading-relaxed text-foreground sm:text-xl sm:leading-relaxed">
+                            <p className="mt-4 text-lg leading-relaxed break-words text-foreground sm:text-xl sm:leading-relaxed">
                                 {event.description ?? 'Further details about this event will be published by the project office.'}
                             </p>
                         </div>

@@ -54,11 +54,16 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             enabled: true,
             description: 'Public events, engagements and stakeholder activities',
         },
+        {
+            label: 'Media',
+            href: route('admin.media.index'),
+            enabled: true,
+            description: 'Photos, videos and galleries for the public media section',
+        },
     ];
 
     const upcomingSections = [
         'Documents',
-        'Media',
         'Team',
         'Settings',
         'Users',
