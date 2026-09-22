@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin\Media;
 
-use App\Http\Controllers\Admin\Media\Galleries\IndexController as GalleryIndexController;
 use App\Http\Controllers\Admin\Media\Photos\IndexController as PhotoIndexController;
 use App\Http\Controllers\Admin\Media\Videos\IndexController as VideoIndexController;
 use App\Http\Controllers\Controller;

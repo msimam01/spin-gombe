@@ -2,8 +2,10 @@ import { Link } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, CalendarDays, ChevronRight, MapPin } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
+import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
+import type { Photo } from '@/types';
 
 /** An event as delivered by EventsShowController. */
 interface EventDetail {
@@ -28,7 +30,7 @@ interface EventDetail {
     galleries: {
         id: number;
         title: string;
-        photos: { id: number; url: string | null; alt_text: string | null; caption: string | null }[];
+        photos: Photo[];
     }[];
 }
 
@@ -285,18 +287,12 @@ export default function EventsShow({ event }: { event: EventDetail }) {
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
                                         {gallery.title}
                                     </h3>
-                                    <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                                        {gallery.photos.map((photo) => (
-                                            <li key={photo.id}>
-                                                <img
-                                                    src={photo.url ?? undefined}
-                                                    alt={photo.alt_text ?? photo.caption ?? event.title}
-                                                    className="aspect-[4/3] w-full rounded-md object-cover"
-                                                    loading="lazy"
-                                                />
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <div className="mt-4">
+                                        <PhotoGrid
+                                            photos={gallery.photos}
+                                            contextLabel={`${gallery.title} — ${event.title} photos`}
+                                        />
+                                    </div>
                                 </div>
                             ))}
                         </div>

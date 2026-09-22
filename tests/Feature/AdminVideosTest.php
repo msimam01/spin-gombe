@@ -274,6 +274,6 @@ class AdminVideosTest extends TestCase
 
         $this->get(route('projects.show', ['slug' => 'visible-project']))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->has('project.videos', 0'));
+            ->assertInertia(fn ($page) => $page->has('project.videos', 0));
     }
 }

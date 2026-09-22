@@ -76,6 +76,12 @@ class StoreVideoRequest extends FormRequest
                 Rule::when($this->input('related_to') === 'component', Rule::exists('project_components', 'id')),
             ],
 
+            // The normalised relationship foreign keys themselves — prepared
+            // in prepareForValidation and re-checked here so validated()
+            // carries exactly one of them (or none) into the controller.
+            'project_id' => ['nullable', Rule::exists('projects', 'id')],
+            'project_component_id' => ['nullable', Rule::exists('project_components', 'id')],
+
             'status' => ['required', new Enum(PublicationStatus::class)],
             'sort' => ['required', 'integer', 'min:0', 'max:10000'],
         ];

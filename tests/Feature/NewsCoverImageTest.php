@@ -273,9 +273,10 @@ class NewsCoverImageTest extends TestCase
     {
         Storage::fake('public');
 
-        // A path outside the managed folders — e.g. owned by a future
-        // Media-phase workflow — must survive cover removal.
-        $path = 'photos/external/precious.jpg';
+        // A path outside every managed folder (news/covers, events/covers,
+        // galleries/covers, photos) — e.g. a legacy file placed by hand or a
+        // future workflow — must survive cover removal.
+        $path = 'external/team-archive/precious.jpg';
         Storage::disk('public')->put($path, 'jpeg-bytes');
         $post = NewsPost::factory()->create(['cover_image' => $path]);
 

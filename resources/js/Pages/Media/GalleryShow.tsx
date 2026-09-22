@@ -1,9 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarDays, ChevronRight, ExternalLink, Images } from 'lucide-react';
+import { CalendarDays, ChevronRight, Images } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { Reveal } from '@/components/shared/Reveal';
-import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
+import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Gallery, SharedProps } from '@/types';
@@ -15,10 +15,9 @@ interface GalleryShowProps {
 /**
  * A single published photo album (/media/photos/{gallery}).
  *
- * A clean, responsive grid of the album's photographs with their captions.
- * Each photograph opens its full-size file in a new tab — an accessible,
- * dependency-free viewing experience (no lightbox library). Captions and
- * dates render only when supplied.
+ * A clean, responsive grid of the album's photographs. Every photograph
+ * opens the shared photo viewer (previous/next, caption, date, credit) and
+ * navigates strictly within this album's collection.
  */
 export default function GalleryShow({ gallery }: GalleryShowProps) {
     const { site } = usePage<SharedProps>().props;
@@ -110,54 +109,13 @@ export default function GalleryShow({ gallery }: GalleryShowProps) {
             <section aria-label="Photographs" className="bg-background">
                 <Container className="py-14 sm:py-16 lg:py-20">
                     {photos.length > 0 ? (
-                        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                            {photos.map((photo, index) => (
-                                <li key={photo.id}>
-                                    <Reveal delay={Math.min(index * 50, 250)}>
-                                        <figure className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
-                                            {photo.url ? (
-                                                <a
-                                                    href={photo.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="group block"
-                                                    aria-label={`Open photograph full size: ${photo.alt_text || photo.caption || gallery.title}`}
-                                                >
-                                                    <img
-                                                        src={photo.url}
-                                                        alt={photo.alt_text || photo.caption || gallery.title}
-                                                        className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                                                        loading="lazy"
-                                                    />
-                                                </a>
-                                            ) : (
-                                                <MediaPlaceholder
-                                                    icon={<Images aria-hidden="true" className="size-3.5" />}
-                                                    label="Photograph"
-                                                />
-                                            )}
-                                            <figcaption className="flex items-start justify-between gap-3 px-4 py-3">
-                                                <span className="text-xs leading-snug text-muted-foreground">
-                                                    {photo.caption ?? photo.alt_text ?? ''}
-                                                    {photo.credit ? ` — ${photo.credit}` : ''}
-                                                </span>
-                                                {photo.url && (
-                                                    <a
-                                                        href={photo.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-primary transition-colors hover:text-brand-700"
-                                                    >
-                                                        Open
-                                                        <ExternalLink aria-hidden="true" className="size-3" />
-                                                    </a>
-                                                )}
-                                            </figcaption>
-                                        </figure>
-                                    </Reveal>
-                                </li>
-                            ))}
-                        </ul>
+                        <Reveal>
+                            <PhotoGrid
+                                photos={photos}
+                                contextLabel={`${gallery.title} photographs`}
+                                columnsClass="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                            />
+                        </Reveal>
                     ) : (
                         <p className="rounded-md border border-dashed border-border bg-muted/60 px-6 py-8 text-center text-sm text-muted-foreground">
                             Photographs for this album will be published shortly.

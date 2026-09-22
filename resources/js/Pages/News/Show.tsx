@@ -3,8 +3,10 @@ import { ArrowLeft, ArrowRight, ChevronRight, Landmark, Newspaper } from 'lucide
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { Reveal } from '@/components/shared/Reveal';
+import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
+import type { Photo } from '@/types';
 
 /** A news post as delivered by NewsShowController. */
 interface NewsDetail {
@@ -17,7 +19,7 @@ interface NewsDetail {
     published_at: string | null;
     published_on: string | null;
     component?: { name: string; url_slug: string } | null;
-    photos: { id: number; url: string | null; alt_text: string | null; caption: string | null }[];
+    photos: Photo[];
     videos: { id: number; title: string; youtube_id: string | null; thumbnail_url: string | null }[];
     related: { slug: string; title: string; excerpt: string | null; published_at: string | null }[];
 }
@@ -189,18 +191,12 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
                                         Photos
                                     </h3>
-                                    <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                        {post.photos.map((photo) => (
-                                            <li key={photo.id}>
-                                                <img
-                                                    src={photo.url ?? undefined}
-                                                    alt={photo.alt_text ?? photo.caption ?? post.title}
-                                                    className="aspect-[4/3] w-full rounded-md object-cover"
-                                                    loading="lazy"
-                                                />
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <div className="mt-4">
+                                        <PhotoGrid
+                                            photos={post.photos}
+                                            contextLabel={`${post.title} photos`}
+                                        />
+                                    </div>
                                 </div>
                             )}
 

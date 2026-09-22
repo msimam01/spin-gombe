@@ -4,6 +4,7 @@ import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Reveal } from '@/components/shared/Reveal';
+import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
@@ -16,9 +17,9 @@ interface MediaPhotosProps {
 
 /**
  * Photo Gallery (/media/photos) — published albums first, then published
- * photographs that are not attached to any album. Everything renders from
- * official records only; the page stays complete-feeling while the media
- * library is still being prepared.
+ * photographs that are not attached to any album. Photographs open the
+ * shared photo viewer; navigation stays within the page's collection.
+ * Everything renders from official records only.
  */
 export default function MediaPhotos({ galleries, photos }: MediaPhotosProps) {
     const { site } = usePage<SharedProps>().props;
@@ -154,35 +155,15 @@ export default function MediaPhotos({ galleries, photos }: MediaPhotosProps) {
                                         Latest photographs
                                     </h3>
 
-                                    <ul className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
-                                        {photos.map((photo, index) => (
-                                            <li key={photo.id}>
-                                                <Reveal delay={Math.min(index * 40, 200)}>
-                                                    {photo.url ? (
-                                                        <figure className="overflow-hidden rounded-sm border border-border">
-                                                            <img
-                                                                src={photo.url}
-                                                                alt={photo.alt_text || photo.caption || 'SPIN Gombe project photograph'}
-                                                                className="aspect-square w-full object-cover"
-                                                                loading="lazy"
-                                                            />
-                                                            {photo.caption && (
-                                                                <figcaption className="px-3 py-2 text-xs leading-snug text-muted-foreground">
-                                                                    {photo.caption}
-                                                                </figcaption>
-                                                            )}
-                                                        </figure>
-                                                    ) : (
-                                                        <MediaPlaceholder
-                                                            icon={<Images aria-hidden="true" className="size-3.5" />}
-                                                            label="Photograph"
-                                                            aspect="aspect-square"
-                                                        />
-                                                    )}
-                                                </Reveal>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <div className="mt-6">
+                                        <Reveal>
+                                            <PhotoGrid
+                                                photos={photos}
+                                                contextLabel="SPIN Gombe photographs"
+                                                aspect="aspect-square"
+                                            />
+                                        </Reveal>
+                                    </div>
                                 </div>
                             )}
                         </>

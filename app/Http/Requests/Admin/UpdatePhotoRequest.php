@@ -29,7 +29,7 @@ class UpdatePhotoRequest extends FormRequest
         // Only a request that carries the "Related to" choice re-normalises
         // the relationship; a partial update without it preserves the
         // stored foreign keys untouched.
-        if (!$this->filled('related_to')) {
+        if (! $this->filled('related_to')) {
             return;
         }
 

@@ -23,7 +23,7 @@ class UpdateGalleryRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('event_id')) {
+        if (! $this->has('event_id')) {
             return;
         }
 
