@@ -71,6 +71,13 @@ use App\Http\Controllers\Admin\Projects\IndexController as ProjectIndexControlle
 use App\Http\Controllers\Admin\Projects\PublishController as ProjectPublishController;
 use App\Http\Controllers\Admin\Projects\StoreController as ProjectStoreController;
 use App\Http\Controllers\Admin\Projects\UpdateController as ProjectUpdateController;
+use App\Http\Controllers\Admin\Team\CreateController as TeamCreateController;
+use App\Http\Controllers\Admin\Team\DestroyController as TeamDestroyController;
+use App\Http\Controllers\Admin\Team\EditController as TeamEditController;
+use App\Http\Controllers\Admin\Team\IndexController as TeamIndexController;
+use App\Http\Controllers\Admin\Team\PublishController as TeamPublishController;
+use App\Http\Controllers\Admin\Team\StoreController as TeamStoreController;
+use App\Http\Controllers\Admin\Team\UpdateController as TeamUpdateController;
 use App\Http\Middleware\AdminAuthenticate;
 use Illuminate\Support\Facades\Route;
 
@@ -220,6 +227,23 @@ Route::middleware(AdminAuthenticate::class)->group(function () {
             Route::patch('{category}/publication', DocumentCategoryPublishController::class)->name('publish');
             Route::delete('{category}', DocumentCategoryDestroyController::class)->name('destroy');
         });
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Team — the project team shown on the public Team page. Contact
+    | details are private by default; `show_public_contact` is the only
+    | route through which they ever reach the public payload.
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('team')->name('team.')->group(function () {
+        Route::get('/', TeamIndexController::class)->name('index');
+        Route::get('create', TeamCreateController::class)->name('create');
+        Route::post('/', TeamStoreController::class)->name('store');
+        Route::get('{member}/edit', TeamEditController::class)->name('edit');
+        Route::put('{member}', TeamUpdateController::class)->name('update');
+        Route::patch('{member}/publication', TeamPublishController::class)->name('publish');
+        Route::delete('{member}', TeamDestroyController::class)->name('destroy');
     });
 
     Route::prefix('media')->name('media.')->group(function () {

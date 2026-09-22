@@ -325,6 +325,38 @@ export interface DocumentFilters {
     category: string | null;
 }
 
+/** An admin-side team member row or full edit payload. */
+export interface AdminTeamMember {
+    id: number;
+    name: string;
+    position: string;
+    /** Listing rows carry the department; edit payloads add the rest. */
+    department?: string | null;
+    /** Edit payload only. */
+    bio?: string | null;
+    /** Resolved public URL of the stored portrait (null when absent). */
+    photo_url: string | null;
+    /** Edit payload only: private contact details for the editing surface. */
+    email?: string | null;
+    /** Edit payload only. */
+    phone?: string | null;
+    is_coordinator: boolean;
+    show_public_contact: boolean;
+    status: PublicationStatusValue;
+    sort: number;
+    /** Edit payload only. */
+    published_at?: string | null;
+    /** Edit payload only. */
+    created_at?: string;
+    updated_at: string;
+}
+
+/** The team listing filters, echoed back by the controller. */
+export interface TeamFilters {
+    search: string | null;
+    status: PublicationStatusValue | null;
+}
+
 /** The Media landing page's live overview data. */
 export interface MediaOverview {
     counts: {

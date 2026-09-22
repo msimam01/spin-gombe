@@ -30,6 +30,7 @@ final class CoverImage
         'events' => 'events/covers',
         'galleries' => 'galleries/covers',
         'photos' => 'photos',
+        'team' => 'team/photos',
     ];
 
     /** Store an uploaded cover image; returns the disk-relative path. */
@@ -41,8 +42,9 @@ final class CoverImage
     }
 
     /**
-     * Delete a stored cover image — but only if it lives in a managed
-     * folder. Anything else is left untouched.
+     * Delete a stored image — but only if it lives in a managed folder
+     * (news/event/gallery covers, photos, team portraits). Anything else is
+     * left untouched.
      */
     public static function deleteManaged(?string $path): void
     {

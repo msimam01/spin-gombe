@@ -66,10 +66,15 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             enabled: true,
             description: 'Official publications for the public Resources page',
         },
+        {
+            label: 'Team',
+            href: route('admin.team.index'),
+            enabled: true,
+            description: 'Project team members for the public Team page',
+        },
     ];
 
     const upcomingSections = [
-        'Team',
         'Settings',
         'Users',
     ];

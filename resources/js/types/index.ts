@@ -186,7 +186,7 @@ export interface Gallery {
     photos?: Photo[];
 }
 
-/** A team member as delivered by TeamMemberResource (contact fields are private). */
+/** A team member as delivered by TeamMemberResource (contact fields are private by default). */
 export interface TeamMember {
     id: number;
     name: string;
@@ -195,6 +195,9 @@ export interface TeamMember {
     bio: string[] | null;
     photo_url: string | null;
     is_coordinator: boolean;
+    /** Opt-in public contact — null unless SPIN approved it for this member. */
+    public_email: string | null;
+    public_phone: string | null;
 }
 
 /** A video as delivered by VideoResource (embed_url is always nocookie). */

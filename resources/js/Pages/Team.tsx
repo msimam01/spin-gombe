@@ -175,6 +175,26 @@ export default function Team({ coordinator, team }: TeamProps) {
                                             Official enquiries to the Project Coordinator go through
                                             the project office contact channels below.
                                         </p>
+                                        {(coordinator.public_email || coordinator.public_phone) && (
+                                            <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-brand-800">
+                                                {coordinator.public_email && (
+                                                    <a
+                                                        href={`mailto:${coordinator.public_email}`}
+                                                        className="underline-offset-2 hover:underline"
+                                                    >
+                                                        {coordinator.public_email}
+                                                    </a>
+                                                )}
+                                                {coordinator.public_phone && (
+                                                    <a
+                                                        href={`tel:${coordinator.public_phone.replace(/[^+\d]/g, '')}`}
+                                                        className="underline-offset-2 hover:underline"
+                                                    >
+                                                        {coordinator.public_phone}
+                                                    </a>
+                                                )}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             </article>
@@ -217,6 +237,22 @@ export default function Team({ coordinator, team }: TeamProps) {
                                                     <p className="mt-0.5 text-xs text-muted-foreground">
                                                         {member.department}
                                                     </p>
+                                                )}
+                                                {member.public_email && (
+                                                    <a
+                                                        href={`mailto:${member.public_email}`}
+                                                        className="mt-1.5 block truncate text-xs text-brand-700 underline-offset-2 hover:underline"
+                                                    >
+                                                        {member.public_email}
+                                                    </a>
+                                                )}
+                                                {member.public_phone && (
+                                                    <a
+                                                        href={`tel:${member.public_phone.replace(/[^+\d]/g, '')}`}
+                                                        className="mt-0.5 block text-xs text-brand-700 underline-offset-2 hover:underline"
+                                                    >
+                                                        {member.public_phone}
+                                                    </a>
                                                 )}
                                             </div>
                                         </article>

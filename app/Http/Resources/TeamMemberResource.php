@@ -11,9 +11,12 @@ use Illuminate\Support\Facades\Storage;
  * Public representation of a team member.
  *
  * Privacy by design: personal email and phone numbers are hidden on the
- * model and never serialised here — they exist only for the future Admin/CMS.
- * The public page shows names, roles, departments, supplied biographies and
- * photographs; absent information stays null and the UI omits it.
+ * model and never serialised here — unless SPIN has explicitly enabled
+ * `show_public_contact` for that person, in which case the approved values
+ * are delivered as `public_email` / `public_phone`. Without that flag both
+ * stay null and the public page shows names, roles, departments, supplied
+ * biographies and photographs; absent information stays null and the UI
+ * omits it.
  *
  * @mixin TeamMember
  */
@@ -32,6 +35,12 @@ class TeamMemberResource extends JsonResource
                 : null,
             'photo_url' => $this->publicPhotoUrl(),
             'is_coordinator' => $this->is_coordinator,
+
+            // Opt-in contact details — null unless the member's privacy flag
+            // is enabled AND a value is stored. Never the raw email/phone
+            // attributes.
+            'public_email' => $this->show_public_contact ? $this->email : null,
+            'public_phone' => $this->show_public_contact ? $this->phone : null,
         ];
     }
 
