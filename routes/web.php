@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\Site\AboutController;
 use App\Http\Controllers\Site\ComponentsIndexController;
-use App\Http\Controllers\Site\ContactController;
 use App\Http\Controllers\Site\ComponentsShowController;
+use App\Http\Controllers\Site\ContactController;
 use App\Http\Controllers\Site\DocumentDownloadController;
 use App\Http\Controllers\Site\EventsIndexController;
 use App\Http\Controllers\Site\EventsShowController;

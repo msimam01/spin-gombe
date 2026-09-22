@@ -6,6 +6,7 @@ use App\Enums\PublicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Location;
+use App\Support\CoverImage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,7 +27,7 @@ class EditController extends Controller
                 'title' => $event->title,
                 // Public URL of the current cover photo (null when none or
                 // the file is missing) for the edit form's preview.
-                'cover_image_url' => \App\Support\CoverImage::url($event->cover_image),
+                'cover_image_url' => CoverImage::url($event->cover_image),
                 'description' => $event->description,
                 'venue' => $event->venue,
                 'location_id' => $event->location_id,

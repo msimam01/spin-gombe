@@ -2,9 +2,6 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\PublicationStatus;
-use Illuminate\Validation\Rules\Enum;
-
 /**
  * Validation for updating a project component.
  *
@@ -39,5 +36,4 @@ class UpdateProjectComponentRequest extends StoreProjectComponentRequest
             'slug.prohibited' => 'Component web addresses are fixed; the public URL cannot be changed here.',
         ];
     }
-
 }

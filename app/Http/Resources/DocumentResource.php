@@ -4,8 +4,8 @@ namespace App\Http\Resources;
 
 use App\Models\Document;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 
 /**
  * Public representation of an official document.

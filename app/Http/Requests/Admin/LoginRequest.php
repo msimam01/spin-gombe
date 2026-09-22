@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Auth\Events\Lockout;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -15,7 +16,7 @@ use Illuminate\Validation\ValidationException;
  * legitimate account out of the site (and vice versa) — the standard Laravel
  * login-throttling behaviour.
  */
-class LoginRequest extends \Illuminate\Foundation\Http\FormRequest
+class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -41,7 +42,7 @@ class LoginRequest extends \Illuminate\Foundation\Http\FormRequest
     /**
      * Attempt to authenticate the request's credentials.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function authenticate(): void
     {
@@ -73,7 +74,7 @@ class LoginRequest extends \Illuminate\Foundation\Http\FormRequest
     /**
      * Ensure the login request is not rate limited.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function ensureIsNotRateLimited(): void
     {

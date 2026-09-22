@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\DocumentCategory;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Public Resources & Documents portal.
@@ -55,7 +56,7 @@ class ResourcesIndexController extends Controller
             )->resolve();
         } catch (\Throwable $exception) {
             // A 404 abort must propagate; only infrastructure issues degrade.
-            if ($exception instanceof \Symfony\Component\HttpKernel\Exception\HttpException) {
+            if ($exception instanceof HttpException) {
                 throw $exception;
             }
 

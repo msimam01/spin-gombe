@@ -2,7 +2,19 @@
 
 namespace Tests\Feature;
 
+use App\Models\Document;
+use App\Models\DocumentCategory;
+use App\Models\Event;
+use App\Models\Gallery;
+use App\Models\NewsPost;
+use App\Models\Photo;
+use App\Models\Project;
+use App\Models\ProjectComponent;
+use App\Models\TeamMember;
+use App\Models\Video;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
@@ -108,8 +120,8 @@ class PublicWebsiteTest extends TestCase
         $this->get(route('projects.show', ['slug' => 'missing-project']))->assertNotFound();
 
         // A draft project must not be reachable on the public site.
-        $component = \App\Models\ProjectComponent::factory()->create();
-        $draft = \App\Models\Project::factory()->for($component, 'component')->create();
+        $component = ProjectComponent::factory()->create();
+        $draft = Project::factory()->for($component, 'component')->create();
         $this->get(route('projects.show', ['slug' => $draft->slug]))->assertNotFound();
 
         // Publishing the record makes it (and its component) public.
@@ -139,15 +151,15 @@ class PublicWebsiteTest extends TestCase
      */
     public function test_sitemap_includes_published_details(): void
     {
-        $component = \App\Models\ProjectComponent::factory()->create();
-        \App\Models\Project::factory()
+        $component = ProjectComponent::factory()->create();
+        Project::factory()
             ->for($component, 'component')
             ->create(['status' => 'published', 'published_at' => now()]);
 
         $this->get(route('sitemap'))
             ->assertOk()
-            ->assertSee(route('components.show', ['urlSlug' => \Illuminate\Support\Str::slug($component->short_name)]), false)
-            ->assertSee(route('projects.show', ['slug' => \App\Models\Project::first()->slug]), false);
+            ->assertSee(route('components.show', ['urlSlug' => Str::slug($component->short_name)]), false)
+            ->assertSee(route('projects.show', ['slug' => Project::first()->slug]), false);
     }
 
     /**
@@ -160,8 +172,8 @@ class PublicWebsiteTest extends TestCase
 
         $this->get(route('news.show', ['slug' => 'missing-news']))->assertNotFound();
 
-        $component = \App\Models\ProjectComponent::factory()->create();
-        $post = \App\Models\NewsPost::factory()->for($component, 'component')->create();
+        $component = ProjectComponent::factory()->create();
+        $post = NewsPost::factory()->for($component, 'component')->create();
 
         // Draft (or future-dated) news is never public.
         $this->get(route('news.show', ['slug' => $post->slug]))->assertNotFound();
@@ -198,8 +210,8 @@ class PublicWebsiteTest extends TestCase
 
         $this->get(route('events.show', ['slug' => 'missing-event']))->assertNotFound();
 
-        $upcoming = \App\Models\Event::factory()->upcoming()->create();
-        $past = \App\Models\Event::factory()->past()->create();
+        $upcoming = Event::factory()->upcoming()->create();
+        $past = Event::factory()->past()->create();
 
         $this->get(route('events.index'))
             ->assertOk()
@@ -219,7 +231,7 @@ class PublicWebsiteTest extends TestCase
             );
 
         // Drafts are never public.
-        $draft = \App\Models\Event::factory()->create();
+        $draft = Event::factory()->create();
         $this->get(route('events.show', ['slug' => $draft->slug]))->assertNotFound();
     }
 
@@ -228,8 +240,8 @@ class PublicWebsiteTest extends TestCase
      */
     public function test_sitemap_includes_news_and_events(): void
     {
-        $post = \App\Models\NewsPost::factory()->published()->create();
-        $event = \App\Models\Event::factory()->upcoming()->create();
+        $post = NewsPost::factory()->published()->create();
+        $event = Event::factory()->upcoming()->create();
 
         $this->get(route('sitemap'))
             ->assertOk()
@@ -260,13 +272,13 @@ class PublicWebsiteTest extends TestCase
         $this->get(route('resources.category', ['category' => 'annual-reports']))->assertOk();
         $this->get(route('resources.category', ['category' => 'not-a-category']))->assertNotFound();
 
-        $category = \App\Models\DocumentCategory::query()->where('slug', 'annual-reports')->firstOrFail();
+        $category = DocumentCategory::query()->where('slug', 'annual-reports')->firstOrFail();
 
         // Invalid document identifiers are 404s.
         $this->get(route('resources.download', ['document' => 99999]))->assertNotFound();
 
         // A draft document is neither listed nor downloadable.
-        $draft = \App\Models\Document::factory()->for($category, 'category')->create();
+        $draft = Document::factory()->for($category, 'category')->create();
         $this->get(route('resources.index'))->assertInertia(fn ($page) => $page->has('documents', 0));
         $this->get(route('resources.download', ['document' => $draft->id]))->assertNotFound();
 
@@ -287,7 +299,7 @@ class PublicWebsiteTest extends TestCase
             ->assertInertia(fn ($page) => $page->has('documents', 1));
 
         // An external document redirects to the official location.
-        $external = \App\Models\Document::factory()->external()->create([
+        $external = Document::factory()->external()->create([
             'document_category_id' => $category->id,
         ]);
         $this->get(route('resources.download', ['document' => $external->id]))
@@ -299,13 +311,13 @@ class PublicWebsiteTest extends TestCase
      */
     public function test_uploaded_document_downloads(): void
     {
-        $category = \App\Models\DocumentCategory::query()->where('slug', 'annual-reports')->firstOrFail();
+        $category = DocumentCategory::query()->where('slug', 'annual-reports')->firstOrFail();
 
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
         // Content starts with a real PDF signature so content-type detection behaves.
-        \Illuminate\Support\Facades\Storage::disk('public')->put('documents/test/report.pdf', '%PDF-1.4 test');
+        Storage::disk('public')->put('documents/test/report.pdf', '%PDF-1.4 test');
 
-        $document = \App\Models\Document::factory()->published()->create([
+        $document = Document::factory()->published()->create([
             'document_category_id' => $category->id,
             'file_path' => 'documents/test/report.pdf',
             'mime_type' => 'application/pdf',
@@ -316,7 +328,7 @@ class PublicWebsiteTest extends TestCase
         $response->assertOk();
 
         $this->assertStringContainsString('application/pdf', (string) $response->headers->get('Content-Type'));
-        $this->assertFileExists(\Illuminate\Support\Facades\Storage::disk('public')->path($document->file_path));
+        $this->assertFileExists(Storage::disk('public')->path($document->file_path));
 
         // A published record pointing at a missing file is a 404, not an error.
         $document->forceFill(['file_path' => 'documents/missing/nowhere.pdf'])->save();
@@ -339,9 +351,9 @@ class PublicWebsiteTest extends TestCase
         // Unknown gallery slugs are 404s, never error pages.
         $this->get(route('media.galleries.show', ['gallery' => 'missing-album']))->assertNotFound();
 
-        $gallery = \App\Models\Gallery::factory()->create();
-        $photoInAlbum = \App\Models\Photo::factory()->for($gallery, 'gallery')->create();
-        \App\Models\Photo::factory()->create(); // loose, also draft
+        $gallery = Gallery::factory()->create();
+        $photoInAlbum = Photo::factory()->for($gallery, 'gallery')->create();
+        Photo::factory()->create(); // loose, also draft
 
         // Drafts are invisible in listings and the album is unreachable.
         $this->get(route('media.photos'))->assertInertia(fn ($page) => $page
@@ -354,7 +366,7 @@ class PublicWebsiteTest extends TestCase
         // Publishing exposes the album, its photo and the loose photo.
         $gallery->forceFill(['status' => 'published', 'published_at' => now()])->save();
         $photoInAlbum->forceFill(['status' => 'published', 'published_at' => now()])->save();
-        \App\Models\Photo::query()->whereNull('gallery_id')->firstOrFail()
+        Photo::query()->whereNull('gallery_id')->firstOrFail()
             ->forceFill(['status' => 'published', 'published_at' => now()])->save();
 
         $this->get(route('media.photos'))
@@ -378,10 +390,10 @@ class PublicWebsiteTest extends TestCase
         // A published photo pointing at a missing file degrades gracefully:
         // the record is still listed, but its URL resolves to null instead
         // of a broken image link, while a real file resolves normally.
-        \Illuminate\Support\Facades\Storage::fake('public');
-        \Illuminate\Support\Facades\Storage::disk('public')->put('photos/test/real.jpg', 'jpeg-bytes');
-        $withFile = \App\Models\Photo::factory()->published()->create(['image_path' => 'photos/test/real.jpg']);
-        $missing = \App\Models\Photo::factory()->published()->create(['image_path' => 'photos/missing/nowhere.jpg']);
+        Storage::fake('public');
+        Storage::disk('public')->put('photos/test/real.jpg', 'jpeg-bytes');
+        $withFile = Photo::factory()->published()->create(['image_path' => 'photos/test/real.jpg']);
+        $missing = Photo::factory()->published()->create(['image_path' => 'photos/missing/nowhere.jpg']);
 
         $this->get(route('media.photos'))
             ->assertOk()
@@ -396,7 +408,7 @@ class PublicWebsiteTest extends TestCase
 
         // Videos: drafts stay private; published videos resolve with a safe
         // nocookie embed URL derived from their official YouTube reference.
-        $video = \App\Models\Video::factory()->create();
+        $video = Video::factory()->create();
         $this->get(route('media.videos'))->assertInertia(fn ($page) => $page->has('videos', 0));
 
         $video->forceFill(['status' => 'published', 'published_at' => now()])->save();
@@ -478,7 +490,7 @@ class PublicWebsiteTest extends TestCase
         $this->assertStringNotContainsString('09068774040', $html);
 
         // A draft member never appears on the public page.
-        $draft = \App\Models\TeamMember::factory()->create(['sort' => 999]);
+        $draft = TeamMember::factory()->create(['sort' => 999]);
         $this->get(route('team'))
             ->assertInertia(fn ($page) => $page->has('team', 19));
 
@@ -503,10 +515,10 @@ class PublicWebsiteTest extends TestCase
      */
     public function test_team_biographies_are_not_invented(): void
     {
-        $coordinator = \App\Models\TeamMember::query()->where('is_coordinator', true)->firstOrFail();
+        $coordinator = TeamMember::query()->where('is_coordinator', true)->firstOrFail();
         $this->assertNotNull($coordinator->bio);
 
-        \App\Models\TeamMember::query()->where('is_coordinator', false)->get()
+        TeamMember::query()->where('is_coordinator', false)->get()
             ->each(fn ($member) => $this->assertNull($member->bio));
     }
 

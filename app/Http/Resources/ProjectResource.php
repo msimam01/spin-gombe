@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 
 /**
  * Public representation of a project or activity.
@@ -30,7 +31,7 @@ class ProjectResource extends JsonResource
             'status_label' => $this->status_label,
             'component' => $this->whenLoaded('component', fn () => $this->component ? [
                 'name' => $this->component->short_name ?? $this->component->name,
-                'url_slug' => \Illuminate\Support\Str::slug($this->component->short_name ?? $this->component->name),
+                'url_slug' => Str::slug($this->component->short_name ?? $this->component->name),
             ] : null),
             'location' => $this->whenLoaded('location', fn () => $this->location ? [
                 'name' => $this->location->name,
