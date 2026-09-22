@@ -78,6 +78,12 @@ class UpdateVideoRequest extends FormRequest
                 Rule::when($this->input('related_to') === 'component', Rule::exists('project_components', 'id')),
             ],
 
+            // The normalised relationship foreign keys themselves — carried
+            // through validated() only when prepareForValidation merged them
+            // (i.e. this update explicitly re-normalised the relationship).
+            'project_id' => ['nullable', Rule::exists('projects', 'id')],
+            'project_component_id' => ['nullable', Rule::exists('project_components', 'id')],
+
             'status' => ['sometimes', 'required', new Enum(PublicationStatus::class)],
             'sort' => ['sometimes', 'required', 'integer', 'min:0', 'max:10000'],
         ];

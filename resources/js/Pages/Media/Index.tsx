@@ -4,6 +4,7 @@ import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
+import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { Reveal } from '@/components/shared/Reveal';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
@@ -171,26 +172,14 @@ export default function MediaIndex({ galleries, photos, videos }: MediaIndexProp
                             )}
 
                             {photos.length > 0 && (
-                                <ul className="mt-10 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                                    {photos.slice(0, 8).map((photo) => (
-                                        <li key={photo.id}>
-                                            {photo.url ? (
-                                                <img
-                                                    src={photo.url}
-                                                    alt={photo.alt_text || photo.caption || 'SPIN Gombe project photograph'}
-                                                    className="aspect-square w-full rounded-sm border border-border object-cover"
-                                                    loading="lazy"
-                                                />
-                                            ) : (
-                                                <MediaPlaceholder
-                                                    icon={<Images aria-hidden="true" className="size-3.5" />}
-                                                    label="Photograph"
-                                                    aspect="aspect-square"
-                                                />
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
+                                <div className="mt-10">
+                                    <PhotoGrid
+                                        photos={photos.slice(0, 8)}
+                                        contextLabel="SPIN Gombe photographs"
+                                        aspect="aspect-square"
+                                        columnsClass="grid-cols-2 sm:grid-cols-4"
+                                    />
+                                </div>
                             )}
                         </>
                     ) : (

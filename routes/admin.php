@@ -1,9 +1,40 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\AdminAuthenticate;
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AuthenticatedSessionController;
+use App\Http\Controllers\Admin\Components\CreateController;
+use App\Http\Controllers\Admin\Components\DestroyController;
+use App\Http\Controllers\Admin\Components\EditController;
+use App\Http\Controllers\Admin\Components\IndexController;
+use App\Http\Controllers\Admin\Components\PublishController;
+use App\Http\Controllers\Admin\Components\StoreController;
+use App\Http\Controllers\Admin\Components\UpdateController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\Documents\Categories\DestroyController as DocumentCategoryDestroyController;
+use App\Http\Controllers\Admin\Documents\Categories\IndexController as DocumentCategoryIndexController;
+use App\Http\Controllers\Admin\Documents\Categories\PublishController as DocumentCategoryPublishController;
+use App\Http\Controllers\Admin\Documents\Categories\StoreController as DocumentCategoryStoreController;
+use App\Http\Controllers\Admin\Documents\Categories\UpdateController as DocumentCategoryUpdateController;
+use App\Http\Controllers\Admin\Documents\CreateController as DocumentCreateController;
+use App\Http\Controllers\Admin\Documents\DestroyController as DocumentDestroyController;
+use App\Http\Controllers\Admin\Documents\EditController as DocumentEditController;
+use App\Http\Controllers\Admin\Documents\IndexController as DocumentIndexController;
+use App\Http\Controllers\Admin\Documents\PublishController as DocumentPublishController;
+use App\Http\Controllers\Admin\Documents\StoreController as DocumentStoreController;
+use App\Http\Controllers\Admin\Documents\UpdateController as DocumentUpdateController;
+use App\Http\Controllers\Admin\Events\CreateController as EventCreateController;
+use App\Http\Controllers\Admin\Events\DestroyController as EventDestroyController;
+use App\Http\Controllers\Admin\Events\EditController as EventEditController;
+use App\Http\Controllers\Admin\Events\IndexController as EventIndexController;
+use App\Http\Controllers\Admin\Events\PublishController as EventPublishController;
+use App\Http\Controllers\Admin\Events\StoreController as EventStoreController;
+use App\Http\Controllers\Admin\Events\UpdateController as EventUpdateController;
+use App\Http\Controllers\Admin\Locations\CreateController as LocationCreateController;
+use App\Http\Controllers\Admin\Locations\DestroyController as LocationDestroyController;
+use App\Http\Controllers\Admin\Locations\EditController as LocationEditController;
+use App\Http\Controllers\Admin\Locations\IndexController as LocationIndexController;
+use App\Http\Controllers\Admin\Locations\PublishController as LocationPublishController;
+use App\Http\Controllers\Admin\Locations\StoreController as LocationStoreController;
+use App\Http\Controllers\Admin\Locations\UpdateController as LocationUpdateController;
 use App\Http\Controllers\Admin\Media\DashboardController as MediaDashboardController;
 use App\Http\Controllers\Admin\Media\Galleries\CreateController as GalleryCreateController;
 use App\Http\Controllers\Admin\Media\Galleries\DestroyController as GalleryDestroyController;
@@ -26,20 +57,6 @@ use App\Http\Controllers\Admin\Media\Videos\IndexController as VideoIndexControl
 use App\Http\Controllers\Admin\Media\Videos\PublishController as VideoPublishController;
 use App\Http\Controllers\Admin\Media\Videos\StoreController as VideoStoreController;
 use App\Http\Controllers\Admin\Media\Videos\UpdateController as VideoUpdateController;
-use App\Http\Controllers\Admin\Events\CreateController as EventCreateController;
-use App\Http\Controllers\Admin\Events\DestroyController as EventDestroyController;
-use App\Http\Controllers\Admin\Events\EditController as EventEditController;
-use App\Http\Controllers\Admin\Events\IndexController as EventIndexController;
-use App\Http\Controllers\Admin\Events\PublishController as EventPublishController;
-use App\Http\Controllers\Admin\Events\StoreController as EventStoreController;
-use App\Http\Controllers\Admin\Events\UpdateController as EventUpdateController;
-use App\Http\Controllers\Admin\Components\CreateController;
-use App\Http\Controllers\Admin\Components\DestroyController;
-use App\Http\Controllers\Admin\Components\EditController;
-use App\Http\Controllers\Admin\Components\IndexController;
-use App\Http\Controllers\Admin\Components\PublishController;
-use App\Http\Controllers\Admin\Components\StoreController;
-use App\Http\Controllers\Admin\Components\UpdateController;
 use App\Http\Controllers\Admin\News\CreateController as NewsCreateController;
 use App\Http\Controllers\Admin\News\DestroyController as NewsDestroyController;
 use App\Http\Controllers\Admin\News\EditController as NewsEditController;
@@ -47,13 +64,6 @@ use App\Http\Controllers\Admin\News\IndexController as NewsIndexController;
 use App\Http\Controllers\Admin\News\PublishController as NewsPublishController;
 use App\Http\Controllers\Admin\News\StoreController as NewsStoreController;
 use App\Http\Controllers\Admin\News\UpdateController as NewsUpdateController;
-use App\Http\Controllers\Admin\Locations\CreateController as LocationCreateController;
-use App\Http\Controllers\Admin\Locations\DestroyController as LocationDestroyController;
-use App\Http\Controllers\Admin\Locations\EditController as LocationEditController;
-use App\Http\Controllers\Admin\Locations\IndexController as LocationIndexController;
-use App\Http\Controllers\Admin\Locations\PublishController as LocationPublishController;
-use App\Http\Controllers\Admin\Locations\StoreController as LocationStoreController;
-use App\Http\Controllers\Admin\Locations\UpdateController as LocationUpdateController;
 use App\Http\Controllers\Admin\Projects\CreateController as ProjectCreateController;
 use App\Http\Controllers\Admin\Projects\DestroyController as ProjectDestroyController;
 use App\Http\Controllers\Admin\Projects\EditController as ProjectEditController;
@@ -61,6 +71,8 @@ use App\Http\Controllers\Admin\Projects\IndexController as ProjectIndexControlle
 use App\Http\Controllers\Admin\Projects\PublishController as ProjectPublishController;
 use App\Http\Controllers\Admin\Projects\StoreController as ProjectStoreController;
 use App\Http\Controllers\Admin\Projects\UpdateController as ProjectUpdateController;
+use App\Http\Middleware\AdminAuthenticate;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -185,6 +197,31 @@ Route::middleware(AdminAuthenticate::class)->group(function () {
     | never database terminology.
     |----------------------------------------------------------------------
     */
+    /*
+    |----------------------------------------------------------------------
+    | Documents — official downloadable publications classified by the
+    | seeded category list. A document is either an uploaded file or an
+    | official external link.
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('documents')->name('documents.')->group(function () {
+        Route::get('/', DocumentIndexController::class)->name('index');
+        Route::get('create', DocumentCreateController::class)->name('create');
+        Route::post('/', DocumentStoreController::class)->name('store');
+        Route::get('{document}/edit', DocumentEditController::class)->name('edit');
+        Route::put('{document}', DocumentUpdateController::class)->name('update');
+        Route::patch('{document}/publication', DocumentPublishController::class)->name('publish');
+        Route::delete('{document}', DocumentDestroyController::class)->name('destroy');
+
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/', DocumentCategoryIndexController::class)->name('index');
+            Route::post('/', DocumentCategoryStoreController::class)->name('store');
+            Route::put('{category}', DocumentCategoryUpdateController::class)->name('update');
+            Route::patch('{category}/publication', DocumentCategoryPublishController::class)->name('publish');
+            Route::delete('{category}', DocumentCategoryDestroyController::class)->name('destroy');
+        });
+    });
+
     Route::prefix('media')->name('media.')->group(function () {
         Route::get('/', MediaDashboardController::class)->name('index');
     });

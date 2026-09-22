@@ -34,12 +34,9 @@ class ProjectDetailResource extends JsonResource
                 'latitude' => $this->location->latitude,
                 'longitude' => $this->location->longitude,
             ] : null),
-            'photos' => $this->whenLoaded('photos', fn () => $this->photos->map(fn ($photo) => [
-                'id' => $photo->id,
-                'url' => $photo->image_path ? asset('storage/'.$photo->image_path) : null,
-                'alt_text' => $photo->alt_text,
-                'caption' => $photo->caption,
-            ])->all()),
+            'photos' => $this->whenLoaded('photos', fn () => $this->photos
+                ->map(fn ($photo) => (new PhotoResource($photo))->resolve())
+                ->all()),
             'documents' => $this->whenLoaded('documents', fn () => $this->documents->map(fn ($document) => [
                 'id' => $document->id,
                 'title' => $document->title,

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Camera, Clapperboard, Images, Play, SquarePlay } from 'lucide-react';
 import { HomeSection } from '@/components/home/HomeSection';
+import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { route } from '@/lib/routes';
 import type { Photo, Video } from '@/types';
 
@@ -19,7 +20,7 @@ export function MediaHighlight({
     photos: Photo[];
     videos: Video[];
 }) {
-    const [firstPhoto, ...morePhotos] = photos;
+    const firstPhoto = photos[0];
 
     return (
         <HomeSection
@@ -56,16 +57,22 @@ export function MediaHighlight({
                     </div>
 
                     {firstPhoto ? (
-                        <div className="mt-5 grid grid-cols-3 gap-2.5">
-                            {[firstPhoto, ...morePhotos.slice(0, 5)].map((photo) => (
-                                <img
-                                    key={photo.id}
-                                    src={photo.url ?? ''}
-                                    alt={photo.alt_text || photo.caption || 'SPIN Gombe project photograph'}
-                                    className="aspect-square w-full rounded-sm object-cover"
-                                    loading="lazy"
-                                />
-                            ))}
+                        <div className="mt-5">
+                            <PhotoGrid
+                                photos={photos}
+                                contextLabel="SPIN Gombe photographs"
+                                aspect="aspect-square"
+                                columnsClass="grid-cols-3"
+                            />
+                            <div className="mt-4 text-center">
+                                <Link
+                                    href={route('media.photos')}
+                                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
+                                >
+                                    View all photos
+                                    <ArrowRight aria-hidden="true" className="size-4" />
+                                </Link>
+                            </div>
                         </div>
                     ) : (
                         <div className="mt-5 flex min-h-[220px] flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/50 p-8 text-center">

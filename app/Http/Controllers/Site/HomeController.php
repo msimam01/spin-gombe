@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PhotoResource;
 use App\Http\Resources\ProjectComponentResource;
 use App\Models\Document;
 use App\Models\Event;
@@ -46,7 +47,8 @@ class HomeController extends Controller
             ),
 
             'photos' => $this->collect(
-                Photo::query()->published()->ordered()->limit(6)
+                Photo::query()->published()->ordered()->limit(6),
+                PhotoResource::class,
             ),
 
             'videos' => $this->collect(
@@ -79,10 +81,16 @@ class HomeController extends Controller
 
     /**
      * Safe collection fetch: an empty array when the table does not exist yet.
+     * When `$resourceClass` is given, models are serialised through that
+     * resource so the frontend receives the same public shape as elsewhere.
      */
-    private function collect($query): array
+    private function collect($query, ?string $resourceClass = null): array
     {
         try {
+            if ($resourceClass !== null) {
+                return $resourceClass::collection($query->get())->resolve();
+            }
+
             return $query->get()->map(fn ($model) => [
                 'id' => $model->id,
                 'slug' => $model->slug,
@@ -95,7 +103,7 @@ class HomeController extends Controller
                 'description' => $model->description ?? null,
                 'venue' => $model->venue ?? null,
                 'image_path' => $model->image_path ?? null,
-                'url' => $model instanceof \App\Models\Photo && $model->image_path
+                'url' => $model instanceof Photo && $model->image_path
                     ? asset('storage/'.$model->image_path)
                     : ($model->url ?? null),
                 'alt_text' => $model->alt_text ?? null,

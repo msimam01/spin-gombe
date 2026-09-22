@@ -3,11 +3,9 @@
 namespace App\Http\Resources;
 
 use App\Models\NewsPost;
-use App\Models\Photo;
 use App\Models\Video;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Str;
 
 /**
  * Full public representation of a single news post (detail page).
@@ -31,17 +29,13 @@ class NewsPostDetailResource extends JsonResource
             'published_on' => $this->published_at?->isoFormat('D MMMM Y'),
             'body' => $this->body,
             'photos' => $this->whenLoaded('component', fn () => $this->component
-                ? $this->component->photos()
-                    ->published()
-                    ->ordered()
-                    ->limit(6)
-                    ->get()
-                    ->map(fn (Photo $photo) => [
-                        'id' => $photo->id,
-                        'url' => $photo->image_path ? asset('storage/'.$photo->image_path) : null,
-                        'alt_text' => $photo->alt_text,
-                        'caption' => $photo->caption,
-                    ])->all()
+                ? PhotoResource::collection(
+                    $this->component->photos()
+                        ->published()
+                        ->ordered()
+                        ->limit(6)
+                        ->get()
+                )->resolve()
                 : []),
             'videos' => $this->whenLoaded('component', fn () => $this->component
                 ? $this->component->videos()

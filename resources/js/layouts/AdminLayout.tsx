@@ -60,10 +60,15 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             enabled: true,
             description: 'Photos, videos and galleries for the public media section',
         },
+        {
+            label: 'Documents',
+            href: route('admin.documents.index'),
+            enabled: true,
+            description: 'Official publications for the public Resources page',
+        },
     ];
 
     const upcomingSections = [
-        'Documents',
         'Team',
         'Settings',
         'Users',
@@ -114,7 +119,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
                     {user && (
                         <div className="flex items-center gap-3">
-                            <div className="text-right">
+                            <div className="hidden text-right sm:block">
                                 <p className="text-sm font-medium text-foreground">{user.name}</p>
                                 <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
                             </div>

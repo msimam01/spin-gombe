@@ -42,12 +42,8 @@ class EventDetailResource extends JsonResource
                     'title' => $gallery->title,
                     'photos' => $gallery->photos
                         ->filter(fn (Photo $photo) => $photo->isPublished())
-                        ->map(fn (Photo $photo) => [
-                            'id' => $photo->id,
-                            'url' => $photo->image_path ? asset('storage/'.$photo->image_path) : null,
-                            'alt_text' => $photo->alt_text,
-                            'caption' => $photo->caption,
-                        ])->values()->all(),
+                        ->map(fn (Photo $photo) => (new PhotoResource($photo))->resolve())
+                        ->values()->all(),
                 ])
                 ->filter(fn (array $gallery) => count($gallery['photos']) > 0)
                 ->values()->all()),

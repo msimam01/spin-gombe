@@ -14,9 +14,10 @@ import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Reveal } from '@/components/shared/Reveal';
+import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
-import type { ProjectComponent } from '@/types';
+import type { Photo, ProjectComponent } from '@/types';
 
 /** A component as delivered by ComponentsShowController. */
 interface ComponentEntry extends ProjectComponent {
@@ -33,7 +34,7 @@ interface Neighbour {
 interface RelatedContent {
     projects: { id: number; slug: string; title: string; type: string; summary: string | null; cover_image: string | null }[];
     documents: { id: number; title: string; category: string | null; file_url: string | null; published_on: string | null }[];
-    photos: { id: number; url: string | null; alt_text: string | null; caption: string | null }[];
+    photos: Photo[];
     videos: { id: number; title: string; youtube_id: string | null; thumbnail_url: string | null }[];
 }
 
@@ -307,18 +308,12 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
                                         Photos
                                     </h3>
-                                    <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                        {related.photos.map((photo) => (
-                                            <li key={photo.id}>
-                                                <img
-                                                    src={photo.url ?? undefined}
-                                                    alt={photo.alt_text ?? photo.caption ?? 'Project photograph'}
-                                                    className="aspect-[4/3] w-full rounded-md object-cover"
-                                                    loading="lazy"
-                                                />
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <div className="mt-4">
+                                        <PhotoGrid
+                                            photos={related.photos}
+                                            contextLabel={`${component.name} photos`}
+                                        />
+                                    </div>
                                 </div>
                             )}
 

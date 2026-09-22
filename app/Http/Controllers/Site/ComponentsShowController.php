@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PhotoResource;
 use App\Http\Resources\ProjectComponentResource;
 use App\Models\Document;
 use App\Models\Photo;
@@ -72,20 +73,14 @@ class ComponentsShowController extends Controller
                     ])
                     ->all(),
 
-                'photos' => Photo::query()
-                    ->published()
-                    ->ordered()
-                    ->where('project_component_id', $component->id)
-                    ->limit(6)
-                    ->get()
-                    ->map(fn (Photo $photo) => [
-                        'id' => $photo->id,
-                        'image_path' => $photo->image_path,
-                        'url' => $photo->image_path ? asset('storage/'.$photo->image_path) : null,
-                        'alt_text' => $photo->alt_text,
-                        'caption' => $photo->caption,
-                    ])
-                    ->all(),
+                'photos' => PhotoResource::collection(
+                    Photo::query()
+                        ->published()
+                        ->ordered()
+                        ->where('project_component_id', $component->id)
+                        ->limit(6)
+                        ->get()
+                )->resolve(),
 
                 'videos' => Video::query()
                     ->published()

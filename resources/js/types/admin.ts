@@ -271,6 +271,60 @@ export interface VideoFilters {
     related: string | null;
 }
 
+/** An admin-side document row or full edit payload. */
+export interface AdminDocument {
+    id: number;
+    title: string;
+    /** Listing rows carry the description; edit payloads add the rest. */
+    description?: string | null;
+    category: { slug: string; name: string } | null;
+    /** Listing only: short derived type label ("PDF", "External link"…). */
+    file_type?: string | null;
+    /** Listing only: raw byte size. */
+    file_size?: number | null;
+    is_external?: boolean;
+    /** Edit payload only. */
+    document_category_id?: number | null;
+    /** Edit payload only: 'file' or 'external'. */
+    source?: 'file' | 'external';
+    /** Edit payload only: stored filename (not the path). */
+    file_name?: string | null;
+    /** Edit payload only. */
+    mime_type?: string | null;
+    /** Edit payload only: resolved download URL of the stored file. */
+    download_url?: string | null;
+    /** Edit payload only. */
+    external_url?: string | null;
+    /** Edit payload only. */
+    version?: string | null;
+    published_on: string | null;
+    status: PublicationStatusValue;
+    /** Edit payload only. */
+    sort?: number;
+    /** Edit payload only. */
+    published_at?: string | null;
+    updated_at: string;
+}
+
+/** An admin-side document category row. */
+export interface AdminDocumentCategory {
+    id: number;
+    slug: string;
+    name: string;
+    description: string | null;
+    document_count: number;
+    status: PublicationStatusValue;
+    sort: number;
+    updated_at: string;
+}
+
+/** The documents listing filters, echoed back by the controller. */
+export interface DocumentFilters {
+    search: string | null;
+    status: PublicationStatusValue | null;
+    category: string | null;
+}
+
 /** The Media landing page's live overview data. */
 export interface MediaOverview {
     counts: {

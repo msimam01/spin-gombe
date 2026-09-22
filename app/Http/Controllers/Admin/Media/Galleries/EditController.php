@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Admin\Media\Galleries;
 
-use App\Http\Controllers\Controller;
+use App\Enums\PublicationStatus;
 use App\Http\Controllers\Admin\Media\Photos\IndexController as PhotoIndexController;
+use App\Http\Controllers\Controller;
 use App\Models\Gallery;
+use App\Models\Photo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -47,9 +50,9 @@ class EditController extends Controller
                         'taken_on' => $photo->taken_on?->toDateString(),
                     ])->all(),
             ],
-            'statuses' => \App\Enums\PublicationStatus::options(),
+            'statuses' => PublicationStatus::options(),
             'events' => CreateController::eventOptions(),
-            'attachable_photos' => \App\Models\Photo::query()
+            'attachable_photos' => Photo::query()
                 ->where(fn ($query) => $query
                     ->whereNull('gallery_id')
                     ->orWhere('gallery_id', '!=', $gallery->id))
@@ -74,7 +77,7 @@ class EditController extends Controller
             return null;
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->exists($gallery->cover_image)
+        return Storage::disk('public')->exists($gallery->cover_image)
             ? asset('storage/'.$gallery->cover_image)
             : null;
     }

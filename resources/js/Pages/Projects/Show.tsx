@@ -11,9 +11,11 @@ import {
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { Reveal } from '@/components/shared/Reveal';
+import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { ProjectsMap } from '@/components/projects/ProjectsMap';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
+import type { Photo } from '@/types';
 
 interface ProjectDetail {
     id: number;
@@ -35,7 +37,7 @@ interface ProjectDetail {
         latitude: number | null;
         longitude: number | null;
     } | null;
-    photos: { id: number; url: string | null; alt_text: string | null; caption: string | null }[];
+    photos: Photo[];
     documents: { id: number; title: string; category: string | null; file_url: string | null }[];
     videos: { id: number; title: string; youtube_id: string | null; thumbnail_url: string | null }[];
     related: { slug: string; title: string; type: string; summary: string | null }[];
@@ -258,18 +260,12 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
                                         Photos
                                     </h3>
-                                    <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                        {project.photos.map((photo) => (
-                                            <li key={photo.id}>
-                                                <img
-                                                    src={photo.url ?? undefined}
-                                                    alt={photo.alt_text ?? photo.caption ?? project.title}
-                                                    className="aspect-[4/3] w-full rounded-md object-cover"
-                                                    loading="lazy"
-                                                />
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <div className="mt-4">
+                                        <PhotoGrid
+                                            photos={project.photos}
+                                            contextLabel={`${project.title} photos`}
+                                        />
+                                    </div>
                                 </div>
                             )}
 
