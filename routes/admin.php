@@ -78,6 +78,14 @@ use App\Http\Controllers\Admin\Team\IndexController as TeamIndexController;
 use App\Http\Controllers\Admin\Team\PublishController as TeamPublishController;
 use App\Http\Controllers\Admin\Team\StoreController as TeamStoreController;
 use App\Http\Controllers\Admin\Team\UpdateController as TeamUpdateController;
+use App\Http\Controllers\Admin\Users\ActivateController as UserActivateController;
+use App\Http\Controllers\Admin\Users\CreateController as UserCreateController;
+use App\Http\Controllers\Admin\Users\DeactivateController as UserDeactivateController;
+use App\Http\Controllers\Admin\Users\DestroyController as UserDestroyController;
+use App\Http\Controllers\Admin\Users\EditController as UserEditController;
+use App\Http\Controllers\Admin\Users\IndexController as UserIndexController;
+use App\Http\Controllers\Admin\Users\StoreController as UserStoreController;
+use App\Http\Controllers\Admin\Users\UpdateController as UserUpdateController;
 use App\Http\Middleware\AdminAuthenticate;
 use Illuminate\Support\Facades\Route;
 
@@ -244,6 +252,25 @@ Route::middleware(AdminAuthenticate::class)->group(function () {
         Route::put('{member}', TeamUpdateController::class)->name('update');
         Route::patch('{member}/publication', TeamPublishController::class)->name('publish');
         Route::delete('{member}', TeamDestroyController::class)->name('destroy');
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Users — administrator account management. A single server-enforced
+    | `administrator` role; accounts created here are administrators by
+    | definition. Deletion was audited: the only FK to users is
+    | news_posts.author_id (nullOnDelete) — article metadata.
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', UserIndexController::class)->name('index');
+        Route::get('create', UserCreateController::class)->name('create');
+        Route::post('/', UserStoreController::class)->name('store');
+        Route::get('{user}/edit', UserEditController::class)->name('edit');
+        Route::put('{user}', UserUpdateController::class)->name('update');
+        Route::patch('{user}/activate', UserActivateController::class)->name('activate');
+        Route::patch('{user}/deactivate', UserDeactivateController::class)->name('deactivate');
+        Route::delete('{user}', UserDestroyController::class)->name('destroy');
     });
 
     Route::prefix('media')->name('media.')->group(function () {

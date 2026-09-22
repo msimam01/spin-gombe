@@ -357,6 +357,25 @@ export interface TeamFilters {
     status: PublicationStatusValue | null;
 }
 
+/** An admin-side user (administrator account) row or full edit payload. */
+export interface AdminUser {
+    id: number;
+    name: string;
+    email: string;
+    job_title: string | null;
+    role: string;
+    is_active: boolean;
+    created_at: string;
+    /** Edit payload only. */
+    updated_at?: string;
+}
+
+/** The users listing filters, echoed back by the controller. */
+export interface UserFilters {
+    search: string | null;
+    status: 'active' | 'inactive' | null;
+}
+
 /** The Media landing page's live overview data. */
 export interface MediaOverview {
     counts: {

@@ -72,11 +72,16 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             enabled: true,
             description: 'Project team members for the public Team page',
         },
+        {
+            label: 'Users',
+            href: route('admin.users.index'),
+            enabled: true,
+            description: 'Administrator accounts for the administration area',
+        },
     ];
 
     const upcomingSections = [
         'Settings',
-        'Users',
     ];
 
     return (
