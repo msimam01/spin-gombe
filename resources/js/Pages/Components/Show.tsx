@@ -24,6 +24,8 @@ interface ComponentEntry extends ProjectComponent {
     url_slug: string;
     /** Zero-based position within the published component list. */
     position: number;
+    /** Total published components — keeps "Component 02 of 05" accurate. */
+    total: number;
 }
 
 interface Neighbour {
@@ -159,7 +161,10 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                             Component
                                         </dt>
                                         <dd className="mt-1 font-semibold text-foreground">
-                                            {componentNumberLabel(component.position, 4)}
+                                            {componentNumberLabel(
+                                                component.position,
+                                                component.total,
+                                            )}
                                         </dd>
                                     </div>
                                     <div className="border-l-2 border-gold-400 pl-4">

@@ -39,6 +39,10 @@ class StorePhotoRequest extends FormRequest
         });
 
         $this->merge([
+            // The browser always sends related_id ("" when General/Independent
+            // is chosen) — normalise it to null here so the integer rule never
+            // rejects the empty string.
+            'related_id' => $relatedId,
             'caption' => $this->filled('caption') ? trim((string) $this->input('caption')) : null,
             'credit' => $this->filled('credit') ? trim((string) $this->input('credit')) : null,
             'taken_on' => $this->filled('taken_on') ? $this->input('taken_on') : null,
@@ -68,6 +72,7 @@ class StorePhotoRequest extends FormRequest
             // The human "Related to" choice and its record selector.
             'related_to' => ['required', 'string', 'in:general,project,component,gallery'],
             'related_id' => [
+                'nullable',
                 'required_unless:related_to,general',
                 'integer',
                 Rule::when($this->input('related_to') === 'project', Rule::exists('projects', 'id')),

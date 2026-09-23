@@ -37,6 +37,10 @@ class StoreVideoRequest extends FormRequest
         });
 
         $this->merge([
+            // The browser always sends related_id ("" when General/Independent
+            // is chosen) — normalise it to null here so the integer rule never
+            // rejects the empty string.
+            'related_id' => $relatedId,
             'description' => $this->filled('description') ? trim((string) $this->input('description')) : null,
             'published_on' => $this->filled('published_on') ? $this->input('published_on') : null,
             'sort' => $this->filled('sort') ? (int) $this->input('sort') : 0,
@@ -70,6 +74,7 @@ class StoreVideoRequest extends FormRequest
 
             'related_to' => ['required', 'string', 'in:general,project,component'],
             'related_id' => [
+                'nullable',
                 'required_unless:related_to,general',
                 'integer',
                 Rule::when($this->input('related_to') === 'project', Rule::exists('projects', 'id')),

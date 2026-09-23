@@ -110,7 +110,13 @@ class ComponentsShowController extends Controller
 
         return Inertia::render('Components/Show', [
             'component' => (new ProjectComponentResource($component))->resolve()
-                + ['url_slug' => $toUrlSlug($component), 'position' => $position],
+                + [
+                    'url_slug' => $toUrlSlug($component),
+                    'position' => $position,
+                    // Total published components — drives the "Component 02 of 05"
+                    // label without hard-coding the official component count.
+                    'total' => $all->count(),
+                ],
             'neighbours' => [
                 'previous' => $position > 0 ? $neighbour($position - 1) : null,
                 'next' => $position < $all->count() - 1 ? $neighbour($position + 1) : null,

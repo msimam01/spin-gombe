@@ -30,16 +30,24 @@ class UpdatePhotoRequest extends FormRequest
         // the relationship; a partial update without it preserves the
         // stored foreign keys untouched.
         if (! $this->filled('related_to')) {
+            // A partial update that carries an empty related_id ("" from the
+            // browser) still normalises it, so the integer rule never sees it.
+            if ($this->has('related_id') && ! $this->filled('related_id')) {
+                $this->merge(['related_id' => null]);
+            }
+
             return;
         }
 
         $relatedId = $this->filled('related_id') ? (int) $this->input('related_id') : null;
 
         $this->merge(match ($this->input('related_to')) {
-            'project' => ['project_id' => $relatedId, 'project_component_id' => null, 'gallery_id' => null],
-            'component' => ['project_id' => null, 'project_component_id' => $relatedId, 'gallery_id' => null],
-            'gallery' => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => $relatedId],
-            default => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => null],
+            // related_id is normalised alongside the foreign keys: the
+            // browser sends "" (not an absence) whenever General is chosen.
+            'project' => ['project_id' => $relatedId, 'project_component_id' => null, 'gallery_id' => null, 'related_id' => $relatedId],
+            'component' => ['project_id' => null, 'project_component_id' => $relatedId, 'gallery_id' => null, 'related_id' => $relatedId],
+            'gallery' => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => $relatedId, 'related_id' => $relatedId],
+            default => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => null, 'related_id' => $relatedId],
         });
     }
 
