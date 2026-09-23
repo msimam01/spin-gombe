@@ -20,14 +20,19 @@ export function MediaHighlight({
     photos: Photo[];
     videos: Video[];
 }) {
-    const firstPhoto = photos[0];
+    /*
+     * Only photos with a resolvable file can be shown — records whose file
+     * is missing resolve to a null URL and must never produce an empty
+     * panel or a broken tile.
+     */
+    const viewablePhotos = photos.filter((photo) => Boolean(photo.url));
 
     return (
         <HomeSection
             id="media"
             eyebrow="Media"
-            title="See the project"
-            description="Photographs and official video coverage of SPIN Gombe activities, events and field work."
+            title="Project in Pictures"
+            description="Explore photographs and videos from SPIN activities and events."
             tone="tint"
             action={
                 <Link
@@ -56,10 +61,10 @@ export function MediaHighlight({
                         </Link>
                     </div>
 
-                    {firstPhoto ? (
+                    {viewablePhotos.length > 0 ? (
                         <div className="mt-5">
                             <PhotoGrid
-                                photos={photos}
+                                photos={viewablePhotos}
                                 contextLabel="SPIN Gombe photographs"
                                 aspect="aspect-square"
                                 columnsClass="grid-cols-3"
@@ -80,11 +85,11 @@ export function MediaHighlight({
                                 <Images aria-hidden="true" className="size-5" />
                             </span>
                             <p className="mt-4 text-sm font-semibold text-foreground">
-                                Photography is being prepared
+                                No photographs are currently listed
                             </p>
                             <p className="mt-1.5 max-w-xs text-xs leading-relaxed text-muted-foreground">
-                                Official photographs of the project team, events and field
-                                activities will appear here once approved for publication.
+                                Published photographs of project activities and events appear
+                                here.
                             </p>
                         </div>
                     )}
@@ -145,11 +150,11 @@ export function MediaHighlight({
                                 <SquarePlay aria-hidden="true" className="size-5" />
                             </span>
                             <p className="mt-4 text-sm font-semibold text-foreground">
-                                Videos are being prepared
+                                No videos are currently listed
                             </p>
                             <p className="mt-1.5 max-w-xs text-xs leading-relaxed text-muted-foreground">
-                                Official project documentaries and activity coverage will be
-                                embedded here from the project's official YouTube channel.
+                                Published videos appear here, embedded from the project's
+                                official YouTube channel.
                             </p>
                         </div>
                     )}

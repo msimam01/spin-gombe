@@ -101,8 +101,8 @@ export function ComponentShowcase({ components }: { components: ComponentEntry[]
                     ) : (
                         <EmptyState
                             icon={<ClipboardList aria-hidden="true" className="size-5" />}
-                            title="Component information is being prepared"
-                            description="The four official SPIN components will be published here once SPIN supplies and approves the content for each component."
+                            title="No components are currently listed"
+                            description="Published component information appears here."
                         />
                     )}
                 </div>

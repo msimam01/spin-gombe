@@ -80,8 +80,8 @@ export function OfficeLocationPanel() {
                             {contact.address_lines.join(', ')}
                         </p>
                         <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-muted-foreground">
-                            The precise map location is being confirmed with the project
-                            office and will be published here once verified by SPIN.
+                            The official address is shown above; the precise map pin is to be
+                            confirmed.
                         </p>
                     </div>
                 </div>
@@ -89,7 +89,7 @@ export function OfficeLocationPanel() {
 
             <div className="flex items-center gap-2 border-t border-border bg-muted/50 px-5 py-3 text-xs text-muted-foreground">
                 <Clock aria-hidden="true" className="size-3.5 shrink-0 text-primary" />
-                Office opening hours will be published by the project office.
+                For opening hours, please contact the project office.
             </div>
         </div>
     );

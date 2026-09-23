@@ -32,6 +32,7 @@ export interface ContactDetails {
 export interface SpinLogos {
     spin: string | null;
     federal: string | null;
+    power: string | null;
     world_bank: string | null;
 }
 
@@ -63,6 +64,16 @@ export interface SiteSettings {
     acronym: string;
     site_title: string;
     summary: string;
+    /** Homepage hero: concise official summary plus the approved photo when supplied. */
+    hero: {
+        summary: string;
+        /** Path to the approved hero photograph — null until SPIN supplies one. */
+        image: string | null;
+        /** Alt text for the photo — must only name a site once officially confirmed. */
+        image_alt: string | null;
+    };
+    /** Homepage institutional partner strip entries (logo slot per key). */
+    partners: { key: string; label: string }[];
     background: string[];
     vision: string;
     mission: string;
@@ -162,6 +173,10 @@ export interface Project {
     type: 'project' | 'activity';
     summary: string | null;
     cover_image: string | null;
+    /** Related component name when one is linked (homepage preview). */
+    component_name?: string | null;
+    /** Location name when one is linked (homepage preview). */
+    location_name?: string | null;
 }
 
 /** A photograph as delivered by PhotoResource. */
@@ -219,6 +234,8 @@ export interface SharedProps {
         url: string;
     };
     site: SiteSettings;
+    /** Google Maps JavaScript API browser key — null when not configured. */
+    google_maps_key: string | null;
     navigation: Navigation;
     seo: SeoDefaults;
     auth: {

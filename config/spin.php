@@ -35,6 +35,28 @@ return [
         .'support sustainable hydropower development.',
 
     /*
+     * Homepage hero band. `summary` is a concise restatement of the official
+     * description and vision above — no figures, beneficiaries or claims are
+     * added. The longer `summary` continues to serve the About page.
+     *
+     * `image` stays null until SPIN supplies an approved project photograph
+     * (ideally of Balanga Dam or its associated irrigation scheme). When set,
+     * it must be a web-accessible path relative to the site root (e.g. a file
+     * placed in `public/images/hero/` referenced as "/images/hero/…"); the
+     * hero then renders the photograph instead of the built-in placeholder.
+     * Never reference a stock image here, and never set `image_alt` to a dam
+     * name unless SPIN has officially confirmed the location in the picture.
+     */
+    'hero' => [
+        'summary' => 'Strengthening water resources management, irrigation, dam '
+            .'safety and sustainable hydropower development to support food, '
+            .'water and energy security in Gombe State.',
+        // Client-supplied photograph of Balanga Dam (approved for the hero).
+        'image' => '/images/hero/balanga-dam.jpg',
+        'image_alt' => 'Balanga Dam, Gombe State',
+    ],
+
+    /*
      * Official project background, from the SPIN Project Website Development
      * Information Collection Form. Light copyediting only (spelling and
      * grammar); the meaning is untouched.
@@ -187,8 +209,8 @@ return [
     'meta' => [
         ['key' => 'implementing_ministry', 'label' => 'Implementing Ministry', 'value' => 'Ministry of Water Resources, Gombe State'],
         ['key' => 'donor', 'label' => 'Development Partner', 'value' => 'World Bank Assisted'],
-        ['key' => 'effective_date', 'label' => 'Project Effective Date', 'value' => '27th October, 2025'],
-        ['key' => 'end_date', 'label' => 'Expected End Date', 'value' => '31 December, 2029'],
+        ['key' => 'effective_date', 'label' => 'Project Effective Date', 'value' => '27 October 2025'],
+        ['key' => 'end_date', 'label' => 'Expected End Date', 'value' => '31 December 2029'],
     ],
 
     'state' => 'Gombe State',
@@ -251,14 +273,26 @@ return [
 
     // ---- Media ------------------------------------------------------------
     /*
-     * No approved logo or third-party (Federal Government / World Bank)
-     * logo files have been supplied yet, so none are referenced.
-     * Add paths here once the approved assets are received.
+     * Official partner logos (client-supplied, September 2026). Rendered by
+     * the homepage partner strip inside white chips. The SPIN project logo
+     * itself remains outstanding — set it here when it arrives.
      */
     'logos' => [
         'spin' => null,
-        'federal' => null,
-        'world_bank' => null,
+        'federal' => '/images/logos/federal-ministry-water-resources-sanitation.jpg',
+        'power' => '/images/logos/federal-ministry-power.jpg',
+        'world_bank' => '/images/logos/world-bank.jpg',
+    ],
+
+    /*
+     * Institutional partner strip (homepage). Each entry renders its official
+     * logo from `logos` when available. All three institutions are named in
+     * the collection form as implementing partners — no others are added.
+     */
+    'partners' => [
+        ['key' => 'federal', 'label' => 'Federal Ministry of Water Resources and Sanitation'],
+        ['key' => 'power', 'label' => 'Federal Ministry of Power'],
+        ['key' => 'world_bank', 'label' => 'The World Bank'],
     ],
 
     // ---- Social -----------------------------------------------------------

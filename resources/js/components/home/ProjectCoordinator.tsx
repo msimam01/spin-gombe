@@ -53,8 +53,7 @@ export function ProjectCoordinator() {
                                                 <UserRound aria-hidden="true" className="size-8" />
                                             </span>
                                             <p className="px-6 text-center text-xs leading-relaxed text-brand-800">
-                                                Official portrait will be published once
-                                                supplied by the project office
+                                                Official portrait to be added
                                             </p>
                                         </div>
                                     )}

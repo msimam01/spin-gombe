@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    /*
+    | Google Maps JavaScript API (public homepage map).
+    |
+    | The key is a BROWSER key: create it in Google Cloud Console with the
+    | "Maps JavaScript API" enabled and an HTTP referrer restriction for the
+    | production domain(s). It is exposed to the browser by design — the
+    | referrer restriction, not secrecy, protects it. Never commit real keys.
+    |
+    | GOOGLE_MAPS_API_KEY=        (empty/unset -> the map falls back to the
+    |                              designed non-interactive panel; nothing breaks)
+    */
+    'google_maps' => [
+        'key' => env('GOOGLE_MAPS_API_KEY'),
+    ],
+
 ];

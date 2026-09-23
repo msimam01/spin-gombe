@@ -28,6 +28,7 @@ import type {
     SharedProps,
     Video,
 } from '@/types';
+import type { MapMarkerLocation } from '@/components/shared/GoogleProjectsMap';
 
 interface HomeProps {
     components: ProjectComponent[];
@@ -36,6 +37,7 @@ interface HomeProps {
     events: Event[];
     photos: Photo[];
     videos: Video[];
+    mapLocations: MapMarkerLocation[];
     documentCounts: Record<string, number>;
 }
 
@@ -54,6 +56,7 @@ export default function Home({
     events,
     photos,
     videos,
+    mapLocations,
     documentCounts,
 }: HomeProps) {
     const { site, app } = usePage<SharedProps>().props;
@@ -104,7 +107,7 @@ export default function Home({
             <ProjectsPreview projects={projects} />
 
             {/* 8 — Project location map preview */}
-            <MapPreview />
+            <MapPreview locations={mapLocations} />
 
             {/* 9 + 10 — News and events previews */}
             <NewsEventsPreview news={news} events={events} />
@@ -123,8 +126,8 @@ export default function Home({
 
             {/* 15 — Closing CTA above the footer */}
             <CallToAction
-                title="Need information about the project?"
-                description="Reach the SPIN Gombe State project office for official enquiries, documents and partnership requests."
+                title="Learn more about SPIN Gombe"
+                description="Explore the project, its components, activities and official resources."
                 actions={
                     <>
                         <Button asChild variant="accent" size="lg">

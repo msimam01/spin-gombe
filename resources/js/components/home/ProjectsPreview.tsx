@@ -8,18 +8,17 @@ import type { Project } from '@/types';
 /**
  * Projects & Activities preview.
  *
- * Once the CMS holds published projects this renders real cards; until then
- * it presents an honest, polished notice instead of invented records. The
- * section's structure is CMS-ready: `projects` maps to the published,
- * ordered `Project` models passed by the controller.
+ * Renders the published project/activity records passed by the controller as
+ * cards linking to their detail pages. With no published records the section
+ * shows a polished neutral empty state — never invented entries.
  */
 export function ProjectsPreview({ projects }: { projects: Project[] }) {
     return (
         <HomeSection
             id="projects-preview"
             eyebrow="Projects & Activities"
-            title="Implementation on the ground"
-            description="Confirmed SPIN Gombe projects and field activities will be published here, with their components, locations and supporting media."
+            title="Projects & Activities"
+            description="Explore project interventions and activities across the SPIN Gombe programme."
             tone="white"
             action={
                 <Link
@@ -53,6 +52,11 @@ export function ProjectsPreview({ projects }: { projects: Project[] }) {
                                     <h3 className="mt-2 text-base leading-snug font-semibold text-foreground group-hover:text-brand-800">
                                         {project.title}
                                     </h3>
+                                    {(project.component_name || project.location_name) && (
+                                        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                                            {[project.component_name, project.location_name].filter(Boolean).join(' · ')}
+                                        </p>
+                                    )}
                                     {project.summary && (
                                         <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                                             {project.summary}
@@ -70,8 +74,8 @@ export function ProjectsPreview({ projects }: { projects: Project[] }) {
             ) : (
                 <EmptyState
                     icon={<MapPinned aria-hidden="true" className="size-5" />}
-                    title="Project records are being prepared"
-                    description="Official SPIN Gombe projects and activities will be listed here as soon as the project office publishes them. Nothing is shown until it is confirmed."
+                    title="No projects are currently listed"
+                    description="Published projects and activities appear here with their details."
                 />
             )}
         </HomeSection>

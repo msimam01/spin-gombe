@@ -7,6 +7,7 @@ use App\Http\Resources\PhotoResource;
 use App\Http\Resources\ProjectComponentResource;
 use App\Models\Document;
 use App\Models\Event;
+use App\Models\Location;
 use App\Models\NewsPost;
 use App\Models\Photo;
 use App\Models\Project;
@@ -35,7 +36,11 @@ class HomeController extends Controller
             'components' => $this->publishedComponents(),
 
             'projects' => $this->collect(
-                Project::query()->published()->ordered()->limit(3)
+                Project::query()
+                    ->published()
+                    ->ordered()
+                    ->with(['component:id,name,short_name', 'location:id,name'])
+                    ->limit(3)
             ),
 
             'news' => $this->collect(
@@ -54,6 +59,8 @@ class HomeController extends Controller
             'videos' => $this->collect(
                 Video::query()->published()->ordered()->limit(2)
             ),
+
+            'mapLocations' => $this->mapLocations(),
 
             'documentCounts' => $this->documentCounts(),
         ]);
@@ -99,6 +106,10 @@ class HomeController extends Controller
                 'name' => $model->name ?? null,
                 'short_name' => $model->short_name ?? null,
                 'summary' => $model->summary ?? null,
+                'component_name' => $model->component
+                    ? ($model->component->short_name ?? $model->component->name)
+                    : null,
+                'location_name' => $model->location?->name,
                 'excerpt' => $model->excerpt ?? null,
                 'description' => $model->description ?? null,
                 'venue' => $model->venue ?? null,
@@ -121,6 +132,50 @@ class HomeController extends Controller
                     ? $model->published_at->toIso8601String()
                     : null,
             ])->all();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Published locations with coordinates, each carrying the published
+     * projects/activities recorded there — the homepage map's only data
+     * source. Locations without coordinates are never fabricated into
+     * markers; with none at all the map degrades to its empty state.
+     */
+    private function mapLocations(): array
+    {
+        try {
+            return Location::query()
+                ->published()
+                ->mappable()
+                ->orderBy('name')
+                ->with(['projects' => fn ($query) => $query
+                    ->published()
+                    ->ordered()
+                    ->with('component:id,name,short_name')])
+                ->get()
+                ->map(fn (Location $location) => [
+                    'name' => $location->name,
+                    'lga' => $location->lga,
+                    'latitude' => $location->latitude,
+                    'longitude' => $location->longitude,
+                    'projects' => $location->projects
+                        ->filter(fn (Project $project) => $project->location_id === $location->id)
+                        ->values()
+                        ->map(fn (Project $project) => [
+                            'title' => $project->title,
+                            'type' => $project->type,
+                            'slug' => $project->slug,
+                            'component_name' => $project->component
+                                ? ($project->component->short_name ?? $project->component->name)
+                                : null,
+                        ])
+                        ->all(),
+                ])
+                ->filter(fn (array $location) => $location['projects'] !== [])
+                ->values()
+                ->all();
         } catch (\Throwable) {
             return [];
         }

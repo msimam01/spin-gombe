@@ -122,17 +122,28 @@ export function SiteFooter() {
                                         [
                                             ['spin', 'SPIN'],
                                             ['federal', 'Federal Ministry of Water Resources and Sanitation'],
+                                            ['power', 'Federal Ministry of Power'],
                                             ['world_bank', 'World Bank'],
                                         ] as const
                                     )
                                         .filter(([key]) => site.logos[key])
                                         .map(([key, label]) => (
-                                            <img
+                                            /*
+                                             * Official logo on a white chip — the
+                                             * client-supplied files have white or solid
+                                             * backgrounds of their own, so a consistent
+                                             * chip keeps them legible on the dark footer.
+                                             */
+                                            <span
                                                 key={key}
-                                                src={site.logos[key] as string}
-                                                alt={label}
-                                                className="h-8 w-auto"
-                                            />
+                                                className="flex h-12 items-center rounded-md bg-white px-3"
+                                            >
+                                                <img
+                                                    src={site.logos[key] as string}
+                                                    alt={label}
+                                                    className="h-8 w-auto max-w-[120px] object-contain"
+                                                />
+                                            </span>
                                         ))}
                                 </div>
                             ) : (

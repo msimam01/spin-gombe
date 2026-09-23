@@ -22,8 +22,8 @@ function formatDate(value: string | null): string {
 /**
  * News & Updates preview (left) and Upcoming Events preview (right).
  *
- * Both panels are CMS-ready: they render published records when the project
- * office supplies them and hold a polished empty state until then — never
+ * Both panels render the published records passed by the controller and hold
+ * a polished neutral empty state when there is nothing to list — never
  * fabricated articles or events.
  */
 export function NewsEventsPreview({
@@ -87,8 +87,8 @@ export function NewsEventsPreview({
                                 <EmptyState
                                     className="flex-1"
                                     icon={<Newspaper aria-hidden="true" className="size-5" />}
-                                    title="News is being prepared"
-                                    description="Official news and press updates from the project office will be published here."
+                                    title="No news updates are currently listed"
+                                    description="Published news and announcements appear here."
                                 />
                             )}
                         </div>
@@ -139,8 +139,8 @@ export function NewsEventsPreview({
                                 <EmptyState
                                     className="flex-1"
                                     icon={<CalendarDays aria-hidden="true" className="size-5" />}
-                                    title="No events scheduled yet"
-                                    description="Upcoming SPIN Gombe events and stakeholder engagements will be announced here with dates and venues."
+                                    title="No upcoming events are currently listed"
+                                    description="Published upcoming events appear here with their dates and venues."
                                 />
                             )}
                         </div>

@@ -31,10 +31,8 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
  * Resources & Documents.
  *
  * Presents the official document categories exactly as listed in the SPIN
- * information collection form (Section 4). Documents themselves are not
- * published yet, so the section shows the categories as the structure official
- * publications will arrive in — no fictional files, sizes or dates. When
- * documents exist, each tile shows its published count.
+ * information collection form (Section 4). Each tile links to its category
+ * listing and shows its published document count when documents exist.
  */
 export function ResourcesPreview({
     counts,
@@ -54,7 +52,7 @@ export function ResourcesPreview({
             id="resources"
             eyebrow="Publications"
             title="Official documents & resources"
-            description="Project publications will be made available for download here as they are produced and approved by the project office."
+            description="Access official SPIN reports, guidelines, policy documents, training materials and other project resources."
             tone="white"
             action={
                 <Link
@@ -109,7 +107,7 @@ export function ResourcesPreview({
                                         <p className="mt-1 text-xs text-muted-foreground">
                                             {typeof count === 'number'
                                                 ? `${count} published`
-                                                : 'Publications coming soon'}
+                                                : 'Browse this category'}
                                         </p>
                                     </div>
                                 </Link>
