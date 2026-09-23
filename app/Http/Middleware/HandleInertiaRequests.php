@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\SiteSettings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -31,7 +32,9 @@ class HandleInertiaRequests extends Middleware
             ],
 
             // Official project identity, meta and contact details.
-            'site' => fn () => config('spin'),
+            // CMS-managed settings (contact, office map, social) override
+            // their config/spin.php defaults; see App\Support\SiteSettings.
+            'site' => fn () => SiteSettings::merged(),
 
             // Public navigation (single source of truth for header/footer).
             'navigation' => fn () => config('navigation'),

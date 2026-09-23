@@ -71,6 +71,8 @@ use App\Http\Controllers\Admin\Projects\IndexController as ProjectIndexControlle
 use App\Http\Controllers\Admin\Projects\PublishController as ProjectPublishController;
 use App\Http\Controllers\Admin\Projects\StoreController as ProjectStoreController;
 use App\Http\Controllers\Admin\Projects\UpdateController as ProjectUpdateController;
+use App\Http\Controllers\Admin\Settings\IndexController as SettingsIndexController;
+use App\Http\Controllers\Admin\Settings\UpdateController as SettingsUpdateController;
 use App\Http\Controllers\Admin\Team\CreateController as TeamCreateController;
 use App\Http\Controllers\Admin\Team\DestroyController as TeamDestroyController;
 use App\Http\Controllers\Admin\Team\EditController as TeamEditController;
@@ -272,6 +274,17 @@ Route::middleware(AdminAuthenticate::class)->group(function () {
         Route::patch('{user}/deactivate', UserDeactivateController::class)->name('deactivate');
         Route::delete('{user}', UserDestroyController::class)->name('destroy');
     });
+
+    /*
+    |----------------------------------------------------------------------
+    | Site settings - website-wide values an administrator may change
+    | after deployment (contact details, office map pin, social links).
+    | Precedence: settings-table value -> config/spin.php default. Only
+    | the whitelisted keys in UpdateSettingsRequest are ever written.
+    |----------------------------------------------------------------------
+    */
+    Route::get('settings', SettingsIndexController::class)->name('settings.index');
+    Route::put('settings', SettingsUpdateController::class)->name('settings.update');
 
     Route::prefix('media')->name('media.')->group(function () {
         Route::get('/', MediaDashboardController::class)->name('index');

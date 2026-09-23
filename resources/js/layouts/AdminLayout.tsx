@@ -67,6 +67,12 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             description: 'Official publications for the public Resources page',
         },
         {
+            label: 'Settings',
+            href: route('admin.settings.index'),
+            enabled: true,
+            description: 'Site-wide values: contact details, office map pin, social links',
+        },
+        {
             label: 'Team',
             href: route('admin.team.index'),
             enabled: true,
@@ -78,10 +84,6 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             enabled: true,
             description: 'Administrator accounts for the administration area',
         },
-    ];
-
-    const upcomingSections = [
-        'Settings',
     ];
 
     return (
@@ -186,24 +188,10 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                                     </li>
                                 ))}
 
-                                {upcomingSections.map((label) => (
-                                    <li key={label}>
-                                        <span
-                                            aria-disabled="true"
-                                            title="Arriving with a future content-management phase"
-                                            className="block cursor-not-allowed rounded-sm px-3 py-2 text-sm text-muted-foreground/50"
-                                        >
-                                            {label}
-                                        </span>
-                                    </li>
-                                ))}
                             </ul>
                         </li>
                     </ul>
 
-                    <p className="mt-6 hidden rounded-sm border border-gold-200 bg-gold-50 px-3 py-2 text-xs leading-relaxed text-gold-700 lg:block">
-                        Sections without links arrive with future content-management phases.
-                    </p>
                 </nav>
 
                 <main id="admin-content" className="min-w-0 flex-1">
