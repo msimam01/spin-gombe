@@ -9,8 +9,12 @@ import type { SharedProps } from '@/types';
  *
  * Uses only the biography supplied in the SPIN information collection form
  * (including the professional-interests paragraph restored from the form).
- * The portrait stays a designed frame until the official photograph is
- * supplied, then drops in via `site.coordinator.photo`.
+ * The client-supplied official portrait is configured in
+ * `config/spin.php` (`site.coordinator.photo`) and rendered here without
+ * distortion — `object-cover` inside the fixed 4:5 frame keeps the
+ * responsive cropping, and the alt text names the person from the
+ * established project content. If no portrait were configured, the frame
+ * degrades to a neutral identity mark — never a workflow notice.
  */
 export function AboutCoordinator() {
     const { site } = usePage<SharedProps>().props;
@@ -37,18 +41,24 @@ export function AboutCoordinator() {
                                     {coordinator.photo ? (
                                         <img
                                             src={coordinator.photo}
-                                            alt={`Official portrait of ${coordinator.name}`}
+                                            alt={`Official portrait of ${coordinator.name}, ${coordinator.role}`}
+                                            width={750}
+                                            height={750}
                                             className="h-full w-full object-cover"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                     ) : (
-                                        <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-b from-brand-50 to-brand-100/60">
+                                        /*
+                                         * Neutral identity mark — shown only when no
+                                         * portrait is configured. The role badge directly
+                                         * below the frame already identifies the person;
+                                         * nothing inside the frame refers to pending assets.
+                                         */
+                                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-brand-50 to-brand-100/60">
                                             <span className="flex size-16 items-center justify-center rounded-full bg-background text-brand-600 shadow-subtle">
                                                 <UserRound aria-hidden="true" className="size-8" />
                                             </span>
-                                            <p className="px-6 text-center text-xs leading-relaxed text-brand-800">
-                                                Official portrait will be published once
-                                                supplied by the project office
-                                            </p>
                                         </div>
                                     )}
                                 </div>

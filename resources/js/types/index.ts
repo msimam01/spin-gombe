@@ -31,6 +31,8 @@ export interface ContactDetails {
 
 export interface SpinLogos {
     spin: string | null;
+    /** State implementing ministry logo (About page institutions card). */
+    gombe: string | null;
     federal: string | null;
     power: string | null;
     world_bank: string | null;

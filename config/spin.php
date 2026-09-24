@@ -146,13 +146,14 @@ return [
 
     /*
      * State Project Coordinator. Only the supplied profile is used — no
-     * invented achievements. The photograph stays null until SPIN supplies
-     * the official portrait.
+     * invented achievements. The photograph is the client-supplied official
+     * portrait from `public/images/teams/project coordinator.jpeg`; the space
+     * in the filename is URL-encoded so the path is always a valid img src.
      */
     'coordinator' => [
         'name' => 'Engr. Mohammed Kabir Aliyu (Ph.D)',
         'role' => 'State Project Coordinator',
-        'photo' => null,
+        'photo' => '/images/teams/project%20coordinator.jpeg',
         'bio' => [
             'Engr. Dr. Mohammed Kabir Aliyu is the State Project Coordinator of the '
                 .'Sustainable Power and Irrigation for Nigeria (SPIN) Project for '
@@ -274,11 +275,13 @@ return [
     // ---- Media ------------------------------------------------------------
     /*
      * Official partner logos (client-supplied, September 2026). Rendered by
-     * the homepage partner strip inside white chips. The SPIN project logo
-     * itself remains outstanding — set it here when it arrives.
+     * the homepage partner strip inside white chips, and by the About page
+     * institutions section. The SPIN project logo itself remains outstanding
+     * — set it here when it arrives.
      */
     'logos' => [
         'spin' => null,
+        'gombe' => '/images/logos/ministry-of-water-resources-gombe.jpg',
         'federal' => '/images/logos/federal-ministry-water-resources-sanitation.jpg',
         'power' => '/images/logos/federal-ministry-power.jpg',
         'world_bank' => '/images/logos/world-bank.jpg',
@@ -287,7 +290,8 @@ return [
     /*
      * Institutional partner strip (homepage). Each entry renders its official
      * logo from `logos` when available. All three institutions are named in
-     * the collection form as implementing partners — no others are added.
+     * the collection form as implementing partners — no others are added. The
+     * state implementing ministry has its own About-page card and logo.
      */
     'partners' => [
         ['key' => 'federal', 'label' => 'Federal Ministry of Water Resources and Sanitation'],

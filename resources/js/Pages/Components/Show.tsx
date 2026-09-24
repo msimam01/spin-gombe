@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import {
     ArrowLeft,
     ArrowRight,
+    ArrowUpRight,
     ChevronRight,
     ClipboardList,
     FileText,
@@ -37,7 +38,7 @@ interface RelatedContent {
     projects: { id: number; slug: string; title: string; type: string; summary: string | null; cover_image: string | null }[];
     documents: { id: number; title: string; category: string | null; file_url: string | null; published_on: string | null }[];
     photos: Photo[];
-    videos: { id: number; title: string; youtube_id: string | null; thumbnail_url: string | null }[];
+    videos: { id: number; title: string; embed_url: string | null; watch_url: string | null; thumbnail_url: string | null }[];
 }
 
 interface ComponentsShowProps {
@@ -52,7 +53,7 @@ interface ComponentsShowProps {
  * Every section is data-driven: objectives and activities render from the
  * component record when supplied, and related projects/documents/photos/
  * videos render published records when they exist. Nothing is invented —
- * sections without supplied content show a content-ready empty state.
+ * sections without content show a neutral empty state.
  */
 export default function ComponentsShow({ component, neighbours, related }: ComponentsShowProps) {
     const Icon = componentIcon(component, component.position);
@@ -140,8 +141,8 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                 <div className="mt-6">
                                     <EmptyState
                                         icon={<ClipboardList aria-hidden="true" className="size-5" />}
-                                        title="Full description is being prepared"
-                                        description="The official description of this component will be published here once supplied and approved."
+                                        title="Description not yet available"
+                                        description="Further information about this component is not currently available."
                                     />
                                 </div>
                             )}
@@ -174,10 +175,6 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                         <dd className="mt-1 font-semibold text-foreground">SPIN Project</dd>
                                     </div>
                                 </dl>
-                                <p className="mt-6 border-t border-brand-100 pt-5 text-xs leading-relaxed text-brand-800">
-                                    Official component imagery will appear here once supplied by the
-                                    project office.
-                                </p>
                             </div>
                         </aside>
                     </div>
@@ -259,7 +256,10 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                     <ul className="mt-4 space-y-3">
                                         {related.projects.map((project) => (
                                             <li key={project.id}>
-                                                <article className="rounded-md border border-border bg-background p-5 shadow-subtle">
+                                                <Link
+                                                    href={route('projects.show', { slug: project.slug })}
+                                                    className="block rounded-md border border-border bg-background p-5 shadow-subtle transition-colors hover:bg-muted"
+                                                >
                                                     <p className="text-xs font-semibold tracking-wide text-gold-700 uppercase">
                                                         {project.type === 'activity' ? 'Activity' : 'Project'}
                                                     </p>
@@ -269,7 +269,7 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                                             {project.summary}
                                                         </p>
                                                     )}
-                                                </article>
+                                                </Link>
                                             </li>
                                         ))}
                                     </ul>
@@ -284,24 +284,34 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                     <ul className="mt-4 space-y-3">
                                         {related.documents.map((document) => (
                                             <li key={document.id}>
-                                                <a
-                                                    href={document.file_url ?? '#'}
-                                                    className="flex items-start gap-4 rounded-md border border-border bg-background p-5 transition-colors hover:bg-muted"
-                                                >
+                                                <article className="flex items-start gap-4 rounded-md border border-border bg-background p-5 shadow-subtle">
                                                     <span className="flex size-10 shrink-0 items-center justify-center rounded-sm bg-brand-50 text-brand-700">
                                                         <FileText aria-hidden="true" className="size-5" />
                                                     </span>
-                                                    <span>
+                                                    <span className="min-w-0">
                                                         <span className="block font-semibold text-foreground">
                                                             {document.title}
                                                         </span>
-                                                        {document.category && (
+                                                        {(document.category || document.published_on) && (
                                                             <span className="mt-1 block text-xs text-muted-foreground">
-                                                                {document.category}
+                                                                {[document.category, document.published_on]
+                                                                    .filter(Boolean)
+                                                                    .join(' · ')}
                                                             </span>
                                                         )}
+                                                        {document.file_url && (
+                                                            <a
+                                                                href={document.file_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
+                                                            >
+                                                                Open document
+                                                                <ArrowUpRight aria-hidden="true" className="size-3.5" />
+                                                            </a>
+                                                        )}
                                                     </span>
-                                                </a>
+                                                </article>
                                             </li>
                                         ))}
                                     </ul>
@@ -331,21 +341,49 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                         {related.videos.map((video) => (
                                             <li key={video.id}>
                                                 <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
-                                                    {video.youtube_id && (
+                                                    {video.embed_url ? (
+                                                        /*
+                                                         * Embedded player, same pattern as the media
+                                                         * centre: lazy-loaded, 16:9, no autoplay
+                                                         * (`?rel=0` only limits related videos).
+                                                         */
+                                                        <iframe
+                                                            src={`${video.embed_url}?rel=0`}
+                                                            title={video.title}
+                                                            loading="lazy"
+                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                            allowFullScreen
+                                                            className="aspect-video w-full"
+                                                        />
+                                                    ) : video.thumbnail_url ? (
                                                         <a
-                                                            href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
+                                                            href={video.watch_url ?? '#'}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                         >
                                                             <img
-                                                                src={video.thumbnail_url ?? undefined}
+                                                                src={video.thumbnail_url}
                                                                 alt={video.title}
                                                                 className="aspect-video w-full object-cover"
                                                                 loading="lazy"
                                                             />
                                                         </a>
-                                                    )}
-                                                    <p className="p-4 text-sm font-medium text-foreground">{video.title}</p>
+                                                    ) : null}
+
+                                                    <div className="p-4">
+                                                        <p className="text-sm font-medium text-foreground">{video.title}</p>
+                                                        {video.watch_url && (
+                                                            <a
+                                                                href={video.watch_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-brand-700"
+                                                            >
+                                                                Watch on YouTube
+                                                                <ArrowUpRight aria-hidden="true" className="size-3" />
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </article>
                                             </li>
                                         ))}
@@ -357,14 +395,8 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                         <div className="mt-10">
                             <EmptyState
                                 icon={<FolderOpen aria-hidden="true" className="size-5" />}
-                                title="Related content will appear here"
-                                description="Projects, activities, documents, photos and videos connected to this component are published here once SPIN supplies and approves them."
-                                items={[
-                                    'Projects and activities under this component',
-                                    'Official documents and publications',
-                                    'Photographs of field activities',
-                                    'Videos of project milestones',
-                                ]}
+                                title="No related content yet"
+                                description="Projects, activities, documents, photos and videos connected to this component are listed here when available."
                             />
                         </div>
                     )}

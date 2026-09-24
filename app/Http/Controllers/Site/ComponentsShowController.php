@@ -19,8 +19,8 @@ use Inertia\Response;
  *
  * Related projects, documents, photos and videos come from the component's
  * published relations — never fabricated. While SPIN has not supplied those
- * records the page shows content-ready empty states, and the sections become
- * live automatically once the CMS publishes them.
+ * records the page shows neutral empty states, and the sections become live
+ * automatically once the CMS publishes them.
  */
 class ComponentsShowController extends Controller
 {
@@ -91,8 +91,10 @@ class ComponentsShowController extends Controller
                     ->map(fn (Video $video) => [
                         'id' => $video->id,
                         'title' => $video->title,
-                        'youtube_url' => $video->youtube_url,
-                        'youtube_id' => $video->youtube_id,
+                        'embed_url' => $video->embedUrl(),
+                        'watch_url' => $video->youtube_id
+                            ? "https://www.youtube.com/watch?v={$video->youtube_id}"
+                            : $video->youtube_url,
                         'thumbnail_url' => $video->thumbnailUrl(),
                     ])
                     ->all(),

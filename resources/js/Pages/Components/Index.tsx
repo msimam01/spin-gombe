@@ -137,8 +137,8 @@ export default function ComponentsIndex() {
                     ) : (
                         <EmptyState
                             icon={<ClipboardList aria-hidden="true" className="size-5" />}
-                            title="Component information is being prepared"
-                            description="The four official SPIN components will be published here once SPIN supplies and approves the content for each component."
+                            title="No components listed yet"
+                            description="The official components of the SPIN Project are listed here when available."
                         />
                     )}
                 </Container>

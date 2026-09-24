@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { CloudSun, Hourglass, MapPin, Waves, Wrench, type LucideIcon } from 'lucide-react';
+import { CloudSun, Hourglass, Waves, Wrench, type LucideIcon } from 'lucide-react';
 import { HomeSection } from '@/components/home/HomeSection';
 import { Reveal } from '@/components/shared/Reveal';
 import type { SharedProps } from '@/types';
@@ -84,10 +84,9 @@ export function ProjectBackground() {
 
                         <div className="my-6 h-px bg-brand-100" />
 
-                        <p className="flex items-start gap-2.5 text-xs leading-relaxed text-brand-800">
-                            <MapPin aria-hidden="true" className="mt-0.5 size-3.5 shrink-0 text-gold-600" />
-                            Detailed location information will be published once confirmed by
-                            the project office.
+                        <p className="text-xs leading-relaxed text-brand-800">
+                            <span className="font-semibold">Location:</span> Balanga Dam and its
+                            associated irrigation scheme, Gombe State, {site.country}.
                         </p>
                     </aside>
                 </Reveal>

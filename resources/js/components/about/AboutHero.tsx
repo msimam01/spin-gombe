@@ -11,8 +11,10 @@ import type { SharedProps } from '@/types';
  *
  * Not a repeat of the homepage hero: a light brand wash with a large display
  * statement, breadcrumb, the project's full official name as a subtitle and
- * the site summary as the lead paragraph. A quiet decorative panel on the
- * right carries the acronym monogram — no invented imagery.
+ * the site summary as the lead paragraph. A quiet framed panel on the right
+ * carries the SAME approved Balanga Dam photograph configured for the
+ * homepage hero (`site.hero.image`) — the asset and its alt text are reused
+ * from config, never duplicated.
  */
 export function AboutHero() {
     const { site } = usePage<SharedProps>().props;
@@ -65,19 +67,30 @@ export function AboutHero() {
                     </p>
                 </div>
 
-                {/* Monogram panel: replaces photography until official assets exist. */}
-                <Reveal delay={150} className="hidden lg:col-span-4 lg:block">
-                    <div className="relative ml-auto w-full max-w-xs rounded-lg border border-brand-100 bg-background p-8 shadow-raised">
+                {/* Approved Balanga Dam photograph — the same asset configured for the homepage hero. */}
+                <Reveal delay={150} className="lg:col-span-4">
+                    <div className="relative mx-auto w-full max-w-xs rounded-lg border border-brand-100 bg-background p-3 shadow-raised lg:ml-auto lg:mr-0">
                         <span
                             aria-hidden="true"
                             className="absolute -top-3 -right-3 h-16 w-16 rounded-tr-md border-t-2 border-r-2 border-gold-400"
                         />
-                        <div className="flex items-center justify-center">
-                            <span className="flex size-24 items-center justify-center rounded-md bg-primary font-display text-3xl font-bold text-white shadow-raised">
-                                {site.acronym}
-                            </span>
-                        </div>
-                        <dl className="mt-6 space-y-3 border-t border-brand-100 pt-5 text-center">
+                        {site.hero.image ? (
+                            <img
+                                src={site.hero.image}
+                                alt={site.hero.image_alt ?? ''}
+                                className="block aspect-[4/5] w-full rounded-md object-cover"
+                                loading="eager"
+                                decoding="async"
+                            />
+                        ) : (
+                            <div className="flex aspect-[4/5] w-full items-center justify-center rounded-md bg-brand-50">
+                                <span className="flex size-24 items-center justify-center rounded-md bg-primary font-display text-3xl font-bold text-white shadow-raised">
+                                    {site.acronym}
+                                </span>
+                            </div>
+                        )}
+
+                        <dl className="space-y-3 border-t border-brand-100 px-3 pb-3 pt-5 text-center">
                             <div>
                                 <dt className="sr-only">Project scope</dt>
                                 <dd className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
