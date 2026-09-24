@@ -37,18 +37,27 @@ class ProjectDetailResource extends JsonResource
             'photos' => $this->whenLoaded('photos', fn () => $this->photos
                 ->map(fn ($photo) => (new PhotoResource($photo))->resolve())
                 ->all()),
+            /*
+             * Documents carry only their public URL — the storage path itself
+             * is never exposed. The category label and publication date give
+             * the list enough context without a second query.
+             */
             'documents' => $this->whenLoaded('documents', fn () => $this->documents->map(fn ($document) => [
                 'id' => $document->id,
                 'title' => $document->title,
                 'category' => $document->category?->slug,
+                'category_label' => $document->category?->name,
+                'published_on' => $document->published_on?->isoFormat('D MMMM Y'),
                 'file_url' => $document->file_path ? asset('storage/'.$document->file_path) : $document->external_url,
             ])->all()),
-            'videos' => $this->whenLoaded('videos', fn () => $this->videos->map(fn ($video) => [
-                'id' => $video->id,
-                'title' => $video->title,
-                'youtube_id' => $video->youtube_id,
-                'thumbnail_url' => $video->thumbnailUrl(),
-            ])->all()),
+            /*
+             * Videos keep the model's youtube-nocookie embed URL so the player
+             * is embedded on this page; the watch URL is offered alongside as
+             * an explicit, separate action.
+             */
+            'videos' => $this->whenLoaded('videos', fn () => $this->videos
+                ->map(fn ($video) => (new VideoResource($video))->resolve())
+                ->all()),
             'related' => $this->whenLoaded('component', function () {
                 $component = $this->component;
 

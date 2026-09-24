@@ -236,8 +236,6 @@ export interface SharedProps {
         url: string;
     };
     site: SiteSettings;
-    /** Google Maps JavaScript API browser key — null when not configured. */
-    google_maps_key: string | null;
     navigation: Navigation;
     seo: SeoDefaults;
     auth: {

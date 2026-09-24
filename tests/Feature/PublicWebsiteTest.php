@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\DocumentCategory;
 use App\Models\Event;
 use App\Models\Gallery;
+use App\Models\Location;
 use App\Models\NewsPost;
 use App\Models\Photo;
 use App\Models\Project;
@@ -143,6 +144,109 @@ class PublicWebsiteTest extends TestCase
                     ->component('Projects/Show')
                     ->where('project.slug', $draft->slug)
                     ->where('project.component.name', fn ($value) => is_string($value) && $value !== '')
+            );
+    }
+
+    /**
+     * The location map counts LOCATION records, never projects: two records
+     * sharing one location stay one marker carrying both, so "2 locations"
+     * can never be reported as five because five records sit there.
+     */
+    public function test_project_map_counts_locations_not_records(): void
+    {
+        $shared = Location::factory()->published()->withCoordinates(10.2835, 11.1672)
+            ->create(['name' => 'Balanga Dam']);
+        Project::factory()->published()->project()->for($shared, 'location')->count(2)->create();
+
+        $single = Location::factory()->published()->withCoordinates(10.5, 11.3)
+            ->create(['name' => 'Dadin Kowa']);
+        Project::factory()->published()->activity()->for($single, 'location')->create();
+
+        // A published record with no location is not a location.
+        Project::factory()->published()->project()->create();
+
+        $this->get(route('projects.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('projects', 4)
+                ->has('mapLocations', 2)
+                ->where('mapLocations.0.name', 'Balanga Dam')
+                ->has('mapLocations.0.projects', 2)
+                ->where('mapLocations.1.name', 'Dadin Kowa')
+                ->has('mapLocations.1.projects', 1)
+            );
+
+        // The homepage map shares the same payload, so both surfaces agree.
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('mapLocations', 2)
+                ->has('mapLocations.0.projects', 2)
+            );
+    }
+
+    /**
+     * A location without coordinates is never invented onto the map, and a
+     * draft record never produces a marker at an otherwise valid location.
+     */
+    public function test_the_map_never_fabricates_a_location(): void
+    {
+        $unlocated = Location::factory()->published()->create(); // No coordinates.
+        Project::factory()->published()->project()->for($unlocated, 'location')->create();
+
+        $mappable = Location::factory()->published()->withCoordinates(10.28, 11.16)->create();
+        Project::factory()->for($mappable, 'location')->create(); // Draft record.
+
+        $this->get(route('projects.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('projects', 1)
+                ->has('mapLocations', 0)
+            );
+    }
+
+    /**
+     * A project detail page carries its own media only: videos expose an
+     * embeddable player URL alongside a separate watch link, documents expose
+     * a public URL rather than the stored path, and photos resolve publicly.
+     */
+    public function test_project_detail_media_is_embeddable_and_self_contained(): void
+    {
+        $category = DocumentCategory::query()->where('slug', 'annual-reports')->firstOrFail();
+        $project = Project::factory()->published()->project()->create();
+
+        Document::factory()->published()->create([
+            'document_category_id' => $category->id,
+            'project_id' => $project->id,
+            'file_path' => 'documents/reports/annual.pdf',
+        ]);
+
+        $video = Video::factory()->published()->create([
+            'project_id' => $project->id,
+            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ]);
+
+        Storage::fake('public');
+        Storage::disk('public')->put('photos/field/site.jpg', 'image');
+        Photo::factory()->published()->create([
+            'project_id' => $project->id,
+            'image_path' => 'photos/field/site.jpg',
+        ]);
+
+        $this->get(route('projects.show', ['slug' => $project->slug]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Projects/Show')
+                ->has('project.videos', 1)
+                ->where('project.videos.0.embed_url', $video->embedUrl())
+                ->where('project.videos.0.embed_url', fn ($url) => str_contains((string) $url, 'youtube-nocookie.com/embed/'))
+                ->where('project.videos.0.watch_url', fn ($url) => str_contains((string) $url, 'youtube.com/watch'))
+                ->has('project.documents', 1)
+                ->where('project.documents.0.category_label', $category->name)
+                ->where('project.documents.0.file_url', fn ($url) => str_contains((string) $url, '/storage/'))
+                ->missing('project.documents.0.file_path')
+                ->has('project.photos', 1)
+                ->where('project.photos.0.url', fn ($url) => str_contains((string) $url, '/storage/'))
             );
     }
 

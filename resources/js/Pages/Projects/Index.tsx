@@ -5,7 +5,8 @@ import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Reveal } from '@/components/shared/Reveal';
-import { ProjectsMap } from '@/components/projects/ProjectsMap';
+import { ProjectsMap } from '@/components/shared/ProjectsMap';
+import type { MapMarkerLocation } from '@/components/shared/ProjectsMap';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Project, SharedProps } from '@/types';
@@ -25,17 +26,19 @@ interface FilterOption {
 interface ProjectsIndexProps {
     projects: ProjectEntry[];
     components: FilterOption[];
+    /** One entry per Location record — the map never counts projects. */
+    mapLocations: MapMarkerLocation[];
 }
 
 /**
- * Projects & Activities — the public listing of confirmed SPIN Gombe work.
+ * Projects & Activities — the public listing of SPIN Gombe work.
  *
  * The listing renders published records with their component and location;
  * component filters appear only when there are published projects to filter.
- * With no published records the page presents a polished, complete-feeling
- * empty state — nothing is ever fabricated.
+ * The map is location-driven: one marker and one entry in the location count
+ * per recorded Location, however many records sit there.
  */
-export default function ProjectsIndex({ projects, components }: ProjectsIndexProps) {
+export default function ProjectsIndex({ projects, components, mapLocations }: ProjectsIndexProps) {
     const { site } = usePage<SharedProps>().props;
     const [componentFilter, setComponentFilter] = useState<string | null>(null);
     const [typeFilter, setTypeFilter] = useState<'all' | 'project' | 'activity'>('all');
@@ -58,7 +61,7 @@ export default function ProjectsIndex({ projects, components }: ProjectsIndexPro
         <PublicLayout>
             <Seo
                 title="Projects & Activities"
-                description="Confirmed SPIN Gombe projects and field activities, with their components, locations and supporting media."
+                description="Explore SPIN project interventions and activities across Gombe State — their components, locations and supporting media."
             />
 
             {/* 1 — Internal hero */}
@@ -99,9 +102,9 @@ export default function ProjectsIndex({ projects, components }: ProjectsIndexPro
                     </h1>
 
                     <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                        Confirmed SPIN Gombe projects and field activities are published here with
-                        their components, locations and supporting media — as the project office
-                        releases them.
+                        Explore SPIN project interventions and activities across Gombe State — from
+                        irrigation modernisation and dam safety to hydropower and institutional
+                        strengthening.
                     </p>
                 </Container>
             </section>
@@ -239,36 +242,48 @@ export default function ProjectsIndex({ projects, components }: ProjectsIndexPro
                     ) : (
                         <EmptyState
                             icon={<ClipboardList aria-hidden="true" className="size-5" />}
-                            title="Project records are being prepared"
-                            description="Official SPIN Gombe projects and activities will be listed here as the project office publishes them — with their component, location, dates and supporting media. Nothing is shown until it is confirmed."
+                            title="No projects or activities are listed"
+                            description="SPIN project interventions and activities across Gombe State are listed on this page, each with its component, location and supporting media."
                             items={[
-                                'Projects and activities under the four components',
-                                'Confirmed intervention locations',
-                                'Status and milestone information as supplied',
-                                'Related photographs, videos and documents',
+                                'Projects and activities under each SPIN component',
+                                'Intervention locations across Gombe State',
+                                'Photographs, videos and documents from the field',
                             ]}
                         />
                     )}
                 </Container>
             </section>
 
-            {/* 4 — Project location map */}
-            <section aria-label="Project location map" className="bg-brand-50/60">
+            {/* 4 — Project location map (one marker per recorded Location record) */}
+            <section aria-labelledby="project-locations" className="bg-brand-50/60">
                 <Container className="py-14 sm:py-16">
+                    <div className="mb-8 max-w-2xl">
+                        <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-brand-700 uppercase">
+                            <span aria-hidden="true" className="h-px w-6 bg-accent" />
+                            Locations
+                        </p>
+                        <h2
+                            id="project-locations"
+                            className="text-2xl leading-tight font-bold text-foreground sm:text-3xl"
+                        >
+                            Where SPIN is working
+                        </h2>
+                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                            Each marker is a recorded project location in Gombe State. Open a marker
+                            to see every project and activity recorded there.
+                        </p>
+                    </div>
+
                     <Reveal>
-                        <ProjectsMap
-                            projects={projects
-                                .filter((project) => project.location?.latitude != null && project.location?.longitude != null)
-                                .map((project) => ({
-                                    slug: project.slug,
-                                    title: project.title,
-                                    type: project.type,
-                                    latitude: project.location!.latitude as number,
-                                    longitude: project.location!.longitude as number,
-                                    location_name: project.location?.name ?? null,
-                                    component_name: project.component?.name ?? null,
-                                }))}
-                        />
+                        {mapLocations.length > 0 ? (
+                            <ProjectsMap locations={mapLocations} />
+                        ) : (
+                            <EmptyState
+                                icon={<MapPinned aria-hidden="true" className="size-5" />}
+                                title="No project locations are currently available"
+                                description="Project locations across Gombe State are shown on this map."
+                            />
+                        )}
                     </Reveal>
                 </Container>
             </section>

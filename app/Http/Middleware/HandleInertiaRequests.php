@@ -42,10 +42,6 @@ class HandleInertiaRequests extends Middleware
             // SEO defaults used when a page does not override them.
             'seo' => fn () => config('spin.seo'),
 
-            // Google Maps JavaScript API browser key (public homepage map).
-            // Empty when unset — the map then renders its graceful fallback.
-            'google_maps_key' => fn () => config('services.google_maps.key'),
-
             // Administration area (role-based access).
             'auth' => fn () => [
                 'user' => $request->user()?->only(['id', 'name', 'role']),

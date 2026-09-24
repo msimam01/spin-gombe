@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
-use App\Models\Location;
 use App\Models\Project;
 use App\Models\ProjectComponent;
+use App\Support\ProjectLocations;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -14,9 +14,10 @@ use Inertia\Response;
 /**
  * Public Projects & Activities overview page.
  *
- * Only published records are listed. Nothing is invented: while SPIN has not
- * supplied project records the page renders its content-ready empty state,
- * and the listing fills automatically as the CMS publishes projects.
+ * Only published records are listed, and the location map is built from
+ * Location records — never from the project count. Nothing is invented: with
+ * no published records the page presents its empty state and the listing
+ * fills automatically as records are published.
  */
 class ProjectsIndexController extends Controller
 {
@@ -40,26 +41,18 @@ class ProjectsIndexController extends Controller
                     'name' => $component->short_name ?? $component->name,
                 ])->all();
 
-            $locations = Location::query()
-                ->published()
-                ->ordered()
-                ->orderBy('name')
-                ->get(['id', 'name', 'lga'])
-                ->map(fn (Location $location) => [
-                    'name' => $location->name,
-                    'lga' => $location->lga,
-                ])->all();
+            $mapLocations = ProjectLocations::forMap();
         } catch (\Throwable) {
             // Fresh clone mid-migration: degrade to honest empty states.
             $projects = [];
             $components = [];
-            $locations = [];
+            $mapLocations = [];
         }
 
         return Inertia::render('Projects/Index', [
             'projects' => $projects,
             'components' => $components,
-            'locations' => $locations,
+            'mapLocations' => $mapLocations,
         ]);
     }
 }

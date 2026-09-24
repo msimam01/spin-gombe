@@ -1,21 +1,26 @@
 import { Link } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 import {
     ArrowLeft,
     ArrowRight,
+    ArrowUpRight,
     ChevronRight,
     FileText,
     Landmark,
-    PlayCircle,
     Tag,
 } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { Reveal } from '@/components/shared/Reveal';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
-import { ProjectsMap } from '@/components/projects/ProjectsMap';
+import { ProjectsMap } from '@/components/shared/ProjectsMap';
+import type { MapMarkerLocation } from '@/components/shared/ProjectsMap';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Photo } from '@/types';
+
+/** Photos shown before the collection is expanded — keeps long pages navigable. */
+const PHOTO_LIMIT = 8;
 
 interface ProjectDetail {
     id: number;
@@ -38,8 +43,21 @@ interface ProjectDetail {
         longitude: number | null;
     } | null;
     photos: Photo[];
-    documents: { id: number; title: string; category: string | null; file_url: string | null }[];
-    videos: { id: number; title: string; youtube_id: string | null; thumbnail_url: string | null }[];
+    documents: {
+        id: number;
+        title: string;
+        category: string | null;
+        category_label: string | null;
+        published_on: string | null;
+        file_url: string | null;
+    }[];
+    videos: {
+        id: number;
+        title: string;
+        embed_url: string | null;
+        watch_url: string | null;
+        thumbnail_url: string | null;
+    }[];
     related: { slug: string; title: string; type: string; summary: string | null }[];
 }
 
@@ -51,9 +69,46 @@ interface ProjectDetail {
  * sections appear only when records exist. Nothing is fabricated.
  */
 export default function ProjectsShow({ project }: { project: ProjectDetail }) {
+    const [showAllPhotos, setShowAllPhotos] = useState(false);
+
     const hasCoordinates =
         project.location?.latitude != null && project.location?.longitude != null;
 
+    /*
+     * The detail map plots this record's own location — a single Location
+     * record, so a single marker, exactly as on the listing. Memoised so the
+     * map is not rebuilt when the photo collection is expanded.
+     */
+    const mapLocations = useMemo<MapMarkerLocation[]>(() => {
+        const location = project.location;
+
+        if (!location || location.latitude == null || location.longitude == null) {
+            return [];
+        }
+
+        return [
+            {
+                name: location.name,
+                lga: location.lga,
+                ward: location.ward,
+                description: location.description,
+                latitude: location.latitude,
+                longitude: location.longitude,
+                projects: [
+                    {
+                        title: project.title,
+                        type: project.type,
+                        slug: project.slug,
+                        component_name: project.component?.name ?? null,
+                    },
+                ],
+            },
+        ];
+    }, [project]);
+
+    const visiblePhotos = showAllPhotos
+        ? project.photos
+        : project.photos.slice(0, PHOTO_LIMIT);
     const infoRows = [
         project.component && {
             label: 'Component',
@@ -210,11 +265,16 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                 </Container>
             </section>
 
-            {/* Location (map only with confirmed coordinates) */}
+            {/* Location — the map appears only when the record carries coordinates */}
             {project.location && (
-                <section aria-label="Project location" className="border-b border-border bg-brand-50/60">
+                <section aria-labelledby="project-location" className="border-b border-border bg-brand-50/60">
                     <Container className="py-14 sm:py-16">
-                        <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Location</h2>
+                        <h2
+                            id="project-location"
+                            className="text-2xl font-bold text-foreground sm:text-3xl"
+                        >
+                            Location
+                        </h2>
                         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                             {[project.location.name, project.location.ward, project.location.lga]
                                 .filter(Boolean)
@@ -225,25 +285,15 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                                 {project.location.description}
                             </p>
                         )}
-                        <Reveal className="mt-8">
-                            <ProjectsMap
-                                projects={
-                                    hasCoordinates
-                                        ? [
-                                              {
-                                                  slug: project.slug,
-                                                  title: project.title,
-                                                  type: project.type,
-                                                  latitude: project.location!.latitude as number,
-                                                  longitude: project.location!.longitude as number,
-                                                  location_name: project.location.name,
-                                                  component_name: project.component?.name ?? null,
-                                              },
-                                          ]
-                                        : []
-                                }
-                            />
-                        </Reveal>
+                        {hasCoordinates && (
+                            <Reveal className="mt-8">
+                                <ProjectsMap
+                                    locations={mapLocations}
+                                    label="Project location"
+                                    ariaLabel={`Map of the recorded location of ${project.title}`}
+                                />
+                            </Reveal>
+                        )}
                     </Container>
                 </section>
             )}
@@ -262,10 +312,22 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                                     </h3>
                                     <div className="mt-4">
                                         <PhotoGrid
-                                            photos={project.photos}
+                                            photos={visiblePhotos}
                                             contextLabel={`${project.title} photos`}
                                         />
                                     </div>
+                                    {project.photos.length > PHOTO_LIMIT && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAllPhotos((current) => !current)}
+                                            aria-expanded={showAllPhotos}
+                                            className="mt-4 inline-flex items-center gap-2 rounded-md border border-brand-200 bg-background px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-brand-50"
+                                        >
+                                            {showAllPhotos
+                                                ? 'Show fewer photos'
+                                                : `Show all ${project.photos.length} photos`}
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
@@ -277,24 +339,44 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                                     <ul className="mt-4 space-y-3">
                                         {project.documents.map((document) => (
                                             <li key={document.id}>
-                                                <a
-                                                    href={document.file_url ?? '#'}
-                                                    className="flex items-start gap-4 rounded-md border border-border bg-background p-5 transition-colors hover:bg-muted"
-                                                >
+                                                <article className="flex items-start gap-4 rounded-md border border-border bg-background p-5 shadow-subtle">
                                                     <span className="flex size-10 shrink-0 items-center justify-center rounded-sm bg-brand-50 text-brand-700">
                                                         <FileText aria-hidden="true" className="size-5" />
                                                     </span>
-                                                    <span>
-                                                        <span className="block font-semibold text-foreground">
+                                                    <div className="min-w-0">
+                                                        <h4 className="font-semibold text-foreground">
                                                             {document.title}
-                                                        </span>
-                                                        {document.category && (
-                                                            <span className="mt-1 block text-xs capitalize text-muted-foreground">
-                                                                {document.category}
-                                                            </span>
+                                                        </h4>
+                                                        {(document.category_label ||
+                                                            document.published_on) && (
+                                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                                {[
+                                                                    document.category_label,
+                                                                    document.published_on,
+                                                                ]
+                                                                    .filter(Boolean)
+                                                                    .join(' · ')}
+                                                            </p>
                                                         )}
-                                                    </span>
-                                                </a>
+                                                        {document.file_url && (
+                                                            <a
+                                                                href={document.file_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
+                                                            >
+                                                                Open document
+                                                                <ArrowUpRight
+                                                                    aria-hidden="true"
+                                                                    className="size-3.5"
+                                                                />
+                                                                <span className="sr-only">
+                                                                    (opens in a new tab)
+                                                                </span>
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </article>
                                             </li>
                                         ))}
                                     </ul>
@@ -306,28 +388,59 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
                                         Videos
                                     </h3>
-                                    <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+                                    <ul className="mt-4 grid gap-6 sm:grid-cols-2">
                                         {project.videos.map((video) => (
                                             <li key={video.id}>
                                                 <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
-                                                    {video.youtube_id && (
-                                                        <a
-                                                            href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                        >
+                                                    {video.embed_url ? (
+                                                        /*
+                                                         * Embedded player, the same media pattern
+                                                         * used across the site: privacy-enhanced
+                                                         * (youtube-nocookie), lazy-loaded, 16:9 and
+                                                         * never autoplaying. `?rel=0` only limits the
+                                                         * related videos shown after playback.
+                                                         */
+                                                        <iframe
+                                                            src={`${video.embed_url}?rel=0`}
+                                                            title={video.title}
+                                                            loading="lazy"
+                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                            allowFullScreen
+                                                            className="aspect-video w-full"
+                                                        />
+                                                    ) : (
+                                                        video.thumbnail_url && (
                                                             <img
-                                                                src={video.thumbnail_url ?? undefined}
-                                                                alt={video.title}
+                                                                src={video.thumbnail_url}
+                                                                alt=""
                                                                 className="aspect-video w-full object-cover"
                                                                 loading="lazy"
                                                             />
-                                                            <span className="flex items-center gap-2 p-4 text-sm font-medium text-foreground">
-                                                                <PlayCircle aria-hidden="true" className="size-4 text-primary" />
-                                                                {video.title}
-                                                            </span>
-                                                        </a>
+                                                        )
                                                     )}
+
+                                                    <div className="p-4">
+                                                        <p className="text-sm font-medium text-foreground">
+                                                            {video.title}
+                                                        </p>
+                                                        {video.watch_url && (
+                                                            <a
+                                                                href={video.watch_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-brand-700"
+                                                            >
+                                                                Watch on YouTube
+                                                                <ArrowUpRight
+                                                                    aria-hidden="true"
+                                                                    className="size-3"
+                                                                />
+                                                                <span className="sr-only">
+                                                                    (opens in a new tab)
+                                                                </span>
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </article>
                                             </li>
                                         ))}

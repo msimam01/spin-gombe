@@ -28,7 +28,7 @@ import type {
     SharedProps,
     Video,
 } from '@/types';
-import type { MapMarkerLocation } from '@/components/shared/GoogleProjectsMap';
+import type { MapMarkerLocation } from '@/components/shared/ProjectsMap';
 
 interface HomeProps {
     components: ProjectComponent[];
