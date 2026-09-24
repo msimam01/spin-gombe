@@ -19,6 +19,7 @@ class Photo extends Model implements Publishable
         'gallery_id',
         'project_id',
         'project_component_id',
+        'news_post_id',
         'image_path',
         'alt_text',
         'caption',
@@ -52,6 +53,11 @@ class Photo extends Model implements Publishable
     public function component(): BelongsTo
     {
         return $this->belongsTo(ProjectComponent::class, 'project_component_id');
+    }
+
+    public function newsPost(): BelongsTo
+    {
+        return $this->belongsTo(NewsPost::class);
     }
 
     /** Alt text is required for accessibility; fall back to the caption. */

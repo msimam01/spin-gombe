@@ -45,9 +45,10 @@ class UpdateVideoRequest extends FormRequest
             $this->merge(match ($this->input('related_to')) {
                 // related_id is normalised alongside the foreign keys: the
                 // browser sends "" (not an absence) whenever General is chosen.
-                'project' => ['project_id' => $relatedId, 'project_component_id' => null, 'related_id' => $relatedId],
-                'component' => ['project_id' => null, 'project_component_id' => $relatedId, 'related_id' => $relatedId],
-                default => ['project_id' => null, 'project_component_id' => null, 'related_id' => $relatedId],
+                'project' => ['project_id' => $relatedId, 'project_component_id' => null, 'news_post_id' => null, 'related_id' => $relatedId],
+                'component' => ['project_id' => null, 'project_component_id' => $relatedId, 'news_post_id' => null, 'related_id' => $relatedId],
+                'news' => ['project_id' => null, 'project_component_id' => null, 'news_post_id' => $relatedId, 'related_id' => $relatedId],
+                default => ['project_id' => null, 'project_component_id' => null, 'news_post_id' => null, 'related_id' => $relatedId],
             });
         }
 
@@ -81,13 +82,14 @@ class UpdateVideoRequest extends FormRequest
 
             'published_on' => ['sometimes', 'nullable', 'date'],
 
-            'related_to' => ['sometimes', 'required', 'string', 'in:general,project,component'],
+            'related_to' => ['sometimes', 'required', 'string', 'in:general,project,component,news'],
             'related_id' => [
                 'nullable',
                 'integer',
                 Rule::when($this->filled('related_to') && $this->input('related_to') !== 'general', ['required']),
                 Rule::when($this->input('related_to') === 'project', Rule::exists('projects', 'id')),
                 Rule::when($this->input('related_to') === 'component', Rule::exists('project_components', 'id')),
+                Rule::when($this->input('related_to') === 'news', Rule::exists('news_posts', 'id')),
             ],
 
             // The normalised relationship foreign keys themselves — carried
@@ -95,6 +97,7 @@ class UpdateVideoRequest extends FormRequest
             // (i.e. this update explicitly re-normalised the relationship).
             'project_id' => ['nullable', Rule::exists('projects', 'id')],
             'project_component_id' => ['nullable', Rule::exists('project_components', 'id')],
+            'news_post_id' => ['nullable', Rule::exists('news_posts', 'id')],
 
             'status' => ['sometimes', 'required', new Enum(PublicationStatus::class)],
             'sort' => ['sometimes', 'required', 'integer', 'min:0', 'max:10000'],

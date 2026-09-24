@@ -20,16 +20,24 @@ interface EditVideoProps {
         sort: number;
         published_at: string | null;
         updated_at: string;
-        related: { type: 'general' | 'project' | 'component'; label: string; name: string | null };
+        related: { type: 'general' | 'project' | 'component' | 'news'; label: string; name: string | null };
         project_id?: number | null;
         project_component_id?: number | null;
+        news_post_id?: number | null;
     };
     statuses: Record<string, string>;
     projects: SelectOption[];
     components: SelectOption[];
+    newsPosts: SelectOption[];
 }
 
-export default function EditVideo({ video, statuses, projects, components }: EditVideoProps) {
+export default function EditVideo({
+    video,
+    statuses,
+    projects,
+    components,
+    newsPosts,
+}: EditVideoProps) {
     return (
         <AdminLayout>
             <Link
@@ -51,7 +59,13 @@ export default function EditVideo({ video, statuses, projects, components }: Edi
             </p>
 
             <div className="mt-6 max-w-3xl">
-                <VideoForm video={video} statuses={statuses} projects={projects} components={components} />
+                <VideoForm
+                    video={video}
+                    statuses={statuses}
+                    projects={projects}
+                    components={components}
+                    newsPosts={newsPosts}
+                />
             </div>
             <div className="h-6" />
         </AdminLayout>

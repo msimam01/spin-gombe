@@ -23,11 +23,14 @@ interface PhotoFormProps {
         project_id: number | null;
         project_component_id: number | null;
         gallery_id: number | null;
+        news_post_id: number | null;
     };
     statuses: Record<string, string>;
     projects: SelectOption[];
     components: SelectOption[];
     galleries: SelectOption[];
+    /** News articles that may own this photograph. */
+    newsPosts: SelectOption[];
     /** Gallery preselected after arriving from a gallery screen. */
     preselectGallery?: { id: number; title: string } | null;
 }
@@ -53,8 +56,20 @@ interface PhotoFormData {
  * photograph is its image and the form offers replacement only. The
  * "Related to" choice travels as `related_to` + `related_id`; the server
  * normalises the actual foreign keys, so the form never juggles IDs.
+ *
+ * Selecting a News article is what publishes the photograph on that article:
+ * a photograph is never shown on a news article just because the article
+ * references the same component.
  */
-export function PhotoForm({ photo, statuses, projects, components, galleries, preselectGallery }: PhotoFormProps) {
+export function PhotoForm({
+    photo,
+    statuses,
+    projects,
+    components,
+    galleries,
+    newsPosts,
+    preselectGallery,
+}: PhotoFormProps) {
     const isEdit = photo !== undefined;
 
     // Initial "Related to" selection: the gallery screen preselects its own
@@ -75,7 +90,9 @@ export function PhotoForm({ photo, statuses, projects, components, galleries, pr
                       ? photo.project_component_id
                       : photo.related.type === 'gallery'
                         ? photo.gallery_id
-                        : null) ?? '',
+                        : photo.related.type === 'news'
+                          ? photo.news_post_id
+                          : null) ?? '',
             )
           : '';
 
@@ -232,8 +249,8 @@ export function PhotoForm({ photo, statuses, projects, components, galleries, pr
                         onRelatedToChange={(value) => form.setData('related_to', value)}
                         relatedId={form.data.related_id}
                         onRelatedIdChange={(value) => form.setData('related_id', value)}
-                        supports={['general', 'project', 'component', 'gallery']}
-                        options={{ projects, components, galleries }}
+                        supports={['general', 'project', 'component', 'gallery', 'news']}
+                        options={{ projects, components, galleries, newsPosts }}
                         error={form.errors.related_to}
                         relatedError={form.errors.related_id}
                         disabled={form.processing}

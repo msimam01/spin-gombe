@@ -22,10 +22,13 @@ interface VideoFormProps {
         related: MediaRelated;
         project_id?: number | null;
         project_component_id?: number | null;
+        news_post_id?: number | null;
     };
     statuses: Record<string, string>;
     projects: SelectOption[];
     components: SelectOption[];
+    /** News articles that may own this video. */
+    newsPosts: SelectOption[];
 }
 
 interface VideoFormData {
@@ -44,11 +47,12 @@ interface VideoFormData {
  *
  * Every field maps to a real `videos` column — nothing invented. The video
  * id is derived server-side from the URL; the form never sends one. Videos
- * support Project/Activity, Component or General/Independent relationships
- * (the schema has no video–event relationship — event media is photo
- * galleries).
+ * support Project/Activity, Component, News article or General/Independent
+ * relationships (the schema has no video–event relationship — event media is
+ * photo galleries). Attaching a video to a News article is what embeds it on
+ * that article; a component link alone never does.
  */
-export function VideoForm({ video, statuses, projects, components }: VideoFormProps) {
+export function VideoForm({ video, statuses, projects, components, newsPosts }: VideoFormProps) {
     const isEdit = video !== undefined;
 
     const form = useForm<VideoFormData>({
@@ -63,7 +67,9 @@ export function VideoForm({ video, statuses, projects, components }: VideoFormPr
                       ? video.project_id
                       : video.related.type === 'component'
                         ? video.project_component_id
-                        : null) ?? '',
+                        : video.related.type === 'news'
+                          ? video.news_post_id
+                          : null) ?? '',
               )
             : '',
         status: video?.status ?? 'draft',
@@ -159,8 +165,9 @@ export function VideoForm({ video, statuses, projects, components }: VideoFormPr
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Categorisation</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Where the video belongs. General / Independent videos appear in the public
-                    video gallery on their own.
+                    Where the video belongs. A video has exactly one owner; attaching it to a
+                    News article embeds it on that article. General / Independent videos appear in
+                    the public video gallery on their own.
                 </p>
 
                 <div className="mt-5">
@@ -170,8 +177,8 @@ export function VideoForm({ video, statuses, projects, components }: VideoFormPr
                         onRelatedToChange={(value) => form.setData('related_to', value)}
                         relatedId={form.data.related_id}
                         onRelatedIdChange={(value) => form.setData('related_id', value)}
-                        supports={['general', 'project', 'component']}
-                        options={{ projects, components, galleries: [] }}
+                        supports={['general', 'project', 'component', 'news']}
+                        options={{ projects, components, galleries: [], newsPosts }}
                         error={form.errors.related_to}
                         relatedError={form.errors.related_id}
                         disabled={form.processing}

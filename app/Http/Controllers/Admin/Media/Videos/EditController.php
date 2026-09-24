@@ -34,10 +34,14 @@ class EditController extends Controller
                 'published_at' => $video->published_at?->toISOString(),
                 'updated_at' => $video->updated_at->toISOString(),
                 'related' => IndexController::related($video),
+                'project_id' => $video->project_id,
+                'project_component_id' => $video->project_component_id,
+                'news_post_id' => $video->news_post_id,
             ],
             'statuses' => PublicationStatus::options(),
             'projects' => PhotoOptions::projectOptions(),
             'components' => PhotoOptions::componentOptions(),
+            'newsPosts' => PhotoOptions::newsPostOptions(),
         ]);
     }
 }

@@ -2,7 +2,7 @@ import { AdminSelectField } from '@/components/admin/FormControls';
 import type { SelectOption } from '@/types/admin';
 
 /** Which relationship types a media form offers. */
-export type RelatedToOption = 'general' | 'project' | 'component' | 'gallery';
+export type RelatedToOption = 'general' | 'project' | 'component' | 'gallery' | 'news';
 
 interface RelatedToFieldProps {
     idPrefix: string;
@@ -18,6 +18,8 @@ interface RelatedToFieldProps {
         projects: SelectOption[];
         components: SelectOption[];
         galleries: SelectOption[];
+        /** News articles that may own this media. */
+        newsPosts: SelectOption[];
     };
     error?: string;
     relatedError?: string;
@@ -29,12 +31,14 @@ const TYPE_LABELS: Record<RelatedToOption, string> = {
     project: 'Project / Activity',
     component: 'Component',
     gallery: 'Gallery',
+    news: 'News article',
 };
 
 const RELATION_LABELS: Record<Exclude<RelatedToOption, 'general'>, string> = {
     project: 'Project or activity',
     component: 'Component',
     gallery: 'Gallery',
+    news: 'News article',
 };
 
 /**
@@ -44,6 +48,10 @@ const RELATION_LABELS: Record<Exclude<RelatedToOption, 'general'>, string> = {
  * General/Independent — a concrete record from a dynamic list. No database
  * terminology is exposed; the form simply submits `related_to` +
  * `related_id`, and the server normalises the actual foreign keys.
+ *
+ * A media record has exactly one owner. Choosing a News article is what puts
+ * the media on that article's page: media is never shown on a news article
+ * merely because the article references the same component.
  */
 export function RelatedToField({
     idPrefix,
@@ -65,7 +73,9 @@ export function RelatedToField({
               ? options.components
               : relatedTo === 'gallery'
                 ? options.galleries
-                : [];
+                : relatedTo === 'news'
+                  ? options.newsPosts
+                  : [];
 
     return (
         <div className="grid gap-5 sm:grid-cols-2">

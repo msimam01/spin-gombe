@@ -35,11 +35,13 @@ class EditController extends Controller
                 'project_id' => $photo->project_id,
                 'project_component_id' => $photo->project_component_id,
                 'gallery_id' => $photo->gallery_id,
+                'news_post_id' => $photo->news_post_id,
             ],
             'statuses' => PublicationStatus::options(),
             'projects' => CreateController::projectOptions(),
             'components' => CreateController::componentOptions(),
             'galleries' => CreateController::galleryOptions(),
+            'newsPosts' => CreateController::newsPostOptions(),
         ]);
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** A news item or update. */
 class NewsPost extends Model implements Publishable
@@ -53,6 +54,24 @@ class NewsPost extends Model implements Publishable
     public function component(): BelongsTo
     {
         return $this->belongsTo(ProjectComponent::class, 'project_component_id');
+    }
+
+    /**
+     * Media owned by this article.
+     *
+     * Ownership is explicit: a photograph or video appears here only when it
+     * was attached to this post (the same nullable-foreign-key pattern the
+     * project, component and gallery owners use). Belonging to the same
+     * component as an article never contributes media to it.
+     */
+    public function photos(): HasMany
+    {
+        return $this->hasMany(Photo::class);
+    }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(Video::class);
     }
 
     public function scopeLatestFirst(Builder $query): Builder

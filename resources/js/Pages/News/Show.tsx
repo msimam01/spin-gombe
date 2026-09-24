@@ -1,5 +1,13 @@
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight, ChevronRight, Landmark, Newspaper } from 'lucide-react';
+import { useState } from 'react';
+import {
+    ArrowLeft,
+    ArrowRight,
+    ArrowUpRight,
+    ChevronRight,
+    Landmark,
+    Newspaper,
+} from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { Reveal } from '@/components/shared/Reveal';
@@ -19,10 +27,20 @@ interface NewsDetail {
     published_at: string | null;
     published_on: string | null;
     component?: { name: string; url_slug: string } | null;
+    /** Media owned by this article — never inherited from its component. */
     photos: Photo[];
-    videos: { id: number; title: string; youtube_id: string | null; thumbnail_url: string | null }[];
+    videos: {
+        id: number;
+        title: string;
+        embed_url: string | null;
+        watch_url: string | null;
+        thumbnail_url: string | null;
+    }[];
     related: { slug: string; title: string; excerpt: string | null; published_at: string | null }[];
 }
+
+/** Photos shown before the collection is expanded. */
+const PHOTO_LIMIT = 8;
 
 /** Breaks paragraphs on blank lines; single newlines become line breaks. */
 function splitParagraphs(body: string): string[][] {
@@ -48,11 +66,15 @@ function formatDate(value: string | null): string {
  * A single published news post.
  *
  * Every block renders only from supplied data: the component link appears
- * when the post belongs to one, media appear only when records exist, and
- * related news come from the same component. Nothing is fabricated.
+ * when the post belongs to one, media appear only when records are attached
+ * to this article, and related news come from the same component. Nothing is
+ * fabricated.
  */
 export default function NewsShow({ post }: { post: NewsDetail }) {
+    const [showAllPhotos, setShowAllPhotos] = useState(false);
+
     const paragraphs = post.body ? splitParagraphs(post.body) : [];
+    const visiblePhotos = showAllPhotos ? post.photos : post.photos.slice(0, PHOTO_LIMIT);
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'NewsArticle',
@@ -151,9 +173,9 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                             </Reveal>
                         )}
 
-                        <div className="mt-10 space-y-6">
-                            {paragraphs.length > 0 ? (
-                                paragraphs.map((lines, index) => (
+                        {paragraphs.length > 0 && (
+                            <div className="mt-10 space-y-6">
+                                {paragraphs.map((lines, index) => (
                                     <p
                                         key={index}
                                         className={`text-base leading-relaxed sm:text-lg ${
@@ -167,14 +189,9 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                                             </span>
                                         ))}
                                     </p>
-                                ))
-                            ) : (
-                                <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-                                    The full text of this update is being finalised by the project
-                                    office and will appear here shortly.
-                                </p>
-                            )}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </Container>
             </section>
@@ -193,10 +210,22 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                                     </h3>
                                     <div className="mt-4">
                                         <PhotoGrid
-                                            photos={post.photos}
+                                            photos={visiblePhotos}
                                             contextLabel={`${post.title} photos`}
                                         />
                                     </div>
+                                    {post.photos.length > PHOTO_LIMIT && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAllPhotos((current) => !current)}
+                                            aria-expanded={showAllPhotos}
+                                            className="mt-4 inline-flex items-center gap-2 rounded-md border border-brand-200 bg-background px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-brand-50"
+                                        >
+                                            {showAllPhotos
+                                                ? 'Show fewer photos'
+                                                : `Show all ${post.photos.length} photos`}
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
@@ -208,22 +237,56 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                                     <ul className="mt-4 space-y-4">
                                         {post.videos.map((video) => (
                                             <li key={video.id}>
-                                                <a
-                                                    href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="group block overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-shadow hover:shadow-raised"
-                                                >
-                                                    <img
-                                                        src={video.thumbnail_url ?? undefined}
-                                                        alt={video.title}
-                                                        className="aspect-video w-full object-cover"
-                                                        loading="lazy"
-                                                    />
-                                                    <span className="block p-4 text-sm font-medium text-foreground group-hover:text-brand-800">
-                                                        {video.title}
-                                                    </span>
-                                                </a>
+                                                <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
+                                                    {video.embed_url ? (
+                                                        /*
+                                                         * Embedded player, the same media pattern
+                                                         * used across the site: privacy-enhanced
+                                                         * (youtube-nocookie), lazy-loaded, 16:9 and
+                                                         * never autoplaying.
+                                                         */
+                                                        <iframe
+                                                            src={`${video.embed_url}?rel=0`}
+                                                            title={video.title}
+                                                            loading="lazy"
+                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                            allowFullScreen
+                                                            className="aspect-video w-full"
+                                                        />
+                                                    ) : (
+                                                        video.thumbnail_url && (
+                                                            <img
+                                                                src={video.thumbnail_url}
+                                                                alt=""
+                                                                className="aspect-video w-full object-cover"
+                                                                loading="lazy"
+                                                            />
+                                                        )
+                                                    )}
+
+                                                    <div className="p-4">
+                                                        <p className="text-sm font-medium text-foreground">
+                                                            {video.title}
+                                                        </p>
+                                                        {video.watch_url && (
+                                                            <a
+                                                                href={video.watch_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-brand-700"
+                                                            >
+                                                                Watch on YouTube
+                                                                <ArrowUpRight
+                                                                    aria-hidden="true"
+                                                                    className="size-3"
+                                                                />
+                                                                <span className="sr-only">
+                                                                    (opens in a new tab)
+                                                                </span>
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </article>
                                             </li>
                                         ))}
                                     </ul>

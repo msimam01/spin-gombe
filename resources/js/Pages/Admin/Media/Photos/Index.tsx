@@ -29,6 +29,7 @@ const RELATED_OPTIONS: SelectOption[] = [
     { value: 'project', label: 'Project / Activity' },
     { value: 'component', label: 'Component' },
     { value: 'gallery', label: 'Gallery' },
+    { value: 'news', label: 'News article' },
 ];
 
 function formatDate(iso: string | null): string {

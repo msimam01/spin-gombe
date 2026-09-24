@@ -16,8 +16,9 @@ use Illuminate\Validation\Rules\Enum;
  * accepted, and `youtube_id` is always derived server-side, never taken
  * from the browser. The human "Related to" choice is normalised here:
  * Project/Activity sets `project_id`, Component sets `project_component_id`,
- * General/Independent sets both to null. (The schema has no event
- * relationship for videos — event media is galleries of photos.)
+ * News article sets `news_post_id`, General/Independent sets all of them to
+ * null. (The schema has no event relationship for videos — event media is
+ * galleries of photos.)
  */
 class StoreVideoRequest extends FormRequest
 {
@@ -31,9 +32,10 @@ class StoreVideoRequest extends FormRequest
         $relatedId = $this->filled('related_id') ? (int) $this->input('related_id') : null;
 
         $this->merge(match ($this->input('related_to')) {
-            'project' => ['project_id' => $relatedId, 'project_component_id' => null],
-            'component' => ['project_id' => null, 'project_component_id' => $relatedId],
-            default => ['project_id' => null, 'project_component_id' => null],
+            'project' => ['project_id' => $relatedId, 'project_component_id' => null, 'news_post_id' => null],
+            'component' => ['project_id' => null, 'project_component_id' => $relatedId, 'news_post_id' => null],
+            'news' => ['project_id' => null, 'project_component_id' => null, 'news_post_id' => $relatedId],
+            default => ['project_id' => null, 'project_component_id' => null, 'news_post_id' => null],
         });
 
         $this->merge([
@@ -72,13 +74,14 @@ class StoreVideoRequest extends FormRequest
 
             'published_on' => ['nullable', 'date'],
 
-            'related_to' => ['required', 'string', 'in:general,project,component'],
+            'related_to' => ['required', 'string', 'in:general,project,component,news'],
             'related_id' => [
                 'nullable',
                 'required_unless:related_to,general',
                 'integer',
                 Rule::when($this->input('related_to') === 'project', Rule::exists('projects', 'id')),
                 Rule::when($this->input('related_to') === 'component', Rule::exists('project_components', 'id')),
+                Rule::when($this->input('related_to') === 'news', Rule::exists('news_posts', 'id')),
             ],
 
             // The normalised relationship foreign keys themselves — prepared
@@ -86,6 +89,7 @@ class StoreVideoRequest extends FormRequest
             // carries exactly one of them (or none) into the controller.
             'project_id' => ['nullable', Rule::exists('projects', 'id')],
             'project_component_id' => ['nullable', Rule::exists('project_components', 'id')],
+            'news_post_id' => ['nullable', Rule::exists('news_posts', 'id')],
 
             'status' => ['required', new Enum(PublicationStatus::class)],
             'sort' => ['required', 'integer', 'min:0', 'max:10000'],

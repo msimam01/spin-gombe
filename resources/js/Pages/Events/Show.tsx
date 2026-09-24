@@ -95,24 +95,31 @@ export default function EventsShow({ event }: { event: EventDetail }) {
         startDate: event.starts_at ?? undefined,
         endDate: event.ends_at ?? undefined,
         description: event.description ?? undefined,
+        /*
+         * One place object: the venue names the specific room/site while the
+         * location record supplies the reusable place and its coordinates.
+         * They are distinct concepts and are never merged into one another.
+         */
         ...(event.venue || event.location
             ? {
                   location: {
                       '@type': 'Place',
-                      name: [event.venue, event.location?.name].filter(Boolean).join(', '),
-                  },
-              }
-            : {}),
-        ...(event.location?.latitude != null && event.location?.longitude != null
-            ? {
-                  location: {
-                      '@type': 'Place',
-                      name: event.location.name,
-                      geo: {
-                          '@type': 'GeoCoordinates',
-                          latitude: event.location.latitude,
-                          longitude: event.location.longitude,
-                      },
+                      name: [
+                          event.venue,
+                          [event.location?.name, event.location?.lga].filter(Boolean).join(' — '),
+                      ]
+                          .filter(Boolean)
+                          .join(', '),
+                      ...(event.location?.latitude != null &&
+                      event.location?.longitude != null
+                          ? {
+                                geo: {
+                                    '@type': 'GeoCoordinates',
+                                    latitude: event.location.latitude,
+                                    longitude: event.location.longitude,
+                                },
+                            }
+                          : {}),
                   },
               }
             : {}),
@@ -209,12 +216,16 @@ export default function EventsShow({ event }: { event: EventDetail }) {
                                     className="mb-10 aspect-[16/9] w-full rounded-md border border-border object-cover shadow-card"
                                 />
                             )}
-                            <h2 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
-                                About this event
-                            </h2>
-                            <p className="mt-4 text-lg leading-relaxed break-words text-foreground sm:text-xl sm:leading-relaxed">
-                                {event.description ?? 'Further details about this event will be published by the project office.'}
-                            </p>
+                            {event.description && (
+                                <>
+                                    <h2 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
+                                        About this event
+                                    </h2>
+                                    <p className="mt-4 text-lg leading-relaxed break-words text-foreground sm:text-xl sm:leading-relaxed">
+                                        {event.description}
+                                    </p>
+                                </>
+                            )}
                         </div>
 
                         <aside className="lg:col-span-5">
@@ -239,13 +250,28 @@ export default function EventsShow({ event }: { event: EventDetail }) {
                                             <dd className="mt-1 text-sm font-semibold text-foreground">{time}</dd>
                                         </div>
                                     )}
-                                    {placeParts.length > 0 && (
+                                    {/* Venue and Location are distinct: the venue is
+                                        the specific site, the location is the reusable
+                                        place record the event is attached to. */}
+                                    {event.venue && (
                                         <div className="border-l-2 border-gold-400 pl-4">
                                             <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                                 Venue
                                             </dt>
                                             <dd className="mt-1 text-sm font-semibold text-foreground">
-                                                {placeParts.join(' · ')}
+                                                {event.venue}
+                                            </dd>
+                                        </div>
+                                    )}
+                                    {event.location && (
+                                        <div className="border-l-2 border-gold-400 pl-4">
+                                            <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                                                Location
+                                            </dt>
+                                            <dd className="mt-1 text-sm font-semibold text-foreground">
+                                                {[event.location.name, event.location.lga]
+                                                    .filter(Boolean)
+                                                    .join(' — ')}
                                             </dd>
                                         </div>
                                     )}

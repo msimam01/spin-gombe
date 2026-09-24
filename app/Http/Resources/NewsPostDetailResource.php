@@ -3,16 +3,20 @@
 namespace App\Http\Resources;
 
 use App\Models\NewsPost;
-use App\Models\Video;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Full public representation of a single news post (detail page).
  *
- * Extends the listing shape with the body and the related published media
- * that share the post's component. Absent information stays null — the page
- * simply omits it, so nothing empty or invented is displayed.
+ * Extends the listing shape with the body and the media the article OWNS.
+ *
+ * Ownership is explicit and mirrors every other media owner in the project
+ * (project, component, gallery): a photograph or video appears on this page
+ * only when its `news_post_id` points at this post. Sharing a component with
+ * an article contributes no media to it — component photographs stay on the
+ * component page. Absent information stays null and the page omits it, so
+ * nothing empty or invented is displayed.
  *
  * @mixin NewsPost
  */
@@ -28,28 +32,12 @@ class NewsPostDetailResource extends JsonResource
         return [
             'published_on' => $this->published_at?->isoFormat('D MMMM Y'),
             'body' => $this->body,
-            'photos' => $this->whenLoaded('component', fn () => $this->component
-                ? PhotoResource::collection(
-                    $this->component->photos()
-                        ->published()
-                        ->ordered()
-                        ->limit(6)
-                        ->get()
-                )->resolve()
-                : []),
-            'videos' => $this->whenLoaded('component', fn () => $this->component
-                ? $this->component->videos()
-                    ->published()
-                    ->ordered()
-                    ->limit(2)
-                    ->get()
-                    ->map(fn (Video $video) => [
-                        'id' => $video->id,
-                        'title' => $video->title,
-                        'youtube_id' => $video->youtube_id,
-                        'thumbnail_url' => $video->thumbnailUrl(),
-                    ])->all()
-                : []),
+            'photos' => $this->whenLoaded('photos', fn () => $this->photos
+                ->map(fn ($photo) => (new PhotoResource($photo))->resolve())
+                ->all()),
+            'videos' => $this->whenLoaded('videos', fn () => $this->videos
+                ->map(fn ($video) => (new VideoResource($video))->resolve())
+                ->all()),
             'related' => $this->whenLoaded('component', function () {
                 $component = $this->component;
 

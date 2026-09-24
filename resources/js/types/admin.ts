@@ -176,7 +176,7 @@ export interface SelectOption {
 
 /** The human "Related to" description of a media record. */
 export interface MediaRelated {
-    type: 'general' | 'project' | 'component' | 'gallery';
+    type: 'general' | 'project' | 'component' | 'gallery' | 'news';
     label: string;
     name: string | null;
 }

@@ -10,6 +10,7 @@ interface CreatePhotoProps {
     projects: SelectOption[];
     components: SelectOption[];
     galleries: SelectOption[];
+    newsPosts: SelectOption[];
     preselect_gallery: { id: number; title: string } | null;
 }
 
@@ -18,6 +19,7 @@ export default function CreatePhoto({
     projects,
     components,
     galleries,
+    newsPosts,
     preselect_gallery,
 }: CreatePhotoProps) {
     return (
@@ -42,6 +44,7 @@ export default function CreatePhoto({
                     projects={projects}
                     components={components}
                     galleries={galleries}
+                    newsPosts={newsPosts}
                     preselectGallery={preselect_gallery}
                 />
             </div>

@@ -14,7 +14,7 @@ use Illuminate\Validation\Rules\Enum;
  * photo to a gallery from the gallery screen, or removing it from one) touch
  * only the sent fields and never clear anything they leave out. When
  * `related_to` IS sent, the primary relationship is re-normalised at the
- * validation layer — the newly chosen relationship is set and the other two
+ * validation layer — the newly chosen relationship is set and the other
  * foreign keys are explicitly nulled.
  */
 class UpdatePhotoRequest extends FormRequest
@@ -44,10 +44,11 @@ class UpdatePhotoRequest extends FormRequest
         $this->merge(match ($this->input('related_to')) {
             // related_id is normalised alongside the foreign keys: the
             // browser sends "" (not an absence) whenever General is chosen.
-            'project' => ['project_id' => $relatedId, 'project_component_id' => null, 'gallery_id' => null, 'related_id' => $relatedId],
-            'component' => ['project_id' => null, 'project_component_id' => $relatedId, 'gallery_id' => null, 'related_id' => $relatedId],
-            'gallery' => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => $relatedId, 'related_id' => $relatedId],
-            default => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => null, 'related_id' => $relatedId],
+            'project' => ['project_id' => $relatedId, 'project_component_id' => null, 'gallery_id' => null, 'news_post_id' => null, 'related_id' => $relatedId],
+            'component' => ['project_id' => null, 'project_component_id' => $relatedId, 'gallery_id' => null, 'news_post_id' => null, 'related_id' => $relatedId],
+            'gallery' => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => $relatedId, 'news_post_id' => null, 'related_id' => $relatedId],
+            'news' => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => null, 'news_post_id' => $relatedId, 'related_id' => $relatedId],
+            default => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => null, 'news_post_id' => null, 'related_id' => $relatedId],
         });
     }
 
@@ -68,7 +69,7 @@ class UpdatePhotoRequest extends FormRequest
             'credit' => ['sometimes', 'nullable', 'string', 'max:255'],
             'taken_on' => ['sometimes', 'nullable', 'date'],
 
-            'related_to' => ['sometimes', 'required', 'string', 'in:general,project,component,gallery'],
+            'related_to' => ['sometimes', 'required', 'string', 'in:general,project,component,gallery,news'],
             'related_id' => [
                 'nullable',
                 'integer',
@@ -78,6 +79,7 @@ class UpdatePhotoRequest extends FormRequest
                 Rule::when($this->input('related_to') === 'project', Rule::exists('projects', 'id')),
                 Rule::when($this->input('related_to') === 'component', Rule::exists('project_components', 'id')),
                 Rule::when($this->input('related_to') === 'gallery', Rule::exists('galleries', 'id')),
+                Rule::when($this->input('related_to') === 'news', Rule::exists('news_posts', 'id')),
             ],
 
             // The normalised relationship foreign keys themselves — prepared
@@ -86,6 +88,7 @@ class UpdatePhotoRequest extends FormRequest
             'project_id' => ['sometimes', 'nullable', Rule::exists('projects', 'id')],
             'project_component_id' => ['sometimes', 'nullable', Rule::exists('project_components', 'id')],
             'gallery_id' => ['sometimes', 'nullable', Rule::exists('galleries', 'id')],
+            'news_post_id' => ['sometimes', 'nullable', Rule::exists('news_posts', 'id')],
 
             'status' => ['sometimes', 'required', new Enum(PublicationStatus::class)],
             'sort' => ['sometimes', 'required', 'integer', 'min:0', 'max:10000'],

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Media\Photos;
 use App\Enums\PublicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Gallery;
+use App\Models\NewsPost;
 use App\Models\Project;
 use App\Models\ProjectComponent;
 use Illuminate\Http\Request;
@@ -35,6 +36,7 @@ class CreateController extends Controller
             'projects' => self::projectOptions(),
             'components' => self::componentOptions(),
             'galleries' => self::galleryOptions(),
+            'newsPosts' => self::newsPostOptions(),
             'preselect_gallery' => $preselect,
         ]);
     }
@@ -73,6 +75,24 @@ class CreateController extends Controller
             ->map(fn ($gallery) => [
                 'value' => (string) $gallery->id,
                 'label' => $gallery->title,
+            ])->all();
+    }
+
+    /**
+     * Every news article, newest first.
+     *
+     * Attaching media to a news article is what makes it appear on that
+     * article's page — media is never inherited from the component the
+     * article happens to reference.
+     */
+    public static function newsPostOptions(): array
+    {
+        return NewsPost::query()
+            ->latestFirst()
+            ->get(['id', 'title'])
+            ->map(fn (NewsPost $post) => [
+                'value' => (string) $post->id,
+                'label' => $post->title,
             ])->all();
     }
 }

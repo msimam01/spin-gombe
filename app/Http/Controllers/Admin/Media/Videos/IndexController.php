@@ -26,15 +26,19 @@ class IndexController extends Controller
         $related = $request->string('related')->toString();
 
         $videos = Video::query()
-            ->with(['project:id,title,type', 'component:id,name'])
+            ->with(['project:id,title,type', 'component:id,name', 'newsPost:id,title'])
             ->when($search !== '', fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->when($status !== '' && PublicationStatus::tryFrom($status) !== null,
                 fn ($query) => $query->where('status', $status))
             ->when($related !== '', function ($query) use ($related) {
                 match ($related) {
-                    'general' => $query->whereNull('project_id')->whereNull('project_component_id'),
+                    'general' => $query
+                        ->whereNull('project_id')
+                        ->whereNull('project_component_id')
+                        ->whereNull('news_post_id'),
                     'project' => $query->whereNotNull('project_id'),
                     'component' => $query->whereNotNull('project_component_id'),
+                    'news' => $query->whereNotNull('news_post_id'),
                     default => $query,
                 };
             })
@@ -73,6 +77,10 @@ class IndexController extends Controller
      */
     public static function related(Video $video): array
     {
+        if ($video->news_post_id !== null) {
+            return ['type' => 'news', 'label' => 'News article', 'name' => $video->newsPost?->title];
+        }
+
         if ($video->project_id !== null) {
             $type = $video->project?->type === 'activity' ? 'Activity' : 'Project';
 

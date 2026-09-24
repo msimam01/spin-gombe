@@ -12,8 +12,8 @@ use Inertia\Response;
  * New-video form (/admin/media/videos/create).
  *
  * Supplies the dynamic option lists for the human "Related to" selector
- * (Project/Activity and Component — the schema has no video-event
- * relationship; event media is photo galleries).
+ * (Project/Activity, Component and News article — the schema has no
+ * video-event relationship; event media is photo galleries).
  */
 class CreateController extends Controller
 {
@@ -23,6 +23,7 @@ class CreateController extends Controller
             'statuses' => PublicationStatus::options(),
             'projects' => PhotoOptions::projectOptions(),
             'components' => PhotoOptions::componentOptions(),
+            'newsPosts' => PhotoOptions::newsPostOptions(),
         ]);
     }
 }

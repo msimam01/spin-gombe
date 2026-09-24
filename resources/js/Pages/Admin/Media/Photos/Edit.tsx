@@ -19,18 +19,31 @@ interface EditPhotoProps {
         sort: number;
         published_at: string | null;
         updated_at: string;
-        related: { type: 'general' | 'project' | 'component' | 'gallery'; label: string; name: string | null };
+        related: {
+            type: 'general' | 'project' | 'component' | 'gallery' | 'news';
+            label: string;
+            name: string | null;
+        };
         project_id: number | null;
         project_component_id: number | null;
         gallery_id: number | null;
+        news_post_id: number | null;
     };
     statuses: Record<string, string>;
     projects: SelectOption[];
     components: SelectOption[];
     galleries: SelectOption[];
+    newsPosts: SelectOption[];
 }
 
-export default function EditPhoto({ photo, statuses, projects, components, galleries }: EditPhotoProps) {
+export default function EditPhoto({
+    photo,
+    statuses,
+    projects,
+    components,
+    galleries,
+    newsPosts,
+}: EditPhotoProps) {
     return (
         <AdminLayout>
             <Link
@@ -58,6 +71,7 @@ export default function EditPhoto({ photo, statuses, projects, components, galle
                     projects={projects}
                     components={components}
                     galleries={galleries}
+                    newsPosts={newsPosts}
                 />
             </div>
             <div className="h-6" />

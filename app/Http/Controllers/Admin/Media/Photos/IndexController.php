@@ -28,7 +28,7 @@ class IndexController extends Controller
         $related = $request->string('related')->toString();
 
         $photos = Photo::query()
-            ->with(['project:id,title,type', 'component:id,name', 'gallery:id,title'])
+            ->with(['project:id,title,type', 'component:id,name', 'gallery:id,title', 'newsPost:id,title'])
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
                 $query->where('alt_text', 'like', "%{$search}%")
                     ->orWhere('caption', 'like', "%{$search}%");
@@ -40,10 +40,12 @@ class IndexController extends Controller
                     'general' => $query
                         ->whereNull('project_id')
                         ->whereNull('project_component_id')
-                        ->whereNull('gallery_id'),
+                        ->whereNull('gallery_id')
+                        ->whereNull('news_post_id'),
                     'project' => $query->whereNotNull('project_id'),
                     'component' => $query->whereNotNull('project_component_id'),
                     'gallery' => $query->whereNotNull('gallery_id'),
+                    'news' => $query->whereNotNull('news_post_id'),
                     default => $query,
                 };
             })
@@ -94,6 +96,10 @@ class IndexController extends Controller
      */
     public static function related(Photo $photo): array
     {
+        if ($photo->news_post_id !== null) {
+            return ['type' => 'news', 'label' => 'News article', 'name' => $photo->newsPost?->title];
+        }
+
         if ($photo->gallery_id !== null) {
             return ['type' => 'gallery', 'label' => 'Gallery', 'name' => $photo->gallery?->title];
         }

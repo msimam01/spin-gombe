@@ -132,7 +132,7 @@ export default function NewsIndex({ posts }: NewsIndexProps) {
 
                     <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                         Official news, announcements and milestones from the SPIN Gombe State
-                        Project — published here as the project office releases them.
+                        Project.
                     </p>
                 </Container>
             </section>
@@ -286,8 +286,8 @@ export default function NewsIndex({ posts }: NewsIndexProps) {
                     ) : (
                         <EmptyState
                             icon={<Newspaper aria-hidden="true" className="size-5" />}
-                            title="News is being prepared"
-                            description="Official SPIN Gombe news, press updates and project milestones will be published here as the project office releases them. Nothing is shown until it is confirmed."
+                            title="No news or updates are listed"
+                            description="Official SPIN Gombe news, press updates and project milestones are listed on this page."
                             items={[
                                 'Official announcements and press releases',
                                 'Project milestones and field reports',

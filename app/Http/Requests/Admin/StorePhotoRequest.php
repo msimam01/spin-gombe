@@ -13,10 +13,13 @@ use Illuminate\Validation\Rules\Enum;
  * The form exposes exactly the fields the `photos` schema supports. The
  * human "Related to" choice is normalised here — at the validation layer, not
  * only in React — so a photo always carries AT MOST ONE primary
- * relationship: selecting Project/Activity, Component or Gallery sets that
- * one foreign key and nulls the other two; General/Independent sets all
- * three to null. The browser's option lists are convenience, never
- * authority: each related record's existence is re-checked server-side.
+ * relationship: selecting Project/Activity, Component, Gallery or News
+ * article sets that one foreign key and nulls the others;
+ * General/Independent sets all of them to null. Choosing a news article is
+ * what puts a photograph on that article's page — never the component the
+ * article happens to reference. The browser's option lists are convenience,
+ * never authority: each related record's existence is re-checked
+ * server-side.
  */
 class StorePhotoRequest extends FormRequest
 {
@@ -29,13 +32,14 @@ class StorePhotoRequest extends FormRequest
     {
         $relatedId = $this->filled('related_id') ? (int) $this->input('related_id') : null;
 
-        // Normalise the primary relationship: exactly one of the three
-        // nullable foreign keys may be set.
+        // Normalise the primary relationship: exactly one of the nullable
+        // foreign keys may be set.
         $this->merge(match ($this->input('related_to')) {
-            'project' => ['project_id' => $relatedId, 'project_component_id' => null, 'gallery_id' => null],
-            'component' => ['project_id' => null, 'project_component_id' => $relatedId, 'gallery_id' => null],
-            'gallery' => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => $relatedId],
-            default => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => null],
+            'project' => ['project_id' => $relatedId, 'project_component_id' => null, 'gallery_id' => null, 'news_post_id' => null],
+            'component' => ['project_id' => null, 'project_component_id' => $relatedId, 'gallery_id' => null, 'news_post_id' => null],
+            'gallery' => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => $relatedId, 'news_post_id' => null],
+            'news' => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => null, 'news_post_id' => $relatedId],
+            default => ['project_id' => null, 'project_component_id' => null, 'gallery_id' => null, 'news_post_id' => null],
         });
 
         $this->merge([
@@ -70,7 +74,7 @@ class StorePhotoRequest extends FormRequest
             'taken_on' => ['nullable', 'date'],
 
             // The human "Related to" choice and its record selector.
-            'related_to' => ['required', 'string', 'in:general,project,component,gallery'],
+            'related_to' => ['required', 'string', 'in:general,project,component,gallery,news'],
             'related_id' => [
                 'nullable',
                 'required_unless:related_to,general',
@@ -78,6 +82,7 @@ class StorePhotoRequest extends FormRequest
                 Rule::when($this->input('related_to') === 'project', Rule::exists('projects', 'id')),
                 Rule::when($this->input('related_to') === 'component', Rule::exists('project_components', 'id')),
                 Rule::when($this->input('related_to') === 'gallery', Rule::exists('galleries', 'id')),
+                Rule::when($this->input('related_to') === 'news', Rule::exists('news_posts', 'id')),
             ],
 
             // The normalised relationship foreign keys themselves — prepared
@@ -86,6 +91,7 @@ class StorePhotoRequest extends FormRequest
             'project_id' => ['nullable', Rule::exists('projects', 'id')],
             'project_component_id' => ['nullable', Rule::exists('project_components', 'id')],
             'gallery_id' => ['nullable', Rule::exists('galleries', 'id')],
+            'news_post_id' => ['nullable', Rule::exists('news_posts', 'id')],
 
             'status' => ['required', new Enum(PublicationStatus::class)],
             'sort' => ['required', 'integer', 'min:0', 'max:10000'],

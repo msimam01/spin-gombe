@@ -24,6 +24,7 @@ class Video extends Model implements Publishable
         'youtube_id',
         'project_id',
         'project_component_id',
+        'news_post_id',
         'published_on',
         'status',
         'published_at',
@@ -75,5 +76,10 @@ class Video extends Model implements Publishable
     public function component(): BelongsTo
     {
         return $this->belongsTo(ProjectComponent::class, 'project_component_id');
+    }
+
+    public function newsPost(): BelongsTo
+    {
+        return $this->belongsTo(NewsPost::class);
     }
 }

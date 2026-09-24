@@ -153,8 +153,8 @@ export default function EventsIndex({ upcoming, past }: EventsIndexProps) {
                     </h1>
 
                     <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                        Project events, engagements and stakeholder activities — with dates,
-                        venues and details published by the SPIN Gombe project office.
+                        Project events, engagements and stakeholder activities — with their
+                        dates, venues and details.
                     </p>
                 </Container>
             </section>
@@ -223,8 +223,7 @@ export default function EventsIndex({ upcoming, past }: EventsIndexProps) {
                             </ul>
                         ) : (
                             <p className="mt-6 rounded-md border border-dashed border-border bg-muted/60 px-6 py-8 text-center text-sm text-muted-foreground">
-                                No upcoming events are scheduled at the moment. New engagements
-                                will be announced here as soon as dates are confirmed.
+                                No upcoming events are scheduled at the moment.
                             </p>
                         )}
                     </div>
@@ -272,8 +271,8 @@ export default function EventsIndex({ upcoming, past }: EventsIndexProps) {
                         <EmptyState
                             className="mt-10"
                             icon={<CalendarDays aria-hidden="true" className="size-5" />}
-                            title="Events are being planned"
-                            description="Official SPIN Gombe events and stakeholder engagements will be published here with their dates, venues and details — as confirmed by the project office. Nothing is shown until it is confirmed."
+                            title="No events are listed"
+                            description="SPIN Gombe events and stakeholder engagements are listed on this page with their dates, venues and details."
                             items={[
                                 'Upcoming events with date, time and venue',
                                 'Past events archive',

@@ -9,9 +9,10 @@ interface CreateVideoProps {
     statuses: Record<string, string>;
     projects: SelectOption[];
     components: SelectOption[];
+    newsPosts: SelectOption[];
 }
 
-export default function CreateVideo({ statuses, projects, components }: CreateVideoProps) {
+export default function CreateVideo({ statuses, projects, components, newsPosts }: CreateVideoProps) {
     return (
         <AdminLayout>
             <Link
@@ -29,7 +30,12 @@ export default function CreateVideo({ statuses, projects, components }: CreateVi
             </p>
 
             <div className="mt-6 max-w-3xl">
-                <VideoForm statuses={statuses} projects={projects} components={components} />
+                <VideoForm
+                    statuses={statuses}
+                    projects={projects}
+                    components={components}
+                    newsPosts={newsPosts}
+                />
             </div>
             <div className="h-6" />
         </AdminLayout>
