@@ -118,7 +118,7 @@ export default function GalleryShow({ gallery }: GalleryShowProps) {
                         </Reveal>
                     ) : (
                         <p className="rounded-md border border-dashed border-border bg-muted/60 px-6 py-8 text-center text-sm text-muted-foreground">
-                            Photographs for this album will be published shortly.
+                            No photographs are currently available in this album.
                         </p>
                     )}
                 </Container>

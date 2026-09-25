@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, ChevronRight, Clock, Mail, MapPin, Phone } from 'lucide-react';
+import { ArrowRight, ChevronRight, Mail, MapPin, Phone } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { OfficeLocationPanel } from '@/components/shared/OfficeLocationPanel';
@@ -11,13 +11,12 @@ import type { SharedProps } from '@/types';
 /**
  * Contact (/contact) — the official SPIN Gombe project office contact page.
  *
- * Every value renders from the shared `site` config (config/spin.php), so the
- * future Admin/CMS can manage the official email, phone, office address,
- * map coordinates and social links without touching this page. The office
- * location panel is the same config-gated component used on the homepage:
- * until SPIN confirms the exact office pin, it shows the official street
- * address with a "location being confirmed" notice — never invented
- * coordinates or a fabricated maps URL.
+ * Every value renders from the shared `site` settings (config/spin.php plus
+ * the managed overrides), so the official email, phone, office address, map
+ * coordinates and social links are never hard-coded in this page. The office
+ * location panel is the same component used on the homepage: it plots the
+ * office coordinates on the shared Leaflet/OpenStreetMap map, and falls back
+ * to the official street address alone when no coordinates are configured.
  *
  * There is deliberately no online enquiry form: visitors are directed to the
  * official email and telephone channels supplied by SPIN, and personal team
@@ -133,11 +132,6 @@ export default function Contact() {
                                             ))}
                                         </span>
                                     </address>
-                                </li>
-                                <li className="flex items-start gap-2 rounded-sm border border-brand-100 bg-brand-50 px-3.5 py-2.5 text-xs leading-relaxed text-brand-800">
-                                    <Clock aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-                                    Office opening hours will be published by the project
-                                    office once confirmed.
                                 </li>
                             </ul>
 

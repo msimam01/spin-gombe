@@ -409,7 +409,7 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                     {neighbours.previous ? (
                         <Link
                             href={route('components.show', { urlSlug: neighbours.previous.url_slug })}
-                            className="group flex items-center gap-3 rounded-md border border-border bg-background p-4 transition-colors hover:border-brand-200"
+                            className="group flex min-w-0 items-center gap-3 rounded-md border border-border bg-background p-4 transition-colors hover:border-brand-200"
                         >
                             <ArrowLeft aria-hidden="true" className="size-4 shrink-0 text-primary transition-transform group-hover:-translate-x-0.5" />
                             <span className="min-w-0">
@@ -425,7 +425,7 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
 
                     <Link
                         href={route('components.index')}
-                        className="flex items-center justify-center gap-2 rounded-md border border-brand-200 bg-background p-4 text-sm font-semibold text-primary transition-colors hover:bg-brand-50"
+                        className="flex min-w-0 items-center justify-center gap-2 rounded-md border border-brand-200 bg-background p-4 text-sm font-semibold text-primary transition-colors hover:bg-brand-50"
                     >
                         All components
                     </Link>
@@ -433,7 +433,7 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                     {neighbours.next ? (
                         <Link
                             href={route('components.show', { urlSlug: neighbours.next.url_slug })}
-                            className="group flex items-center justify-end gap-3 rounded-md border border-border bg-background p-4 text-right transition-colors hover:border-brand-200"
+                            className="group flex min-w-0 items-center justify-end gap-3 rounded-md border border-border bg-background p-4 text-right transition-colors hover:border-brand-200"
                         >
                             <span className="min-w-0">
                                 <span className="block text-xs text-muted-foreground">Next component</span>

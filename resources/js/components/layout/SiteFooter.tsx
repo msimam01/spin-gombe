@@ -1,16 +1,18 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowUpRight, Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone } from 'lucide-react';
 import { Container } from '@/components/layout/Container';
+import { SocialIcon, socialLabel } from '@/components/layout/SocialIcon';
 import { route } from '@/lib/routes';
 import type { SharedProps } from '@/types';
 
 /**
  * Site footer.
  *
- * Deliberately carries no social media links and no partner logos: no official
- * SPIN Gombe accounts or approved logo files have been supplied, so none are
- * shown or invented. Both slots activate automatically from `site.social` and
- * `site.logos` the moment official values exist.
+ * Deliberately carries no partner logos: no approved logo files have been
+ * supplied, so none are shown or invented. Configured social accounts appear as
+ * official platform icons rather than spelled-out names, and both slots
+ * activate automatically from `site.social` and `site.logos` the moment
+ * official values exist.
  */
 export function SiteFooter() {
     const { site, navigation } = usePage<SharedProps>().props;
@@ -155,22 +157,27 @@ export function SiteFooter() {
                             )}
                         </div>
 
-                        {/* Social links: render only when official accounts exist. */}
+                        {/* Social links: official platform icons, only when accounts exist. */}
                         {socials.length > 0 && (
-                            <ul className="mt-6 flex flex-wrap gap-4">
-                                {socials.map(([key, url]) => (
-                                    <li key={key}>
-                                        <a
-                                            href={url as string}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-100/85 transition-colors hover:text-white"
-                                        >
-                                            <span className="capitalize">{key}</span>
-                                            <ArrowUpRight aria-hidden="true" className="size-3.5" />
-                                        </a>
-                                    </li>
-                                ))}
+                            <ul className="mt-6 flex flex-wrap items-center gap-2.5">
+                                {socials.map(([key, url]) => {
+                                    const label = socialLabel(key);
+
+                                    return (
+                                        <li key={key}>
+                                            <a
+                                                href={url as string}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                title={label}
+                                                aria-label={`${label} (opens in a new tab)`}
+                                                className="inline-flex size-10 items-center justify-center rounded-md border border-white/15 bg-white/5 text-brand-100 transition-colors hover:border-white/30 hover:bg-white/15 hover:text-white focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-950 focus-visible:outline-none"
+                                            >
+                                                <SocialIcon name={key} className="size-5" />
+                                            </a>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         )}
                     </div>

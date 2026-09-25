@@ -146,8 +146,8 @@ export default function MediaVideos({ videos }: MediaVideosProps) {
                     ) : (
                         <EmptyState
                             icon={<SquarePlay aria-hidden="true" className="size-5" />}
-                            title="Videos are being prepared"
-                            description="Official SPIN project videos will appear here as project updates and programme activities are published. Nothing is embedded until it is confirmed official."
+                            title="No videos are currently available"
+                            description="SPIN Gombe video coverage is published on the project's official YouTube channel and embedded here for viewing."
                             items={[
                                 'Project documentaries and features',
                                 'Activity and event coverage',

@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import * as L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import { MapPinned } from 'lucide-react';
+import { MapCard } from '@/components/shared/MapCard';
+import { BRAND_PIN_ICON, OSM_COPYRIGHT_URL, useOsmMap, type MapContext } from '@/lib/leaflet';
 import { route } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -23,25 +23,6 @@ export interface MapMarkerLocation {
     description?: string | null;
     projects: MapProjectEntry[];
 }
-
-/* OpenStreetMap tiles are free and need no key, account or billing setup. */
-const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-const ATTRIBUTION =
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-
-/** Brand-green pin — an inline SVG so no image asset or icon CDN is needed. */
-const PIN_ICON = L.divIcon({
-    className: '',
-    html:
-        '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40" aria-hidden="true" focusable="false">' +
-        '<path d="M15 1C7.3 1 1 7.3 1 15c0 10.6 14 24 14 24s14-13.4 14-24C29 7.3 22.7 1 15 1Z" ' +
-        'fill="var(--brand-600)" stroke="#ffffff" stroke-width="2"/>' +
-        '<circle cx="15" cy="15" r="4.5" fill="#ffffff"/>' +
-        '</svg>',
-    iconSize: [30, 40],
-    iconAnchor: [15, 40],
-    popupAnchor: [0, -38],
-});
 
 /**
  * Build a marker popup from database values.
@@ -110,9 +91,8 @@ function buildPopup(location: MapMarkerLocation): HTMLElement {
 /**
  * ProjectsMap — the one interactive project-locations map on the public site.
  *
- * Leaflet with OpenStreetMap tiles: free, key-less and billing-free. One
- * marker is rendered per Location record that carries valid coordinates, so
- * several records sharing a location never duplicate a marker; every
+ * One marker is rendered per Location record that carries valid coordinates,
+ * so several records sharing a location never duplicate a marker; every
  * published project/activity recorded there is listed in the popup with a
  * link to its detail page. Coordinates always arrive from the database via
  * the controller — nothing is hard-coded or approximated.
@@ -137,9 +117,6 @@ export function ProjectsMap({
     /** Optional action rendered opposite the map attribution. */
     footer?: ReactNode;
 }) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [failed, setFailed] = useState(false);
-
     // Memoised so the map is initialised once per data set — a fresh array on
     // every render would otherwise tear the map down and rebuild it.
     const mappable = useMemo(
@@ -153,67 +130,18 @@ export function ProjectsMap({
         [locations],
     );
 
-    useEffect(() => {
-        if (failed || mappable.length === 0 || !containerRef.current) {
-            return;
-        }
+    const decorate = useCallback(({ map, leaflet, point: location }: MapContext<MapMarkerLocation>) => {
+        leaflet
+            .marker([location.latitude, location.longitude], {
+                icon: BRAND_PIN_ICON,
+                title: location.name,
+                keyboard: true,
+            })
+            .bindPopup(() => buildPopup(location), { maxWidth: 300 })
+            .addTo(map);
+    }, []);
 
-        let map: L.Map | null = null;
-        let observer: ResizeObserver | null = null;
-
-        try {
-            map = L.map(containerRef.current, {
-                // The page keeps its own scroll: the wheel only zooms once
-                // the visitor has actually engaged the map (click/keyboard).
-                scrollWheelZoom: false,
-                zoomControl: true,
-                attributionControl: true,
-            });
-
-            L.tileLayer(TILE_URL, {
-                maxZoom: 19,
-                attribution: ATTRIBUTION,
-            }).addTo(map);
-
-            for (const location of mappable) {
-                const marker = L.marker([location.latitude, location.longitude], {
-                    icon: PIN_ICON,
-                    title: location.name,
-                    keyboard: true,
-                });
-
-                marker.bindPopup(() => buildPopup(location), { maxWidth: 300 });
-                marker.addTo(map);
-            }
-
-            if (mappable.length === 1) {
-                // A single site should not zoom in to street level.
-                map.setView([mappable[0]!.latitude, mappable[0]!.longitude], 12);
-            } else {
-                map.fitBounds(
-                    L.latLngBounds(
-                        mappable.map(
-                            (location) => [location.latitude, location.longitude] as [number, number],
-                        ),
-                    ).pad(0.25),
-                );
-            }
-
-            // Responsive containers change height between breakpoints; keep
-            // the tiles fitted to the box without a manual window resize.
-            observer = new ResizeObserver(() => map?.invalidateSize());
-            observer.observe(containerRef.current);
-        } catch {
-            map?.remove();
-            setFailed(true);
-            return;
-        }
-
-        return () => {
-            observer?.disconnect();
-            map?.remove();
-        };
-    }, [mappable, failed]);
+    const { containerRef, failed } = useOsmMap({ points: mappable, decorate });
 
     if (mappable.length === 0) {
         return null;
@@ -225,19 +153,37 @@ export function ProjectsMap({
     );
 
     return (
-        <div className={cn('overflow-hidden rounded-md border border-brand-100 bg-background', className)}>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3.5">
-                <p className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
-                    <MapPinned aria-hidden="true" className="size-4 text-primary" />
-                    {label}
-                </p>
+        <MapCard
+            className={cn(className)}
+            icon={<MapPinned aria-hidden="true" className="size-4 text-primary" />}
+            title={label}
+            badge={
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-800 ring-1 ring-brand-100">
                     <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
                     {mappable.length} {mappable.length === 1 ? 'location' : 'locations'}
-                    {totalProjects > 0 && ` · ${totalProjects} ${totalProjects === 1 ? 'record' : 'records'}`}
+                    {totalProjects > 0 &&
+                        ` · ${totalProjects} ${totalProjects === 1 ? 'record' : 'records'}`}
                 </span>
-            </div>
-
+            }
+            footer={
+                <>
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                        Each marker is a recorded project location; the popup lists every
+                        published project and activity recorded there. Map data &copy;{' '}
+                        <a
+                            href={OSM_COPYRIGHT_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline underline-offset-2 hover:text-foreground"
+                        >
+                            OpenStreetMap contributors
+                        </a>
+                        .
+                    </p>
+                    {footer}
+                </>
+            }
+        >
             {failed ? (
                 /* Accessible fallback: the same locations and links as text. */
                 <ul className="flex flex-col gap-5 px-6 py-8">
@@ -290,23 +236,6 @@ export function ProjectsMap({
                     </li>
                 ))}
             </ul>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/50 px-5 py-3">
-                <p className="text-[11px] leading-relaxed text-muted-foreground">
-                    Each marker is a recorded project location; the popup lists every published
-                    project and activity recorded there. Map data &copy;{' '}
-                    <a
-                        href="https://www.openstreetmap.org/copyright"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline underline-offset-2 hover:text-foreground"
-                    >
-                        OpenStreetMap contributors
-                    </a>
-                    .
-                </p>
-                {footer}
-            </div>
-        </div>
+        </MapCard>
     );
 }

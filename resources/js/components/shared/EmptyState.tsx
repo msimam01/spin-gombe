@@ -3,10 +3,11 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * EmptyState — shown wherever SPIN content has not been supplied yet.
+ * EmptyState — the neutral state for a section that has no published items.
  *
- * The website never displays placeholder or invented content, so empty
- * sections explain what will appear here rather than showing filler.
+ * The website never displays placeholder or invented content, so an empty
+ * section states plainly that nothing is available rather than showing
+ * filler.
  */
 export function EmptyState({
     title,

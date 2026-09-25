@@ -173,13 +173,13 @@ export function SiteHeader() {
 
                 <div className="flex items-center gap-2.5">
                     <Link
-                        href={route('contact')}
+                        href={route('admin.login')}
                         className={cn(
-                            'hidden h-10 items-center justify-center rounded-sm bg-primary px-5 text-sm font-medium tracking-wide',
+                            'hidden h-10 shrink-0 items-center justify-center rounded-sm bg-primary px-5 text-sm font-medium tracking-wide whitespace-nowrap',
                             'text-primary-foreground shadow-subtle transition-all hover:bg-primary-hover hover:shadow-card sm:inline-flex',
                         )}
                     >
-                        Contact Us
+                        Staff Login
                     </Link>
                     <MobileNav />
                 </div>

@@ -12,7 +12,7 @@ interface TeamProps {
     team: TeamMemberType[];
 }
 
-/** Official portrait when supplied; a designed initials placeholder otherwise. */
+/** Official portrait when available; a designed initials monogram otherwise. */
 function MemberPortrait({
     member,
     className,
@@ -38,10 +38,11 @@ function MemberPortrait({
         .map((part) => part[0]!.toUpperCase())
         .join('');
 
+    // The initials monogram is decorative: the member's name is always
+    // rendered as real text beside it.
     return (
         <span
-            role="img"
-            aria-label={`Portrait placeholder for ${member.name} — official photograph to be supplied`}
+            aria-hidden="true"
             className={`${className} relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-100 via-brand-50 to-gold-50`}
         >
             <span
@@ -63,9 +64,8 @@ function MemberPortrait({
  *
  * The State Project Coordinator leads the page with his supplied profile;
  * the key management team follows as a clean, responsive directory. The page
- * renders exclusively from published team records (managed dynamically for
- * the Admin/CMS phase) and never exposes personal contact details — official
- * enquiries go through the project office.
+ * renders exclusively from published team records and never exposes personal
+ * contact details — official enquiries go through the project office.
  */
 export default function Team({ coordinator, team }: TeamProps) {
     const { site } = usePage<SharedProps>().props;
@@ -262,8 +262,7 @@ export default function Team({ coordinator, team }: TeamProps) {
                         </ul>
                     ) : (
                         <p className="mt-8 rounded-md border border-dashed border-border bg-muted/60 px-6 py-8 text-center text-sm text-muted-foreground">
-                            Team member profiles will be published here as the project office
-                            releases them.
+                            No team profiles are currently available.
                         </p>
                     )}
                 </Container>

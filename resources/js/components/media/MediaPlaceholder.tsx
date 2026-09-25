@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 
 /**
- * Elegant designed placeholder for media items without an approved image.
+ * Elegant designed placeholder for media items with no image or player yet.
  *
- * Preserves the correct aspect ratio so replacing it with an official image
- * later changes nothing about the surrounding layout. Never shows stock
- * imagery — only the brand wash and a label.
+ * Preserves the correct aspect ratio so an official image adds nothing but
+ * the picture itself. Never shows stock imagery — only the brand wash and a
+ * short label.
  */
 export function MediaPlaceholder({
     icon,

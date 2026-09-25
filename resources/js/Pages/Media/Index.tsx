@@ -1,5 +1,14 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Camera, ChevronRight, Clapperboard, Images, Play, SquarePlay } from 'lucide-react';
+import {
+    ArrowRight,
+    Camera,
+    ChevronRight,
+    Clapperboard,
+    ExternalLink,
+    Images,
+    Play,
+    SquarePlay,
+} from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -21,8 +30,8 @@ interface MediaIndexProps {
  *
  * Both panels render exclusively from published records: galleries, loose
  * photographs and official YouTube videos. With nothing published yet the
- * page still feels complete through its designed placeholders and honest
- * empty-state guidance — no stock imagery, no invented media.
+ * page keeps its designed placeholders and a neutral empty state — no stock
+ * imagery, no invented media.
  */
 export default function MediaIndex({ galleries, photos, videos }: MediaIndexProps) {
     const { site } = usePage<SharedProps>().props;
@@ -186,8 +195,8 @@ export default function MediaIndex({ galleries, photos, videos }: MediaIndexProp
                         <EmptyState
                             className="mt-10"
                             icon={<Images aria-hidden="true" className="size-5" />}
-                            title="Photography is being prepared"
-                            description="Official SPIN project photographs will appear here as programme activities and field engagements are published. Nothing is shown until it is approved for release."
+                            title="No photographs are currently available"
+                            description="Photographs of SPIN Gombe programmes, activities and field engagements are published in this gallery."
                             items={[
                                 'Staff photographs',
                                 'Programme and activity coverage',
@@ -263,7 +272,7 @@ export default function MediaIndex({ galleries, photos, videos }: MediaIndexProp
                                                         className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
                                                     >
                                                         Watch on YouTube
-                                                        <ArrowRight aria-hidden="true" className="size-3.5" />
+                                                        <ExternalLink aria-hidden="true" className="size-3.5" />
                                                     </a>
                                                 )}
                                             </div>
@@ -276,8 +285,8 @@ export default function MediaIndex({ galleries, photos, videos }: MediaIndexProp
                         <EmptyState
                             className="mt-10"
                             icon={<SquarePlay aria-hidden="true" className="size-5" />}
-                            title="Videos are being prepared"
-                            description="Official SPIN project videos will appear here as project updates and programme activities are published. Nothing is embedded until it is confirmed official."
+                            title="No videos are currently available"
+                            description="SPIN Gombe video coverage is published on the project's official YouTube channel and embedded here for viewing."
                             items={[
                                 'Project documentaries and features',
                                 'Activity and event coverage',

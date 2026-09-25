@@ -171,8 +171,8 @@ export default function MediaPhotos({ galleries, photos }: MediaPhotosProps) {
                         <EmptyState
                             className="mt-10"
                             icon={<Images aria-hidden="true" className="size-5" />}
-                            title="Photography is being prepared"
-                            description="Official SPIN project photographs will appear here as programme activities and field engagements are published. Nothing is shown until it is approved for release."
+                            title="No photographs are currently available"
+                            description="Photographs of SPIN Gombe programmes, activities and field engagements are published in this gallery."
                             items={[
                                 'Staff photographs',
                                 'Programme and activity coverage',

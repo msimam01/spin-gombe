@@ -39,11 +39,10 @@ interface ResourcesIndexProps {
 /**
  * Resources & Documents — the official SPIN Gombe publication portal.
  *
- * The seven official categories (seeded from the collection form) lead a
- * dynamic listing of published documents with their metadata and clear
- * Open/Download actions. Everything renders from the database; with no
- * published documents the page presents its intentional, complete-feeling
- * empty state — no fictional files, sizes or dates.
+ * The seven official categories lead a dynamic listing of published
+ * documents with their metadata and clear Open/Download actions. Everything
+ * renders from the database; with no published documents the page presents a
+ * neutral empty state — no fictional files, sizes or dates.
  */
 export default function ResourcesIndex({ categories, activeCategory, documents }: ResourcesIndexProps) {
     const { site } = usePage<SharedProps>().props;
@@ -94,8 +93,8 @@ export default function ResourcesIndex({ categories, activeCategory, documents }
 
                     <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                         Official SPIN Gombe publications — reports, guidelines, manuals and
-                        training materials — published here by the project office for
-                        stakeholders and the public.
+                        training materials — available to stakeholders, partners and the
+                        public.
                     </p>
                 </Container>
             </section>
@@ -257,11 +256,11 @@ export default function ResourcesIndex({ categories, activeCategory, documents }
                         <EmptyState
                             className="mt-10"
                             icon={<FileText aria-hidden="true" className="size-5" />}
-                            title="Documents are being prepared"
+                            title="No resources are currently available"
                             description={
                                 activeCategory === null
-                                    ? 'Official SPIN Gombe documents and publications will be available for download here as the project office releases them. Nothing is shown until it is confirmed.'
-                                    : 'No documents have been published in this category yet. Official documents will appear here as soon as the project office releases them.'
+                                    ? 'Official SPIN Gombe reports, guidelines, manuals and presentations are published in this library.'
+                                    : 'No resources are currently available in this category.'
                             }
                             items={[
                                 'Annual and quarterly progress reports',
@@ -282,8 +281,8 @@ export default function ResourcesIndex({ categories, activeCategory, documents }
                             Looking for a specific document?
                         </h2>
                         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                            If the publication you need is not yet available, contact the SPIN
-                            Gombe project office and the team will assist you.
+                            If you cannot find the publication you need, contact the SPIN Gombe
+                            project office and the team will assist you.
                         </p>
                         <Link
                             href={route('contact')}

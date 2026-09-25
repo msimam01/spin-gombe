@@ -12,7 +12,7 @@ export interface ProjectMetaFact {
 }
 
 export interface OfficeMapConfig {
-    /** False until SPIN confirms the exact pin — the UI then shows a notice. */
+    /** True once the official office coordinates are configured. */
     confirmed: boolean;
     query: string;
     latitude: number | null;
