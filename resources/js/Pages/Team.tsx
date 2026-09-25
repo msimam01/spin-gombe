@@ -12,21 +12,32 @@ interface TeamProps {
     team: TeamMemberType[];
 }
 
-/** Official portrait when available; a designed initials monogram otherwise. */
+/**
+ * Official portrait when available; a designed initials monogram otherwise.
+ * The State Project Coordinator additionally falls back to the official
+ * portrait configured in `config/spin.php` (`site.coordinator.photo`) — the
+ * same image shown on the Home and About pages — until an individual photo
+ * is uploaded for the member.
+ */
 function MemberPortrait({
     member,
     className,
+    fallbackPhoto,
 }: {
     member: TeamMemberType;
     className?: string;
+    fallbackPhoto?: string | null;
 }) {
-    if (member.photo_url) {
+    const photo = member.photo_url ?? fallbackPhoto ?? null;
+
+    if (photo) {
         return (
             <img
-                src={member.photo_url}
+                src={photo}
                 alt={`Official portrait of ${member.name}`}
                 className={className}
                 loading="lazy"
+                decoding="async"
             />
         );
     }
@@ -145,6 +156,7 @@ export default function Team({ coordinator, team }: TeamProps) {
                                     <div className="lg:col-span-4">
                                         <MemberPortrait
                                             member={coordinator}
+                                            fallbackPhoto={site.coordinator.photo}
                                             className="aspect-[4/5] w-full max-w-xs rounded-md object-cover ring-1 ring-border"
                                         />
                                     </div>
