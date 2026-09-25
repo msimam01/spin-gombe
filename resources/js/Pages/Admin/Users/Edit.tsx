@@ -22,7 +22,7 @@ export default function EditUser({ account, isSelf }: EditUserProps) {
             </Link>
 
             <h1 className="mt-3 text-2xl font-bold text-foreground">{account.name}</h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            <p className="mt-1 max-w-2xl text-sm break-words text-muted-foreground">
                 {account.email}
                 {account.job_title ? ` — ${account.job_title}` : ''}. The password is never
                 displayed; leave the fields blank to keep it unchanged.

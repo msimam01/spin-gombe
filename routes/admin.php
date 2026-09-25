@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\Auth\ForgotPasswordController;
+use App\Http\Controllers\Admin\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\AuthenticatedSessionController;
 use App\Http\Controllers\Admin\Components\CreateController;
 use App\Http\Controllers\Admin\Components\DestroyController;
@@ -112,6 +114,29 @@ Route::middleware('guest')->group(function () {
     Route::post('login', [AuthenticatedSessionController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('attempt');
+
+    /*
+    |----------------------------------------------------------------------
+    | Password reset — Laravel's standard broker and reset notification;
+    | the only project code here is the two screens, their validation and
+    | the same neutral responses for every outcome. Guest-only: a visitor
+    | who is already signed in is redirected to the dashboard, so the flow
+    | never requires (or allows) administration authentication.
+    |----------------------------------------------------------------------
+    */
+    Route::get('forgot-password', [ForgotPasswordController::class, 'create'])
+        ->name('password.request');
+
+    Route::post('forgot-password', [ForgotPasswordController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('password.email');
+
+    Route::get('reset-password/{token}', [ResetPasswordController::class, 'create'])
+        ->name('password.reset');
+
+    Route::post('reset-password', [ResetPasswordController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('password.update');
 });
 
 Route::middleware(AdminAuthenticate::class)->group(function () {

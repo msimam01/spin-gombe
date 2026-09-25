@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification as AppResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -49,6 +49,20 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Send the password-reset notification.
+     *
+     * Points the standard `CanResetPassword` behaviour at the application's
+     * branded notification; the framework's `ResetPassword::createUrlUsing`
+     * hook in AppServiceProvider still builds the reset URL, so the link
+     * remains `/admin/reset-password/{token}?email=…` and token handling is
+     * unchanged.
+     */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new AppResetPasswordNotification($token));
     }
 
     /**

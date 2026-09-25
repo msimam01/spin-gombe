@@ -308,6 +308,9 @@ class PublicPresentationTest extends TestCase
             'title' => 'SPIN Gombe Annual Report 2025',
             'description' => 'Progress across the four project components.',
             'file_path' => 'documents/reports/annual.pdf',
+            // Stated explicitly: the factory fills `published_on` at random, and
+            // this test is about a document that has no publication date yet.
+            'published_on' => null,
             'published_at' => null,
         ]);
         $document->forceFill(['status' => 'published', 'published_at' => now()])->save();

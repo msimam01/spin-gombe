@@ -35,7 +35,7 @@ function SectionCard({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-sm border border-border bg-background p-5 sm:p-6">
+        <section className="min-w-0 rounded-sm border border-border bg-background p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-foreground">{title}</h2>
                 <Link
@@ -242,29 +242,38 @@ export default function MediaIndex({ counts, recent_photos, recent_videos, recen
                     )}
                 </SectionCard>
 
-                <section className="rounded-sm border border-border bg-background p-5 sm:p-6">
+                <section className="min-w-0 rounded-sm border border-border bg-background p-5 sm:p-6">
                     <h2 className="text-base font-semibold text-foreground">How media works</h2>
                     <ul className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
                         <li className="flex gap-2">
                             <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
-                            A photo can belong to a <span className="font-medium text-foreground">project or
-                            activity</span>, a <span className="font-medium text-foreground">component</span>, a{' '}
-                            <span className="font-medium text-foreground">gallery</span> — or stand on its own as{' '}
-                            <span className="font-medium text-foreground">general media</span>.
+                            <span className="min-w-0">
+                                A photo can belong to a{' '}
+                                <span className="font-medium text-foreground">project or activity</span>, a{' '}
+                                <span className="font-medium text-foreground">component</span>, a{' '}
+                                <span className="font-medium text-foreground">gallery</span> — or stand on its
+                                own as <span className="font-medium text-foreground">general media</span>.
+                            </span>
                         </li>
                         <li className="flex gap-2">
                             <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
-                            A <span className="font-medium text-foreground">gallery</span> groups photographs and
-                            may be related to a public event.
+                            <span className="min-w-0">
+                                A <span className="font-medium text-foreground">gallery</span> groups photographs
+                                and may be related to a public event.
+                            </span>
                         </li>
                         <li className="flex gap-2">
                             <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
-                            Videos are official YouTube links and can belong to a project, a component, or
-                            stand on their own.
+                            <span className="min-w-0">
+                                Videos are official YouTube links and can belong to a project, a component, or
+                                stand on their own.
+                            </span>
                         </li>
                         <li className="flex gap-2">
                             <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
-                            Only published media appears on the public website; drafts stay private.
+                            <span className="min-w-0">
+                                Only published media appears on the public website; drafts stay private.
+                            </span>
                         </li>
                     </ul>
                 </section>

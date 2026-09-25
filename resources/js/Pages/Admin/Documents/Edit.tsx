@@ -30,7 +30,7 @@ export default function EditDocument({ document, statuses, categories }: EditDoc
                     {PUBLICATION_STATUS_LABELS[document.status]}
                 </Badge>
             </div>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            <p className="mt-1 max-w-2xl text-sm break-words text-muted-foreground">
                 {document.file_name ?? 'External link'} — last updated{' '}
                 {new Date(document.updated_at).toLocaleDateString('en-GB', {
                     day: 'numeric',
