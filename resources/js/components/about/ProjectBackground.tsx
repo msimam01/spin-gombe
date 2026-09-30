@@ -61,8 +61,8 @@ export function ProjectBackground() {
                                 The project's response
                             </h3>
                             <p className="mt-2 text-sm leading-relaxed text-foreground [text-align:justify]">
-                                SPIN was designed to address three big challenges at once — dam
-                                safety, irrigation and hydropower — strengthening water resources
+                                SPIN was designed to address three big challenges at once, dam
+                                safety, irrigation and hydropower, strengthening water resources
                                 management, modernizing irrigation services and improving dam
                                 operations and dam safety.
                             </p>
@@ -89,7 +89,7 @@ export function ProjectBackground() {
                             Balanga Dam &amp; Irrigation Scheme
                         </h3>
                         <p className="mt-3 text-sm leading-relaxed text-muted-foreground [text-align:justify]">
-                            The selected area in Gombe State — originally developed to support
+                            The selected area in Gombe State, originally developed to support
                             agricultural production through a controlled water supply for
                             dry-season farming, and now the focus of the project's
                             rehabilitation and modernization efforts.

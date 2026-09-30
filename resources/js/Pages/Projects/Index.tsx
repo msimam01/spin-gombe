@@ -13,7 +13,7 @@ import { route } from '@/lib/routes';
 import type { Project, SharedProps } from '@/types';
 
 /** Cards displayed before Show More reveals the rest of the filtered set. */
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 6;
 
 /** A project as delivered by ProjectsIndexController. */
 type ProjectEntry = Project & {

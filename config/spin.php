@@ -92,8 +92,8 @@ return [
     // Official project vision (from the collection form).
     'vision' => 'The project seeks to improve the resilience and management of water '
         .'resource infrastructure to strengthen food, water and energy security in '
-        .'Gombe State and Nigeria at large — through investments in irrigation, dam '
-        .'safety and hydropower planning — where dams are safe, irrigation supports '
+        .'Gombe State and Nigeria at large, through investments in irrigation, dam '
+        .'safety and hydropower planning, where dams are safe, irrigation supports '
         .'year-round farming, and hydropower contributes sustainably to national '
         .'power supply. Water and power work together to end poverty, hunger and '
         .'energy insecurity in Nigeria.',
