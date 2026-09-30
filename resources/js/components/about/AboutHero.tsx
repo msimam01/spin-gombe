@@ -48,7 +48,7 @@ export function AboutHero() {
     return (
         <>
             {/* Breadcrumb — kept above the photograph for reliable contrast. */}
-            <div className="border-b border-border bg-background">
+            {/* <div className="border-b border-border bg-background">
                 <Container>
                     <nav aria-label="Breadcrumb" className="py-3">
                         <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -66,7 +66,7 @@ export function AboutHero() {
                         </ol>
                     </nav>
                 </Container>
-            </div>
+            </div> */}
 
             <ProjectCarousel
                 slides={slides}
