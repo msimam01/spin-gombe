@@ -5,29 +5,29 @@ namespace App\Http\Requests\Admin;
 /**
  * Validation for updating an event.
  *
- * Identical field rules to creation, with two deliberate differences: the
+ * Identical field rules to creation, with one deliberate difference: the
  * slug is never accepted from the client (public event URLs stay stable
- * across renames — the Phase 12 convention), and only the fields the client
- * actually sent are normalised, so a partial update never silently clears
- * the venue, the description, a location link, an end date or a scheduled
- * publication date.
+ * across renames — the Phase 12 convention).
  */
 class UpdateEventRequest extends StoreEventRequest
 {
+    /**
+     * Normalise only the fields the client actually sent.
+     *
+     * The create request defaults absent optional fields to null — correct
+     * for a fresh record, but wrong for edits: a partial update must never
+     * silently clear the venue, the description or an end date. Here a
+     * field the client omits stays untouched; a field sent empty ("") clears
+     * it, which is how the edit form expresses "remove this text".
+     */
     protected function prepareForValidation(): void
     {
         $normalised = [];
 
-        foreach (['description', 'venue', 'location_id', 'ends_at', 'published_at'] as $key) {
+        foreach (['description', 'venue'] as $key) {
             if ($this->exists($key)) {
-                $normalised[$key] = $this->filled($key)
-                    ? ($key === 'location_id' ? (int) $this->input($key) : trim((string) $this->input($key)))
-                    : null;
+                $normalised[$key] = $this->filled($key) ? trim((string) $this->input($key)) : null;
             }
-        }
-
-        if ($this->exists('sort')) {
-            $normalised['sort'] = $this->filled('sort') ? (int) $this->input('sort') : 0;
         }
 
         // The removal flag is a boolean from a checkbox — normalise its

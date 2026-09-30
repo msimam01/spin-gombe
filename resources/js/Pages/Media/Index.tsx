@@ -12,6 +12,8 @@ import {
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
+import { useProgressiveLoad } from '@/components/shared/useProgressiveLoad';
 import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { Reveal } from '@/components/shared/Reveal';
@@ -19,22 +21,65 @@ import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Gallery, Photo, SharedProps, Video } from '@/types';
 
+/** Records revealed per section per Load More click. */
+const GALLERY_STEP = 3;
+const PHOTO_STEP = 8;
+const VIDEO_STEP = 6;
+
 interface MediaIndexProps {
     galleries: Gallery[];
     photos: Photo[];
     videos: Video[];
+    /** Server-side totals for each section's Load More state. */
+    gallery_total: number;
+    photo_total: number;
+    video_total: number;
 }
 
 /**
  * Media hub (/media) — the public overview of the SPIN Gombe media library.
  *
- * Both panels render exclusively from published records: galleries, loose
- * photographs and official YouTube videos. With nothing published yet the
+ * Photos, galleries and videos are independent sections, each with its own
+ * progressive-reveal state: three galleries, eight photos and six videos
+ * initially, with a shared Load More control per section. Each reveal is a
+ * server-driven partial reload (records 1..N), so expanding one section
+ * never changes another's displayed count. With nothing published yet the
  * page keeps its designed placeholders and a neutral empty state — no stock
  * imagery, no invented media.
  */
-export default function MediaIndex({ galleries, photos, videos }: MediaIndexProps) {
+export default function MediaIndex({
+    galleries,
+    photos,
+    videos,
+    gallery_total,
+    photo_total,
+    video_total,
+}: MediaIndexProps) {
     const { site } = usePage<SharedProps>().props;
+
+    const galleryLoad = useProgressiveLoad<Gallery>({
+        initialItems: galleries,
+        total: gallery_total,
+        step: GALLERY_STEP,
+        only: ['galleries', 'galleries_shown'],
+        url: route('media.index'),
+    });
+
+    const photoLoad = useProgressiveLoad<Photo>({
+        initialItems: photos,
+        total: photo_total,
+        step: PHOTO_STEP,
+        only: ['photos', 'photos_shown'],
+        url: route('media.index'),
+    });
+
+    const videoLoad = useProgressiveLoad<Video>({
+        initialItems: videos,
+        total: video_total,
+        step: VIDEO_STEP,
+        only: ['videos', 'videos_shown'],
+        url: route('media.index'),
+    });
 
     return (
         <PublicLayout>
@@ -131,11 +176,11 @@ export default function MediaIndex({ galleries, photos, videos }: MediaIndexProp
                         </Link>
                     </div>
 
-                    {galleries.length > 0 || photos.length > 0 ? (
+                    {galleryLoad.items.length > 0 || photoLoad.items.length > 0 ? (
                         <>
-                            {galleries.length > 0 && (
+                            {galleryLoad.items.length > 0 && (
                                 <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                    {galleries.slice(0, 3).map((gallery, index) => (
+                                    {galleryLoad.items.map((gallery, index) => (
                                         <li key={gallery.id}>
                                             <Reveal delay={Math.min(index * 60, 240)}>
                                                 <Link
@@ -180,14 +225,33 @@ export default function MediaIndex({ galleries, photos, videos }: MediaIndexProp
                                 </ul>
                             )}
 
-                            {photos.length > 0 && (
+                            {galleryLoad.hasMore && (
+                                <LoadMoreButton
+                                    shown={galleryLoad.items.length}
+                                    total={gallery_total}
+                                    unit="photo albums"
+                                    onReveal={galleryLoad.loadMore}
+                                    loading={galleryLoad.loading}
+                                />
+                            )}
+
+                            {photoLoad.items.length > 0 && (
                                 <div className="mt-10">
                                     <PhotoGrid
-                                        photos={photos.slice(0, 8)}
+                                        photos={photoLoad.items}
                                         contextLabel="SPIN Gombe photographs"
                                         aspect="aspect-square"
                                         columnsClass="grid-cols-2 sm:grid-cols-4"
                                     />
+                                    {photoLoad.hasMore && (
+                                        <LoadMoreButton
+                                            shown={photoLoad.items.length}
+                                            total={photo_total}
+                                            unit="photographs"
+                                            onReveal={photoLoad.loadMore}
+                                            loading={photoLoad.loading}
+                                        />
+                                    )}
                                 </div>
                             )}
                         </>
@@ -233,54 +297,64 @@ export default function MediaIndex({ galleries, photos, videos }: MediaIndexProp
                         </Link>
                     </div>
 
-                    {videos.length > 0 ? (
-                        <ul className="mt-10 grid gap-6 sm:grid-cols-2">
-                            {videos.slice(0, 2).map((video, index) => (
-                                <li key={video.id}>
-                                    <Reveal delay={Math.min(index * 60, 240)}>
-                                        <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
-                                            {video.embed_url ? (
-                                                <iframe
-                                                    src={`${video.embed_url}?rel=0`}
-                                                    title={video.title}
-                                                    loading="lazy"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                    allowFullScreen
-                                                    className="aspect-video w-full"
-                                                />
-                                            ) : (
-                                                <MediaPlaceholder
-                                                    icon={<Play aria-hidden="true" className="size-3.5" />}
-                                                    label="Video"
-                                                    aspect="aspect-video"
-                                                />
-                                            )}
-                                            <div className="p-6">
-                                                <h3 className="text-base leading-snug font-semibold text-foreground">
-                                                    {video.title}
-                                                </h3>
-                                                {video.description && (
-                                                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                                                        {video.description}
-                                                    </p>
+                    {videoLoad.items.length > 0 ? (
+                        <>
+                            <ul className="mt-10 grid gap-6 sm:grid-cols-2">
+                                {videoLoad.items.map((video, index) => (
+                                    <li key={video.id}>
+                                        <Reveal delay={Math.min(index * 60, 240)}>
+                                            <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
+                                                {video.embed_url ? (
+                                                    <iframe
+                                                        src={`${video.embed_url}?rel=0`}
+                                                        title={video.title}
+                                                        loading="lazy"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                        allowFullScreen
+                                                        className="aspect-video w-full"
+                                                    />
+                                                ) : (
+                                                    <MediaPlaceholder
+                                                        icon={<Play aria-hidden="true" className="size-3.5" />}
+                                                        label="Video"
+                                                        aspect="aspect-video"
+                                                    />
                                                 )}
-                                                {video.watch_url && (
-                                                    <a
-                                                        href={video.watch_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
-                                                    >
-                                                        Watch on YouTube
-                                                        <ExternalLink aria-hidden="true" className="size-3.5" />
-                                                    </a>
-                                                )}
-                                            </div>
-                                        </article>
-                                    </Reveal>
-                                </li>
-                            ))}
-                        </ul>
+                                                <div className="p-6">
+                                                    <h3 className="text-base leading-snug font-semibold text-foreground">
+                                                        {video.title}
+                                                    </h3>
+                                                    {video.description && (
+                                                        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                                                            {video.description}
+                                                        </p>
+                                                    )}
+                                                    {video.watch_url && (
+                                                        <a
+                                                            href={video.watch_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
+                                                        >
+                                                            Watch on YouTube
+                                                            <ExternalLink aria-hidden="true" className="size-3.5" />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </article>
+                                        </Reveal>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <LoadMoreButton
+                                shown={videoLoad.items.length}
+                                total={video_total}
+                                unit="videos"
+                                onReveal={videoLoad.loadMore}
+                                loading={videoLoad.loading}
+                            />
+                        </>
                     ) : (
                         <EmptyState
                             className="mt-10"

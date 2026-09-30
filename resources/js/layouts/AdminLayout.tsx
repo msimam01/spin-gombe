@@ -1,6 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    Blocks,
     CalendarDays,
     FileText,
     FolderKanban,
@@ -59,7 +58,7 @@ const NAV_GROUPS: NavGroup[] = [
     {
         heading: 'Content',
         items: [
-            { label: 'Components', routeName: 'admin.components.index', icon: Blocks },
+            // { label: 'Components', routeName: 'admin.components.index', icon: Blocks },
             { label: 'Projects & Activities', routeName: 'admin.projects.index', icon: FolderKanban },
             { label: 'Locations', routeName: 'admin.locations.index', icon: MapPin },
             { label: 'News & Updates', routeName: 'admin.news.index', icon: Newspaper },
@@ -311,7 +310,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
                     <footer className="border-t border-border bg-background">
                         <div className="mx-auto w-full max-w-7xl px-4 py-4 text-xs text-muted-foreground sm:px-6 lg:px-8">
-                            SPIN Gombe State Project — administration area. Authorised use only.
+                            SPIN Project Gombe administration area. Authorised use only.
                         </div>
                     </footer>
                 </div>

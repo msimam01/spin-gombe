@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Gallery;
+use App\Support\GalleryCover;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -30,9 +31,12 @@ class GalleryResource extends JsonResource
             'slug' => $this->slug,
             'title' => $this->title,
             'description' => $this->description,
-            'cover' => $published && $published->isNotEmpty()
-                ? (new PhotoResource($published->first()))->resolve($request)
-                : null,
+            // The gallery's own cover image leads; the first published
+            // photograph serves when none is set (the shared rule).
+            'cover' => GalleryCover::resolve($this->resource, $request)
+                ?? ($published && $published->isNotEmpty()
+                    ? (new PhotoResource($published->first()))->resolve($request)
+                    : null),
             'photo_count' => $published?->count() ?? 0,
             'date' => $datedPhoto?->taken_on?->isoFormat('D MMMM Y'),
         ];

@@ -10,6 +10,13 @@ import { route } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import type { SharedProps } from '@/types';
 
+/**
+ * Records shown before Load More reveals the rest — the featured article
+ * plus five grid cards. Each click reveals six further records.
+ */
+const INITIAL_COUNT = 6;
+const LOAD_STEP = 6;
+
 /** A news post as delivered by NewsIndexController. */
 interface NewsEntry {
     id: number;
@@ -58,12 +65,17 @@ function CoverPlaceholder({ label }: { label: string }) {
  * News & Updates — the official record of SPIN Gombe announcements.
  *
  * A featured article leads an editorial list of the remaining published
- * posts. Every element renders from supplied data only; with no published
- * posts the page presents its complete-feeling empty state.
+ * posts. The listing reveals progressively: six records initially (featured
+ * + five grid cards), six more per Load More click, with the control hidden
+ * once every published record is displayed — the same progressive pattern as
+ * the Projects listing. Records are never duplicated and the newest-first
+ * order is preserved. Every element renders from supplied data only; with no
+ * published posts the page presents its complete-feeling empty state.
  */
 export default function NewsIndex({ posts }: NewsIndexProps) {
     const { site } = usePage<SharedProps>().props;
     const [componentFilter, setComponentFilter] = useState<string | null>(null);
+    const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
 
     const components = useMemo(() => {
         const seen = new Map<string, string>();
@@ -85,6 +97,16 @@ export default function NewsIndex({ posts }: NewsIndexProps) {
     );
     const featuredMatchesFilter =
         !componentFilter || featured?.component?.url_slug === componentFilter;
+
+    /* The grid reveals records progressively over the filtered set. */
+    const visible = rest.slice(0, Math.max(visibleCount - (featuredMatchesFilter ? 1 : 0), 0));
+    const hasMore = rest.length > visible.length;
+
+    /** Switching filters always resets the progressive reveal. */
+    const selectComponent = (slug: string | null) => {
+        setComponentFilter(slug);
+        setVisibleCount(INITIAL_COUNT);
+    };
 
     return (
         <PublicLayout>
@@ -150,7 +172,7 @@ export default function NewsIndex({ posts }: NewsIndexProps) {
                                 <div className="mb-10 flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by component">
                                     <button
                                         type="button"
-                                        onClick={() => setComponentFilter(null)}
+                                        onClick={() => selectComponent(null)}
                                         aria-pressed={componentFilter === null}
                                         className={cn(
                                             'rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors',
@@ -166,7 +188,7 @@ export default function NewsIndex({ posts }: NewsIndexProps) {
                                             key={component.url_slug}
                                             type="button"
                                             onClick={() =>
-                                                setComponentFilter(
+                                                selectComponent(
                                                     componentFilter === component.url_slug ? null : component.url_slug,
                                                 )
                                             }
@@ -230,57 +252,80 @@ export default function NewsIndex({ posts }: NewsIndexProps) {
                             )}
 
                             {/* Remaining articles */}
-                            <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                {rest.map((post, index) => (
-                                    <li key={post.id}>
-                                        <Reveal delay={Math.min(index * 60, 240)}>
-                                            <Link
-                                                href={route('news.show', { slug: post.slug })}
-                                                className="group flex h-full flex-col overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised"
-                                            >
-                                                {post.cover_image ? (
-                                                    <div className="overflow-hidden">
-                                                        <img
-                                                            src={post.cover_image}
-                                                            alt=""
-                                                            className="aspect-[16/9] w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                                                            loading="lazy"
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <CoverPlaceholder label="SPIN Gombe Update" />
-                                                )}
-
-                                                <div className="flex flex-1 flex-col p-6">
-                                                    <p className="text-xs font-medium text-muted-foreground">
-                                                        {formatDate(post.published_at)}
-                                                    </p>
-                                                    <h3 className="mt-2 text-base leading-snug font-semibold text-foreground transition-colors group-hover:text-brand-800">
-                                                        {post.title}
-                                                    </h3>
-                                                    {post.excerpt && (
-                                                        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                                                            {post.excerpt}
-                                                        </p>
+                            {visible.length > 0 && (
+                                <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                    {visible.map((post, index) => (
+                                        <li key={post.id}>
+                                            <Reveal delay={Math.min(index * 60, 240)}>
+                                                <Link
+                                                    href={route('news.show', { slug: post.slug })}
+                                                    className="group flex h-full flex-col overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised"
+                                                >
+                                                    {post.cover_image ? (
+                                                        <div className="overflow-hidden">
+                                                            <img
+                                                                src={post.cover_image}
+                                                                alt=""
+                                                                className="aspect-[16/9] w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                                                                loading="lazy"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <CoverPlaceholder label="SPIN Gombe Update" />
                                                     )}
-                                                    <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-medium text-primary">
-                                                        Read more
-                                                        <ArrowRight
-                                                            aria-hidden="true"
-                                                            className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
-                                                        />
-                                                    </span>
-                                                </div>
-                                            </Link>
-                                        </Reveal>
-                                    </li>
-                                ))}
-                            </ul>
+
+                                                    <div className="flex flex-1 flex-col p-6">
+                                                        <p className="text-xs font-medium text-muted-foreground">
+                                                            {formatDate(post.published_at)}
+                                                        </p>
+                                                        <h3 className="mt-2 text-base leading-snug font-semibold text-foreground transition-colors group-hover:text-brand-800">
+                                                            {post.title}
+                                                        </h3>
+                                                        {post.excerpt && (
+                                                            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                                                                {post.excerpt}
+                                                            </p>
+                                                        )}
+                                                        <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-medium text-primary">
+                                                            Read more
+                                                            <ArrowRight
+                                                                aria-hidden="true"
+                                                                className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                                                            />
+                                                        </span>
+                                                    </div>
+                                                </Link>
+                                            </Reveal>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
 
                             {rest.length === 0 && componentFilter && (
                                 <p className="mt-8 rounded-md border border-dashed border-border bg-muted/60 px-6 py-8 text-center text-sm text-muted-foreground">
                                     No further updates match the selected filter.
                                 </p>
+                            )}
+
+                            {hasMore && (
+                                <div className="mt-10 text-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => setVisibleCount((current) => current + LOAD_STEP)}
+                                        aria-label={`Load more news updates (${rest.length - visible.length} more of ${rest.length})`}
+                                        className="inline-flex items-center gap-2 rounded-md border border-brand-200 bg-background px-5 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                                    >
+                                        Load more
+                                    </button>
+                                    <p className="mt-2 text-xs text-muted-foreground">
+                                        Showing {(featuredMatchesFilter ? 1 : 0) + visible.length} of{' '}
+                                        {rest.length + (featuredMatchesFilter ? 1 : 0)}
+                                    </p>
+                                    <span className="sr-only" aria-live="polite">
+                                        Showing {(featuredMatchesFilter ? 1 : 0) + visible.length} of{' '}
+                                        {rest.length + (featuredMatchesFilter ? 1 : 0)} news updates.
+                                    </span>
+                                </div>
                             )}
                         </>
                     ) : (

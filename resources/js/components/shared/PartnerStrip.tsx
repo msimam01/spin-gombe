@@ -3,7 +3,8 @@ import { Landmark } from 'lucide-react';
 import type { SharedProps } from '@/types';
 
 /**
- * PartnerStrip — restrained institutional identification band.
+ * PartnerStrip — institutional identification cards for the project's
+ * implementing partners.
  *
  * Lists the implementing partners named in the SPIN information collection
  * form (FMWRS, Federal Ministry of Power, World Bank). Until an official
@@ -12,8 +13,14 @@ import type { SharedProps } from '@/types';
  * downloaded or fabricated. Placing an approved file in `public/images/logos/`
  * and setting the path in config swaps the label for the logo automatically.
  *
- * The strip is deliberately quiet: small, grayscale-leaning, non-interactive
- * institutional identification — never decoration.
+ * Client revision (Phase 27): the strip was upgraded from a quiet text band
+ * to prominent uniform institution cards — taller logo frame, larger logo,
+ * consistent height across aspect ratios via a fixed-height frame and
+ * `object-contain`.
+ *
+ * Phase 27.1 refinement: the cards form a centred, visually balanced group
+ * beneath the heading — equal-width cards in a centred wrapping flex row, so
+ * the group (and any lone card on a wrapped row) always stays centred.
  */
 export function PartnerStrip({ className = '' }: { className?: string }) {
     const { site } = usePage<SharedProps>().props;
@@ -28,31 +35,33 @@ export function PartnerStrip({ className = '' }: { className?: string }) {
                 Implemented in partnership with
             </p>
 
-            <ul className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 sm:gap-x-12">
+            <ul className="mt-5 flex flex-wrap items-stretch justify-center gap-3">
                 {site.partners.map((partner) => {
                     const logo = site.logos[partner.key as keyof typeof site.logos] ?? null;
 
                     return (
-                        <li key={partner.key}>
+                        <li
+                            key={partner.key}
+                            className="w-full sm:w-[calc(50%-0.375rem)] lg:w-64"
+                        >
                             {logo ? (
                                 /*
-                                 * Official logo, client-supplied. Rendered at
-                                 * full colour inside a white chip so logos with
-                                 * their own white background sit cleanly on the
-                                 * tinted hero band. No filters are applied to
-                                 * official marks.
+                                 * Official logo, client-supplied. Rendered at full colour
+                                 * inside a uniform card frame with `object-contain` so
+                                 * square ministries and the wide World Bank mark keep
+                                 * their proportions at a consistent visual size.
                                  */
-                                <span className="flex h-14 items-center rounded-md border border-border/60 bg-background px-4 sm:h-16 sm:px-5">
+                                <span className="flex h-20 items-center justify-center rounded-md border border-border/70 bg-background px-5 shadow-subtle transition-colors hover:border-brand-200 sm:h-24">
                                     <img
                                         src={logo}
                                         alt={partner.label}
-                                        className="h-8 w-auto max-w-[130px] object-contain sm:h-9"
+                                        className="max-h-12 w-auto max-w-[150px] object-contain sm:max-h-14"
                                         loading="lazy"
                                         decoding="async"
                                     />
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-brand-800/80 sm:text-sm">
+                                <span className="flex h-20 items-center justify-center gap-2 rounded-md border border-border/70 bg-background px-5 text-center text-xs font-semibold tracking-wide text-brand-800/80 shadow-subtle sm:h-24 sm:text-sm">
                                     <Landmark
                                         aria-hidden="true"
                                         className="size-4 shrink-0 text-brand-600/70"

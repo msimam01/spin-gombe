@@ -12,6 +12,9 @@ interface SectionHeadingProps {
 /**
  * SectionHeading — consistent eyebrow + title + description pattern used by
  * every content section, keeping typographic rhythm identical site-wide.
+ *
+ * Client revision (Phase 27): description margin compacted from mt-3 to mt-2
+ * so heading, description and following content sit closer together.
  */
 export function SectionHeading({
     eyebrow,
@@ -30,7 +33,7 @@ export function SectionHeading({
             )}
             <Heading className="text-2xl font-bold text-foreground sm:text-3xl">{title}</Heading>
             {description && (
-                <p className="mt-3 text-base leading-relaxed text-muted-foreground">{description}</p>
+                <p className="mt-2 text-base leading-relaxed text-muted-foreground">{description}</p>
             )}
         </div>
     );

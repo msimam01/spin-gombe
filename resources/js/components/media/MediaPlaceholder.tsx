@@ -11,14 +11,17 @@ export function MediaPlaceholder({
     icon,
     label,
     aspect = 'aspect-[4/3]',
+    className,
 }: {
     icon: ReactNode;
     label: string;
     aspect?: string;
+    /** Optional extra classes (e.g. margins) when a surface needs them. */
+    className?: string;
 }) {
     return (
         <div
-            className={`relative flex ${aspect} items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50 via-background to-gold-50`}
+            className={`relative flex ${aspect} items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50 via-background to-gold-50 ${className ?? ''}`}
         >
             <span
                 aria-hidden="true"

@@ -37,24 +37,6 @@ function formatDate(iso: string | null): string {
     });
 }
 
-function PublicationDate({ post }: { post: AdminNewsPost }) {
-    if (!post.published_at) {
-        return <span className="text-muted-foreground/60">Not published yet</span>;
-    }
-
-    const scheduled = new Date(post.published_at) > new Date();
-
-    return (
-        <span className={scheduled ? 'text-gold-700' : 'text-muted-foreground'}>
-            {formatDate(post.published_at)}
-            {scheduled && (
-                <span className="sr-only"> — scheduled for the future</span>
-            )}
-            {scheduled && <span aria-hidden="true" className="ml-1 text-xs">(scheduled)</span>}
-        </span>
-    );
-}
-
 export default function NewsIndex({ posts, filters, statuses, components }: NewsIndexProps) {
     const { errors } = usePage<SharedProps>().props;
     const [pendingDelete, setPendingDelete] = useState<AdminNewsPost | null>(null);
@@ -236,7 +218,7 @@ export default function NewsIndex({ posts, filters, statuses, components }: News
 
                                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                                     {post.component ? `Component: ${post.component.name}` : 'No component assigned'}
-                                    {' '}· Published {formatDate(post.published_at)}
+                                    {' '}· Created {formatDate(post.created_at ?? post.published_at)}
                                     {' '}· Updated {formatDate(post.updated_at)}
                                 </p>
 
@@ -273,13 +255,12 @@ export default function NewsIndex({ posts, filters, statuses, components }: News
                     {/* Table from md up */}
                     <div className="mt-6 hidden overflow-x-auto rounded-sm border border-border bg-background md:block">
                         <table className="w-full text-sm">
-                            <caption className="sr-only">News articles and their publication status</caption>
-                            <thead>
+                            <caption className="sr-only">News articles and their publication status</caption>                                <thead>
                                 <tr className="border-b border-border text-left text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                                     <th scope="col" className="px-4 py-3">Article</th>
                                     <th scope="col" className="px-4 py-3">Component</th>
                                     <th scope="col" className="px-4 py-3">Status</th>
-                                    <th scope="col" className="px-4 py-3">Publication date</th>
+                                    <th scope="col" className="px-4 py-3">Created</th>
                                     <th scope="col" className="px-4 py-3">Updated</th>
                                     <th scope="col" className="px-4 py-3 text-right">Actions</th>
                                 </tr>
@@ -289,11 +270,6 @@ export default function NewsIndex({ posts, filters, statuses, components }: News
                                     <tr key={post.id} className="border-b border-border/60 last:border-b-0">
                                         <th scope="row" className="max-w-sm px-4 py-3 text-left font-medium text-foreground">
                                             {post.title}
-                                            {post.excerpt && (
-                                                <span className="mt-0.5 block max-w-md truncate text-xs font-normal text-muted-foreground">
-                                                    {post.excerpt}
-                                                </span>
-                                            )}
                                         </th>
                                         <td className="px-4 py-3 text-muted-foreground">
                                             {post.component?.name ?? '—'}
@@ -304,7 +280,7 @@ export default function NewsIndex({ posts, filters, statuses, components }: News
                                             </Badge>
                                         </td>
                                         <td className="px-4 py-3 text-sm">
-                                            <PublicationDate post={post} />
+                                            {formatDate(post.created_at ?? post.published_at)}
                                         </td>
                                         <td className="px-4 py-3 text-muted-foreground">
                                             {formatDate(post.updated_at)}

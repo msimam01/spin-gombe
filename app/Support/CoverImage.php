@@ -26,6 +26,7 @@ final class CoverImage
 {
     /** Managed folders, by content type. */
     public const FOLDERS = [
+        'projects' => 'projects/covers',
         'news' => 'news/covers',
         'events' => 'events/covers',
         'galleries' => 'galleries/covers',

@@ -45,16 +45,42 @@ export function ProjectContext() {
             <div className="grid gap-5 sm:grid-cols-2">
                 {CONTEXT_ITEMS.map((item, index) => (
                     <Reveal key={item.title} delay={index * 70}>
-                        <article className="h-full rounded-md border border-border bg-background p-6 shadow-subtle">
+                        <article className="flex h-full flex-col rounded-md border border-border bg-background p-6 shadow-subtle">
                             <span className="flex size-10 items-center justify-center rounded-sm bg-gold-50 text-gold-700 ring-1 ring-gold-200">
                                 <item.icon aria-hidden="true" className="size-5" />
                             </span>
                             <h3 className="mt-4 text-base font-semibold text-foreground">{item.title}</h3>
-                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground [text-align:justify]">{item.body}</p>
                         </article>
                     </Reveal>
                 ))}
             </div>
+
+            {/*
+             * One supporting visual for the whole section, chosen because its
+             * subject (an irrigation canal and irrigated farmland) matches the
+             * themes of the TRIMING → SPIN continuity story. It is licenced
+             * representative imagery (Pexels, stored locally — see
+             * public/images/components/ASSETS.md), NOT a project photograph, and
+             * the caption says so explicitly.
+             */}
+            <Reveal delay={160}>
+                <figure className="mt-8 overflow-hidden rounded-md border border-border bg-background shadow-card">
+                    <img
+                        src="/images/components/irrigation-modernization.jfif"
+                        alt="Irrigation canal through irrigated farmland — representative imagery of the type of irrigation infrastructure the project modernizes"
+                        className="aspect-[21/9] w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        width={1280}
+                        height={960}
+                    />
+                    <figcaption className="px-5 py-3.5 text-xs leading-relaxed text-muted-foreground">
+                        Representative imagery: an irrigation canal and irrigated farmland, illustrating the type of
+                        infrastructure the project modernizes.
+                    </figcaption>
+                </figure>
+            </Reveal>
         </HomeSection>
     );
 }

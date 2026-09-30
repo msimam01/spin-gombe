@@ -5,28 +5,32 @@ namespace App\Http\Requests\Admin;
 /**
  * Validation for updating a news post.
  *
- * Identical field rules to creation, with two deliberate differences: the
+ * Identical field rules to creation, with one deliberate difference: the
  * slug is never accepted from the client (public article URLs stay stable
- * across renames — the Phase 12 convention), and only the fields the client
- * actually sent are normalised, so a partial update never silently clears a
- * component link, the excerpt, the body or a scheduled publication date.
+ * across renames — the Phase 12 convention).
  */
 class UpdateNewsPostRequest extends StoreNewsPostRequest
 {
+    /**
+     * Normalise only the fields the client actually sent.
+     *
+     * The create request defaults absent optional fields to null — correct
+     * for a fresh record, but wrong for edits: a partial update must never
+     * silently clear the body or the component link. Here a field the client
+     * omits stays untouched; a field sent empty ("") clears it.
+     */
     protected function prepareForValidation(): void
     {
         $normalised = [];
 
-        foreach (['project_component_id', 'excerpt', 'body', 'published_at'] as $key) {
-            if ($this->exists($key)) {
-                $normalised[$key] = $this->filled($key)
-                    ? ($key === 'project_component_id' ? (int) $this->input($key) : trim((string) $this->input($key)))
-                    : null;
-            }
+        if ($this->exists('project_component_id')) {
+            $normalised['project_component_id'] = $this->filled('project_component_id')
+                ? (int) $this->input('project_component_id')
+                : null;
         }
 
-        if ($this->exists('sort')) {
-            $normalised['sort'] = $this->filled('sort') ? (int) $this->input('sort') : 0;
+        if ($this->exists('body')) {
+            $normalised['body'] = $this->filled('body') ? (string) $this->input('body') : null;
         }
 
         // The removal flag is a boolean from a checkbox — normalise its

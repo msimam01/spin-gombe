@@ -31,6 +31,48 @@ export function componentIcon(component: { slug?: string }, index: number): Luci
     );
 }
 
+/** One approved component image: source, neutral alt text and focal position. */
+export interface ComponentPhoto {
+    src: string;
+    alt: string;
+    position: string;
+}
+
+/**
+ * Approved component imagery, mapped strictly by component position.
+ *
+ * Index 2 carries the one genuine project photograph — the client-supplied
+ * Balanga Dam image, whose subject is exactly Component 3 (Improvements in
+ * Dam Operations and Enhancing Dam Safety). The other three entries are
+ * representative stock photography (Pexels licence, free to use, saved
+ * locally — see public/images/components/ASSETS.md for sources and the
+ * "representative imagery, not project documentation" caveat). Alt text is
+ * deliberately neutral: it describes the picture only, never a claimed SPIN
+ * event, location or achievement.
+ *
+ * Shared by the homepage ComponentShowcase cards, the /components listing
+ * cards and the per-component detail heroes, so every surface presents each
+ * component with the same approved image.
+ */
+export const COMPONENT_PHOTOS: Record<number, ComponentPhoto> = {
+    0: {
+        src: '/images/components/water-resource.jfif',
+        alt: 'Water level monitoring station on a reservoir',
+        position: 'object-center',
+    },
+    1: {
+        src: '/images/components/irrigation-modernization.jfif',
+        alt: 'Irrigation canal through irrigated farmland',
+        position: 'object-center',
+    },
+    2: { src: '/images/components/dam-operations-and-safety.jfif', alt: 'Balanga Dam in Gombe State', position: 'object-center' },
+    3: {
+        src: '/images/components/project-management.jpg',
+        alt: 'Project coordination meeting around a table',
+        position: 'object-center',
+    },
+};
+
 /**
  * The full official component names, indexed by position — used only for the
  * "Component 01 of 04" label. Titles themselves render from the database.

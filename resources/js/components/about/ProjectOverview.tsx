@@ -19,7 +19,7 @@ export function ProjectOverview() {
         <HomeSection id="overview" eyebrow="Overview" title="What the SPIN Project is" tone="white">
             <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
                 <Reveal className="lg:col-span-7">
-                    <p className="text-lg leading-relaxed font-medium text-foreground sm:text-xl sm:leading-relaxed">
+                    <p className="text-lg leading-relaxed font-medium text-foreground [text-align:justify] sm:text-xl sm:leading-relaxed">
                         {opening}
                     </p>
 

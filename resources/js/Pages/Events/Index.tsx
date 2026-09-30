@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import { ArrowRight, CalendarDays, ChevronRight, MapPin } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
@@ -7,6 +8,9 @@ import { Reveal } from '@/components/shared/Reveal';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { SharedProps } from '@/types';
+
+/** Events displayed per section before Load More reveals the rest. */
+const SECTION_LIMIT = 4;
 
 /** An event as delivered by EventsIndexController. */
 interface EventEntry {
@@ -98,15 +102,71 @@ function EventPlace({ event }: { event: EventEntry }) {
 }
 
 /**
+ * One section's progressive reveal state — Upcoming and Past each hold their
+ * own count, so one section can never consume the other's records.
+ */
+function useSectionReveal() {
+    const [visibleCount, setVisibleCount] = useState(SECTION_LIMIT);
+
+    return {
+        visibleCount,
+        reveal: () => setVisibleCount((current) => current + SECTION_LIMIT),
+        reset: () => setVisibleCount(SECTION_LIMIT),
+    };
+}
+
+/** The shared Load More control — hidden entirely when a section is exhausted. */
+function LoadMore({
+    shown,
+    total,
+    onReveal,
+}: {
+    shown: number;
+    total: number;
+    onReveal: () => void;
+}) {
+    if (total <= shown) {
+        return null;
+    }
+
+    return (
+        <div className="mt-8 text-center">
+            <button
+                type="button"
+                onClick={onReveal}
+                aria-label={`Load more events (${total - shown} more of ${total})`}
+                className="inline-flex items-center gap-2 rounded-md border border-brand-200 bg-background px-5 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            >
+                Load more
+            </button>
+            <p className="mt-2 text-xs text-muted-foreground">
+                Showing {shown} of {total}
+            </p>
+            <span className="sr-only" aria-live="polite">
+                Showing {shown} of {total} events.
+            </span>
+        </div>
+    );
+}
+
+/**
  * Events — official SPIN Gombe events, engagements and stakeholder
  * activities.
  *
  * Upcoming and past events are classified strictly by each event's own
- * date, never by publication date. Until events are supplied the page
- * renders its polished empty state — nothing is fabricated.
+ * date, never by publication date. Each section shows four records and
+ * reveals four more per Load More click, with its own independent reveal
+ * state and control — the button hides once a section is exhausted. Until
+ * events are supplied the page renders its polished empty state — nothing
+ * is fabricated.
  */
 export default function EventsIndex({ upcoming, past }: EventsIndexProps) {
     const { site } = usePage<SharedProps>().props;
+    const upcomingReveal = useSectionReveal();
+    const pastReveal = useSectionReveal();
+
+    const visibleUpcoming = upcoming.slice(0, upcomingReveal.visibleCount);
+    const visiblePast = past.slice(0, pastReveal.visibleCount);
 
     return (
         <PublicLayout>
@@ -159,7 +219,7 @@ export default function EventsIndex({ upcoming, past }: EventsIndexProps) {
                 </Container>
             </section>
 
-            {/* 2 + 3 — Upcoming and past events */}
+            {/* 2 + 3 — Upcoming and past events, each with its own reveal state */}
             <section aria-labelledby="events-listing" className="border-b border-border bg-background">
                 <Container className="py-14 sm:py-16 lg:py-20">
                     <h2 id="events-listing" className="sr-only">
@@ -174,53 +234,86 @@ export default function EventsIndex({ upcoming, past }: EventsIndexProps) {
                         </h3>
 
                         {upcoming.length > 0 ? (
-                            <ul className="mt-6 space-y-5">
-                                {upcoming.map((event, index) => (
-                                    <li key={event.id}>
-                                        <Reveal delay={Math.min(index * 60, 240)}>
-                                            <Link
-                                                href={route('events.show', { slug: event.slug })}
-                                                className="group relative block overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised"
-                                            >
-                                                <span
-                                                    aria-hidden="true"
-                                                    className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-primary via-gold-400 to-gold-500"
-                                                />
+                            <>
+                                <ul className="mt-6 space-y-5">
+                                    {visibleUpcoming.map((event, index) => (
+                                        <li key={event.id}>
+                                            <Reveal delay={Math.min(index * 60, 240)}>
+                                                <Link
+                                                    href={route('events.show', { slug: event.slug })}
+                                                    className="group relative block overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised"
+                                                >
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className="absolute inset-y-0 left-0 z-10 w-1 bg-gradient-to-b from-primary via-gold-400 to-gold-500"
+                                                    />
 
-                                                <div className="grid gap-5 p-6 pl-8 sm:p-7 sm:pl-9 lg:grid-cols-12 lg:items-center lg:gap-8">
-                                                    <div className="flex items-start gap-4 lg:col-span-8">
-                                                        <DateBlock startsAt={event.starts_at} />
-                                                        <div>
-                                                            <p className="text-xs font-semibold tracking-widest text-gold-700 uppercase">
-                                                                {formatDate(event.starts_at)}
-                                                                {formatTime(event.starts_at) &&
-                                                                    ` · ${formatTime(event.starts_at)}`}
-                                                            </p>
-                                                            <h4 className="mt-1.5 text-lg leading-snug font-bold text-foreground transition-colors group-hover:text-brand-800 sm:text-xl">
-                                                                {event.title}
-                                                            </h4>
-                                                            <EventPlace event={event} />
-                                                            {event.description && (
-                                                                <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                                                                    {event.description}
-                                                                </p>
+                                                    <div className="grid gap-5 p-6 pl-8 sm:p-7 sm:pl-9 lg:grid-cols-12 lg:items-center lg:gap-8">
+                                                        {/*
+                                                         * The event's own cover image on the listing
+                                                         * card; with none, the branded designed
+                                                         * treatment — never stock imagery presented
+                                                         * as a photograph of the event.
+                                                         */}
+                                                        <div className="lg:col-span-4">
+                                                            {event.cover_image ? (
+                                                                <img
+                                                                    src={event.cover_image}
+                                                                    alt=""
+                                                                    className="aspect-[16/9] w-full rounded-sm border border-border object-cover"
+                                                                    loading="lazy"
+                                                                    decoding="async"
+                                                                />
+                                                            ) : (
+                                                                <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden rounded-sm border border-border bg-gradient-to-br from-brand-50 via-background to-gold-50">
+                                                                    <CalendarDays
+                                                                        aria-hidden="true"
+                                                                        className="size-6 text-brand-300"
+                                                                    />
+                                                                </div>
                                                             )}
                                                         </div>
-                                                    </div>
 
-                                                    <div className="flex items-center gap-2 text-sm font-medium text-primary lg:col-span-4 lg:justify-end">
-                                                        View event
-                                                        <ArrowRight
-                                                            aria-hidden="true"
-                                                            className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                                                        />
+                                                        <div className="flex items-start gap-4 lg:col-span-8">
+                                                            <DateBlock startsAt={event.starts_at} />
+                                                            <div>
+                                                                <p className="text-xs font-semibold tracking-widest text-gold-700 uppercase">
+                                                                    {formatDate(event.starts_at)}
+                                                                    {formatTime(event.starts_at) &&
+                                                                        ` · ${formatTime(event.starts_at)}`}
+                                                                </p>
+                                                                <h4 className="mt-1.5 text-lg leading-snug font-bold text-foreground transition-colors group-hover:text-brand-800 sm:text-xl">
+                                                                    {event.title}
+                                                                </h4>
+                                                                <EventPlace event={event} />
+                                                                {event.description && (
+                                                                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                                                                        {event.description}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* <div className="flex items-center gap-2 text-sm font-medium text-primary lg:col-span-4 lg:justify-end">
+                                                            View event
+                                                            <ArrowRight
+                                                                aria-hidden="true"
+                                                                className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                                                            />
+                                                        </div> */}
                                                     </div>
-                                                </div>
-                                            </Link>
-                                        </Reveal>
-                                    </li>
-                                ))}
-                            </ul>
+                                                </Link>
+                                            </Reveal>
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                <LoadMore
+                                    shown={visibleUpcoming.length}
+                                    total={upcoming.length}
+                                    onReveal={upcomingReveal.reveal}
+                                />
+                            </>
                         ) : (
                             <p className="mt-6 rounded-md border border-dashed border-border bg-muted/60 px-6 py-8 text-center text-sm text-muted-foreground">
                                 No upcoming events are scheduled at the moment.
@@ -237,7 +330,7 @@ export default function EventsIndex({ upcoming, past }: EventsIndexProps) {
                             </h3>
 
                             <ul className="mt-6 divide-y divide-border">
-                                {past.map((event) => (
+                                {visiblePast.map((event) => (
                                     <li key={event.id}>
                                         <Link
                                             href={route('events.show', { slug: event.slug })}
@@ -263,6 +356,12 @@ export default function EventsIndex({ upcoming, past }: EventsIndexProps) {
                                     </li>
                                 ))}
                             </ul>
+
+                            <LoadMore
+                                shown={visiblePast.length}
+                                total={past.length}
+                                onReveal={pastReveal.reveal}
+                            />
                         </div>
                     )}
 

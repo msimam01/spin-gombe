@@ -172,7 +172,7 @@ export function SiteHeader() {
                 </nav>
 
                 <div className="flex items-center gap-2.5">
-                    <Link
+                    {/* <Link
                         href={route('admin.login')}
                         className={cn(
                             'hidden h-10 shrink-0 items-center justify-center rounded-sm bg-primary px-5 text-sm font-medium tracking-wide whitespace-nowrap',
@@ -180,7 +180,7 @@ export function SiteHeader() {
                         )}
                     >
                         Staff Login
-                    </Link>
+                    </Link> */}
                     <MobileNav />
                 </div>
             </Container>

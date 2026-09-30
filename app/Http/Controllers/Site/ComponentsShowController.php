@@ -12,16 +12,18 @@ use App\Models\ProjectComponent;
 use App\Models\Video;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Inertia\Response;
-
-/**
- * A single official SPIN project component.
- *
- * Related projects, documents, photos and videos come from the component's
- * published relations — never fabricated. While SPIN has not supplied those
- * records the page shows neutral empty states, and the sections become live
- * automatically once the CMS publishes them.
- */
+use Inertia\Response;    /**
+     * A single official SPIN project component.
+     *
+     * Related projects, documents, photos and videos come from the component's
+     * published relations — never fabricated. While SPIN has not supplied those
+     * records the page shows neutral empty states, and the sections become live
+     * automatically once the CMS publishes them.
+     *
+     * Related projects carry their cover image and location so the section can
+     * render the shared image-led ProjectCard; three render initially and a
+     * filtered listing link appears when more exist.
+     */
 class ComponentsShowController extends Controller
 {
     public function __invoke(string $urlSlug): Response
@@ -48,13 +50,32 @@ class ComponentsShowController extends Controller
         ] : null;
 
         try {
+            $relatedProjects = Project::query()
+                ->published()
+                ->ordered()
+                ->where('project_component_id', $component->id)
+                ->with('location:id,name')
+                ->get(['id', 'slug', 'title', 'type', 'summary', 'cover_image', 'location_id']);
+
             $related = [
-                'projects' => Project::query()
-                    ->published()
-                    ->ordered()
-                    ->where('project_component_id', $component->id)
-                    ->get(['id', 'slug', 'title', 'type', 'summary', 'cover_image'])
+                /*
+                 * Three cards render on the page; `projects_count` drives the
+                 * "View all projects and activities" link to the filtered
+                 * listing, shown only when more than three exist.
+                 */
+                'projects' => $relatedProjects
+                    ->take(3)
+                    ->map(fn (Project $project) => [
+                        'id' => $project->id,
+                        'slug' => $project->slug,
+                        'title' => $project->title,
+                        'type' => $project->type,
+                        'summary' => $project->summary,
+                        'cover_image' => $project->cover_image,
+                        'location_name' => $project->location?->name,
+                    ])
                     ->all(),
+                'projects_count' => $relatedProjects->count(),
 
                 'documents' => Document::query()
                     ->published()
@@ -73,12 +94,16 @@ class ComponentsShowController extends Controller
                     ])
                     ->all(),
 
+                /*
+                 * The full published collection is delivered in one query so
+                 * the page's "Show all photos" control can expand without a
+                 * second request; the frontend limits the initial render.
+                 */
                 'photos' => PhotoResource::collection(
                     Photo::query()
                         ->published()
                         ->ordered()
                         ->where('project_component_id', $component->id)
-                        ->limit(6)
                         ->get()
                 )->resolve(),
 
@@ -86,7 +111,6 @@ class ComponentsShowController extends Controller
                     ->published()
                     ->ordered()
                     ->where('project_component_id', $component->id)
-                    ->limit(2)
                     ->get()
                     ->map(fn (Video $video) => [
                         'id' => $video->id,
@@ -104,6 +128,7 @@ class ComponentsShowController extends Controller
             // the page down: the sections degrade to their empty states.
             $related = [
                 'projects' => [],
+                'projects_count' => 0,
                 'documents' => [],
                 'photos' => [],
                 'videos' => [],

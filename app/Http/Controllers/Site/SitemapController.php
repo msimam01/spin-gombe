@@ -28,6 +28,7 @@ class SitemapController extends Controller
         'about',
         'components.index',
         'projects.index',
+        'project-locations',
         'news.index',
         'events.index',
         'resources.index',

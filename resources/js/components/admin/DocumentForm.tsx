@@ -23,10 +23,7 @@ interface DocumentFormData {
     document_category_id: string;
     source: 'file' | 'external';
     external_url: string;
-    version: string;
-    published_on: string;
     status: string;
-    sort: number;
     /** Newly selected file; uploaded with the next save. */
     file: File | null;
 }
@@ -67,10 +64,7 @@ export function DocumentForm({ document, statuses, categories, preselectCategory
         ),
         source: document?.source ?? 'file',
         external_url: document?.external_url ?? '',
-        version: document?.version ?? '',
-        published_on: document?.published_on ?? '',
         status: document?.status ?? 'draft',
-        sort: document?.sort ?? 0,
         file: null,
     });
 
@@ -326,7 +320,7 @@ export function DocumentForm({ document, statuses, categories, preselectCategory
                         : 'New documents start as drafts so nothing appears publicly before review.'}
                 </p>
 
-                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                <div className="mt-5">
                     <AdminSelectField
                         id="status"
                         name="status"
@@ -336,43 +330,6 @@ export function DocumentForm({ document, statuses, categories, preselectCategory
                         value={form.data.status}
                         onChange={(event) => form.setData('status', event.target.value)}
                         error={form.errors.status}
-                    />
-
-                    <AdminTextField
-                        id="published_on"
-                        name="published_on"
-                        label="Publication date"
-                        type="date"
-                        hint="When the document was issued, shown publicly. Optional."
-                        value={form.data.published_on}
-                        onChange={(event) => form.setData('published_on', event.target.value)}
-                        error={form.errors.published_on}
-                    />
-
-                    <AdminTextField
-                        id="version"
-                        name="version"
-                        label="Version"
-                        hint="E.g. “1.2” or “Final”. Optional."
-                        value={form.data.version}
-                        onChange={(event) => form.setData('version', event.target.value)}
-                        error={form.errors.version}
-                        autoComplete="off"
-                        maxLength={50}
-                    />
-
-                    <AdminTextField
-                        id="sort"
-                        name="sort"
-                        label="Display order"
-                        type="number"
-                        min={0}
-                        max={10000}
-                        step={1}
-                        hint="Lower numbers list first."
-                        value={String(form.data.sort)}
-                        onChange={(event) => form.setData('sort', Number(event.target.value))}
-                        error={form.errors.sort}
                     />
                 </div>
             </div>

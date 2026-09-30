@@ -2,14 +2,19 @@ import { Link, usePage } from '@inertiajs/react';
 import { CalendarDays, ChevronRight, Images } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
+import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
+import { useProgressiveLoad } from '@/components/shared/useProgressiveLoad';
 import { Reveal } from '@/components/shared/Reveal';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
-import type { Gallery, SharedProps } from '@/types';
+import type { Gallery, Photo, SharedProps } from '@/types';
+
+/** Photos revealed per Load More click. */
+const PHOTO_STEP = 16;
 
 interface GalleryShowProps {
-    gallery: Gallery;
+    gallery: Gallery & { photo_total: number };
 }
 
 /**
@@ -21,7 +26,22 @@ interface GalleryShowProps {
  */
 export default function GalleryShow({ gallery }: GalleryShowProps) {
     const { site } = usePage<SharedProps>().props;
-    const photos = gallery.photos ?? [];
+
+    /*
+     * The album's photographs reveal progressively via server-driven partial
+     * reloads — photos 1..N of THIS album, so pagination can never mix in
+     * photographs from another gallery. The shared viewer still navigates
+     * strictly within the loaded collection.
+     */
+    const photoLoad = useProgressiveLoad<Photo>({
+        initialItems: gallery.photos ?? [],
+        total: gallery.photo_total,
+        step: PHOTO_STEP,
+        only: ['gallery', 'photos_shown'],
+        url: route('media.galleries.show', { gallery: gallery.slug }),
+    });
+
+    const photos = photoLoad.items;
 
     return (
         <PublicLayout>
@@ -114,6 +134,14 @@ export default function GalleryShow({ gallery }: GalleryShowProps) {
                                 photos={photos}
                                 contextLabel={`${gallery.title} photographs`}
                                 columnsClass="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                            />
+
+                            <LoadMoreButton
+                                shown={photos.length}
+                                total={gallery.photo_total}
+                                unit="photographs"
+                                onReveal={photoLoad.loadMore}
+                                loading={photoLoad.loading}
                             />
                         </Reveal>
                     ) : (

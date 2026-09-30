@@ -1,6 +1,9 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { BulkImagesField } from '@/components/admin/BulkImagesField';
+import { CoverImageField } from '@/components/admin/CoverImageField';
+import { ExistingImagesGrid } from '@/components/admin/ExistingImagesGrid';
 import {
     AdminSelectField,
     AdminTextField,
@@ -31,7 +34,14 @@ interface ProjectFormData {
     started_on: string;
     completed_on: string;
     status: string;
-    sort: number;
+    /** Newly selected cover image; uploaded with the next save. */
+    cover: File | null;
+    /** Explicit removal of the stored cover image. */
+    remove_cover: boolean;
+    /** Newly selected supporting images; uploaded with the next save. */
+    images: File[];
+    /** Existing supporting images ticked for removal. */
+    remove_photo_ids: number[];
 }
 
 const TYPE_DESCRIPTIONS: Record<ProjectFormData['type'], string> = {
@@ -43,9 +53,11 @@ const TYPE_DESCRIPTIONS: Record<ProjectFormData['type'], string> = {
  * The create/edit form for a project or activity.
  *
  * One form serves both record types through the model's existing `type`
- * column — no second entity. Every field maps to a real `projects` column;
- * component and location options are supplied from the database. Dates and
- * coordinates stay empty until SPIN supplies confirmed values.
+ * column — no second entity. Phase 31 adds the Cover Image and bulk
+ * Supporting Images fields (with a remove-selection grid when editing), and
+ * drops Display Order — public listings order by creation date, so no
+ * manual ordering field is presented. Component and location options are
+ * supplied from the database; dates stay empty until SPIN supplies values.
  */
 export function ProjectForm({ project, statuses, typeOptions, components, locations }: ProjectFormProps) {
     const isEdit = project !== undefined;
@@ -65,7 +77,10 @@ export function ProjectForm({ project, statuses, typeOptions, components, locati
         started_on: project?.started_on ?? '',
         completed_on: project?.completed_on ?? '',
         status: project?.status ?? 'draft',
-        sort: project?.sort ?? 0,
+        cover: null,
+        remove_cover: false,
+        images: [],
+        remove_photo_ids: [],
     });
 
     const [dirtyNotified, setDirtyNotified] = useState(false);
@@ -101,8 +116,20 @@ export function ProjectForm({ project, statuses, typeOptions, components, locati
     function submit(event: React.FormEvent) {
         event.preventDefault();
 
+        // A multipart body only parses as a POST request on the server, so
+        // any upload travels via POST with Laravel's method spoofing;
+        // text-only saves keep the native verb (PUT on edit).
+        const uploading = form.data.cover !== null || form.data.images.length > 0;
+
         if (isEdit) {
-            form.put(route('admin.projects.update', { project: project.slug }));
+            const url = route('admin.projects.update', { project: project.slug });
+
+            if (uploading) {
+                form.transform((data) => ({ ...data, _method: 'put' }));
+                form.post(url);
+            } else {
+                form.put(url);
+            }
         } else {
             form.post(route('admin.projects.store'));
         }
@@ -227,40 +254,62 @@ export function ProjectForm({ project, statuses, typeOptions, components, locati
                         error={form.errors.location_id}
                     />
 
-                    <div className="grid gap-5 sm:grid-cols-2">
-                        <AdminTextField
-                            id="status_label"
-                            name="status_label"
-                            label="Official project status"
-                            hint="The status wording supplied by SPIN, e.g. “Ongoing”. Optional."
-                            value={form.data.status_label}
-                            onChange={(event) => form.setData('status_label', event.target.value)}
-                            error={form.errors.status_label}
-                            autoComplete="off"
-                        />
+                    <AdminTextField
+                        id="status_label"
+                        name="status_label"
+                        label="Official project status"
+                        hint="The status wording e.g. “Ongoing”. Optional."
+                        value={form.data.status_label}
+                        onChange={(event) => form.setData('status_label', event.target.value)}
+                        error={form.errors.status_label}
+                        autoComplete="off"
+                    />
+                </div>
+            </div>
 
-                        <AdminTextField
-                            id="sort"
-                            name="sort"
-                            label="Display order"
-                            type="number"
-                            min={0}
-                            max={10000}
-                            step={1}
-                            hint="Lower numbers appear first on the public Projects page."
-                            value={String(form.data.sort)}
-                            onChange={(event) => form.setData('sort', Number(event.target.value))}
-                            error={form.errors.sort}
+            <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
+                <h2 className="text-base font-semibold text-foreground">Images</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    One cover image leads the public card and page; supporting photographs
+                    appear alongside the record's details.
+                </p>
+
+                <div className="mt-5 space-y-5">
+                    <CoverImageField
+                        id="cover"
+                        name="cover"
+                        label="Cover Image"
+                        existingUrl={project?.cover_image_url ?? null}
+                        file={form.data.cover}
+                        onFileChange={(file) => form.setData('cover', file)}
+                        remove={form.data.remove_cover}
+                        onRemoveChange={(remove) => form.setData('remove_cover', remove)}
+                        error={form.errors.cover}
+                        disabled={form.processing}
+                    />
+
+                    <BulkImagesField
+                        label="Supporting Images"
+                        hint="New images are added to this record — existing photographs are kept."
+                        files={form.data.images}
+                        onFilesChange={(files) => form.setData('images', files)}
+                        error={form.errors.images}
+                        disabled={form.processing}
+                    />
+
+                    {isEdit && (project.photos?.length ?? 0) > 0 && (
+                        <ExistingImagesGrid
+                            images={project.photos ?? []}
+                            selectedIds={form.data.remove_photo_ids}
+                            onSelectionChange={(ids) => form.setData('remove_photo_ids', ids)}
+                            disabled={form.processing}
                         />
-                    </div>
+                    )}
                 </div>
             </div>
 
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Dates</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Only dates officially supplied by SPIN — never estimated.
-                </p>
 
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
                     <AdminTextField

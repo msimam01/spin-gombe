@@ -59,6 +59,10 @@ export interface AdminProject {
     completed_on?: string | null;
     /** Edit payload only. */
     cover_image?: string | null;
+    /** Edit payload only: resolved public URL of the current cover image. */
+    cover_image_url?: string | null;
+    /** Edit payload only: the record's existing supporting photographs. */
+    photos?: ExistingImageRow[];
     /** Edit payload only. */
     published_at?: string | null;
     /** Edit payload only. */
@@ -71,6 +75,15 @@ export interface AdminProject {
         documents: number;
         videos: number;
     };
+}
+
+/** A stored supporting image as delivered to an admin edit form. */
+export interface ExistingImageRow {
+    id: number;
+    thumb_url: string | null;
+    alt_text: string | null;
+    caption: string | null;
+    status: string;
 }
 
 /** An admin-side location row or full edit payload. */
@@ -128,6 +141,8 @@ export interface AdminNewsPost {
     created_at?: string;
     updated_at: string;
     component: { slug: string; name: string } | null;
+    /** Edit payload only: the article's own supporting photographs. */
+    photos?: ExistingImageRow[];
 }
 
 /** An admin-side event row or full edit payload. */
@@ -152,6 +167,8 @@ export interface AdminEvent {
     location: { name: string; lga: string | null; mappable: boolean } | null;
     /** Edit payload only: resolved public URL of the current cover photo. */
     cover_image_url?: string | null;
+    /** Edit payload only: the event's own supporting photographs (via its galleries). */
+    photos?: ExistingImageRow[];
 }
 
 /** The events listing filters, echoed back by the controller. */

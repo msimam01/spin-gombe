@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, ChevronRight, Mail, Users } from 'lucide-react';
+import { ArrowRight, BadgeCheck, ChevronRight, Mail, Users } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { Reveal } from '@/components/shared/Reveal';
@@ -58,13 +58,13 @@ function MemberPortrait({
         >
             <span
                 aria-hidden="true"
-                className="absolute -right-6 -top-6 size-24 rounded-full bg-brand-100/70 blur-2xl"
+                className="absolute -right-8 -top-8 size-40 rounded-full bg-brand-100/70 blur-2xl"
             />
             <span
                 aria-hidden="true"
-                className="text-2xl font-bold text-brand-800/80"
+                className="text-4xl font-bold text-brand-800/80 sm:text-5xl"
             >
-                {initials || <Users className="size-6" />}
+                {initials || <Users className="size-10" />}
             </span>
         </span>
     );
@@ -85,7 +85,7 @@ export default function Team({ coordinator, team }: TeamProps) {
         <PublicLayout>
             <Seo
                 title="Project Team"
-                description="The SPIN Gombe State Project team — the State Project Coordinator and the key management team implementing the project."
+                description="The SPIN Gombe State Project team, the State Project Coordinator and the key management team implementing the project."
             />
 
             {/* 1 — Internal hero */}
@@ -133,62 +133,83 @@ export default function Team({ coordinator, team }: TeamProps) {
                 </Container>
             </section>
 
-            {/* 2 — Featured State Project Coordinator */}
+            {/* 2 — Featured State Project Coordinator (home/About card design) */}
             {coordinator && (
-                <section aria-labelledby="coordinator-heading" className="border-b border-border bg-background">
-                    <Container className="py-14 sm:py-16 lg:py-20">
+                <section aria-labelledby="coordinator-heading" className="border-b border-brand-100 bg-brand-50/60">
+                    <Container className="py-10 sm:py-12 lg:py-16">
                         <h2
                             id="coordinator-heading"
-                            className="flex items-center gap-2 text-sm font-semibold tracking-widest text-brand-700 uppercase"
+                            className="mb-7 flex items-center gap-2 text-lg font-bold tracking-widest text-brand-700 uppercase"
                         >
                             <span aria-hidden="true" className="h-px w-6 bg-accent" />
                             State Project Coordinator
                         </h2>
 
                         <Reveal>
-                            <article className="mt-8 overflow-hidden rounded-md border border-border bg-background shadow-card">
-                                <span
-                                    aria-hidden="true"
-                                    className="block h-1 w-full bg-gradient-to-r from-primary via-gold-400 to-gold-500"
-                                />
+                            <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+                                {/* Portrait / identity column — the corner-bracket frame
+                                    used by the Home and About coordinator cards. */}
+                                <div className="lg:col-span-4">
+                                    <div className="mx-auto max-w-sm lg:mx-0">
+                                        <div className="relative">
+                                            <span
+                                                aria-hidden="true"
+                                                className="absolute -top-3 -left-3 h-20 w-20 rounded-tl-md border-t-2 border-l-2 border-gold-400"
+                                            />
+                                            <span
+                                                aria-hidden="true"
+                                                className="absolute -right-3 -bottom-3 h-20 w-20 rounded-br-md border-r-2 border-b-2 border-brand-300"
+                                            />
 
-                                <div className="grid gap-8 p-7 sm:p-9 lg:grid-cols-12 lg:gap-10 lg:p-10">
-                                    <div className="lg:col-span-4">
-                                        <MemberPortrait
-                                            member={coordinator}
-                                            fallbackPhoto={site.coordinator.photo}
-                                            className="aspect-[4/5] w-full max-w-xs rounded-md object-cover ring-1 ring-border"
-                                        />
+                                            <div className="relative aspect-[4/5] overflow-hidden rounded-md border border-brand-100 bg-background shadow-card">
+                                                <MemberPortrait
+                                                    member={coordinator}
+                                                    fallbackPhoto={site.coordinator.photo}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-6 text-center lg:text-left">
+                                            <p className="inline-flex items-center gap-1.5 rounded-full bg-gold-50 px-3 py-1 text-xs font-semibold text-gold-700 ring-1 ring-gold-200">
+                                                <BadgeCheck aria-hidden="true" className="size-3.5" />
+                                                {coordinator.position}
+                                            </p>
+                                            <p className="mt-3 font-display text-lg leading-snug font-bold text-foreground">
+                                                {coordinator.name}
+                                            </p>
+                                        </div>
                                     </div>
+                                </div>
 
-                                    <div className="lg:col-span-8">
-                                        <p className="text-xs font-semibold tracking-widest text-gold-700 uppercase">
-                                            {coordinator.position}
-                                        </p>
-                                        <h3 className="mt-2 text-2xl leading-snug font-bold text-foreground sm:text-3xl">
-                                            {coordinator.name}
-                                        </h3>
-
-                                        {coordinator.bio && coordinator.bio.length > 0 && (
-                                            <div className="mt-5 max-w-2xl space-y-4">
-                                                {coordinator.bio.map((paragraph, index) => (
-                                                    <p
-                                                        key={index}
-                                                        className="text-sm leading-relaxed text-muted-foreground sm:text-base"
-                                                    >
+                                {/* Biography column — the Home/About rhythm: justified
+                                    paragraphs, closing statement as the gold quote. */}
+                                <div className="lg:col-span-8">
+                                    {coordinator.bio && coordinator.bio.length > 0 ? (
+                                        <>
+                                            <div className="max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground">
+                                                {coordinator.bio.slice(0, -1).map((paragraph, index) => (
+                                                    <p key={index} className="[text-align:justify]">
                                                         {paragraph}
                                                     </p>
                                                 ))}
                                             </div>
-                                        )}
+                                            {coordinator.bio.length > 1 && (
+                                                <blockquote className="mt-6 max-w-3xl rounded-md border-l-2 border-gold-400 bg-background px-5 py-4 text-sm leading-relaxed text-foreground shadow-subtle">
+                                                    {coordinator.bio[coordinator.bio.length - 1]}
+                                                </blockquote>
+                                            )}
+                                        </>
+                                    ) : null}
 
-                                        <p className="mt-6 inline-flex items-center gap-2 rounded-sm border border-brand-100 bg-brand-50 px-3.5 py-2 text-xs leading-relaxed text-brand-800">
-                                            <Mail aria-hidden="true" className="size-3.5 shrink-0" />
+                                    <div className="mt-6 max-w-3xl rounded-md border-l-2 border-gold-400 bg-background px-5 py-4 shadow-subtle">
+                                        <p className="flex items-start gap-2 text-sm leading-relaxed text-foreground">
+                                            <Mail aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-gold-600" />
                                             Official enquiries to the Project Coordinator go through
-                                            the project office contact channels below.
+                                            the project office contact channels.
                                         </p>
                                         {(coordinator.public_email || coordinator.public_phone) && (
-                                            <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-brand-800">
+                                            <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-brand-800">
                                                 {coordinator.public_email && (
                                                     <a
                                                         href={`mailto:${coordinator.public_email}`}
@@ -209,7 +230,7 @@ export default function Team({ coordinator, team }: TeamProps) {
                                         )}
                                     </div>
                                 </div>
-                            </article>
+                            </div>
                         </Reveal>
                     </Container>
                 </section>
@@ -232,13 +253,20 @@ export default function Team({ coordinator, team }: TeamProps) {
                             {team.map((member, index) => (
                                 <li key={member.id}>
                                     <Reveal delay={Math.min(index * 40, 240)}>
-                                        <article className="flex h-full items-center gap-4 rounded-md border border-border bg-background p-5 shadow-subtle transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised">
+                                        <article className="flex h-full flex-col overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised">
+                                            {/*
+                                             * Portrait-led card: a full-width 4:5 frame so an
+                                             * uploaded photograph reads at a real size. Members
+                                             * without a photo yet carry the designed initials
+                                             * monogram at the same dimensions — the frame never
+                                             * collapses and nothing is fabricated.
+                                             */}
                                             <MemberPortrait
                                                 member={member}
-                                                className="size-16 shrink-0 rounded-full object-cover ring-1 ring-border"
+                                                className="aspect-[4/5] w-full object-cover"
                                             />
 
-                                            <div className="min-w-0">
+                                            <div className="flex flex-1 flex-col p-5">
                                                 <h3 className="text-base leading-snug font-bold text-foreground">
                                                     {member.name}
                                                 </h3>
@@ -253,7 +281,7 @@ export default function Team({ coordinator, team }: TeamProps) {
                                                 {member.public_email && (
                                                     <a
                                                         href={`mailto:${member.public_email}`}
-                                                        className="mt-1.5 block truncate text-xs text-brand-700 underline-offset-2 hover:underline"
+                                                        className="mt-2 block truncate text-xs text-brand-700 underline-offset-2 hover:underline"
                                                     >
                                                         {member.public_email}
                                                     </a>

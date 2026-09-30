@@ -3,6 +3,8 @@
 namespace App\Http\Resources;
 
 use App\Models\NewsPost;
+use App\Support\CoverImage;
+use App\Support\NewsExcerpt;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,6 +20,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * component page. Absent information stays null and the page omits it, so
  * nothing empty or invented is displayed.
  *
+ * Phase 31: the displayed publication date is the article's `created_at`
+ * timestamp; related updates carry their own cover images and derived
+ * excerpts.
+ *
  * @mixin NewsPost
  */
 class NewsPostDetailResource extends JsonResource
@@ -27,10 +33,10 @@ class NewsPostDetailResource extends JsonResource
     {
         $resource = (new NewsPostResource($this->resource))->resolve($request);
 
-        // Detail keys win on collision (published_at stays ISO, published_on
-        // is the display-formatted date).
+        // Detail keys win on collision (published_at stays ISO from
+        // created_at, published_on is the display-formatted date).
         return [
-            'published_on' => $this->published_at?->isoFormat('D MMMM Y'),
+            'published_on' => $this->created_at?->isoFormat('D MMMM Y'),
             'body' => $this->body,
             'photos' => $this->whenLoaded('photos', fn () => $this->photos
                 ->map(fn ($photo) => (new PhotoResource($photo))->resolve())
@@ -51,8 +57,12 @@ class NewsPostDetailResource extends JsonResource
                         ->map(fn (NewsPost $related) => [
                             'slug' => $related->slug,
                             'title' => $related->title,
-                            'excerpt' => $related->excerpt,
-                            'published_at' => $related->published_at?->toIso8601String(),
+                            // Derived from each article's own body.
+                            'excerpt' => NewsExcerpt::fromBody($related->body),
+                            // The article's own cover, resolved against the
+                            // public disk — never another article's image.
+                            'cover_image' => CoverImage::url($related->cover_image),
+                            'published_at' => $related->created_at?->toIso8601String(),
                         ])->all()
                     : [];
             }),

@@ -41,7 +41,7 @@ export function SiteFooter() {
                             </svg>
                         </span>
                         <div>
-                            <p className="font-display text-lg font-bold text-white">{site.acronym} Gombe</p>
+                            <p className="font-display text-lg font-bold text-white">{site.acronym} Project Gombe</p>
                             <p className="text-sm text-brand-200">{site.name}</p>
                         </div>
                     </div>
@@ -118,13 +118,13 @@ export function SiteFooter() {
 
                         {/* Partner identity line: activates when logos are approved. */}
                         <div className="mt-8 rounded-md border border-white/10 bg-white/5 px-4 py-3">
-                            {site.logos.spin || site.logos.federal || site.logos.world_bank ? (
+                            {site.logos.spin || site.logos.federal || site.logos.gombe || site.logos.world_bank ? (
                                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                                     {(
                                         [
                                             ['spin', 'SPIN'],
                                             ['federal', 'Federal Ministry of Water Resources and Sanitation'],
-                                            ['power', 'Federal Ministry of Power'],
+                                            ['gombe', 'Gombe State Ministry of Water Resources'],
                                             ['world_bank', 'World Bank'],
                                         ] as const
                                     )
@@ -150,9 +150,10 @@ export function SiteFooter() {
                                 </div>
                             ) : (
                                 <p className="text-xs leading-relaxed text-brand-200/80">
-                                    Federal Ministry of Water Resources and Sanitation · Federal
-                                    Ministry of Power · World Bank — official partner identities
-                                    appear here once approved logos are supplied.
+                                    Federal Ministry of Water Resources and Sanitation · Gombe
+                                    State Ministry of Water Resources · World Bank — official
+                                    partner identities appear here once approved logos are
+                                    supplied.
                                 </p>
                             )}
                         </div>

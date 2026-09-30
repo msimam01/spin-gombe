@@ -9,7 +9,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 
-const appName = import.meta.env.VITE_APP_NAME || 'SPIN Gombe State Project';
+const appName = import.meta.env.VITE_APP_NAME || 'SPIN Project Gombe';
 
 /**
  * Read the brand colour from the design tokens instead of hard-coding it,

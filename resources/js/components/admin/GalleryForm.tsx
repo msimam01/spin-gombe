@@ -1,6 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { BulkImagesField } from '@/components/admin/BulkImagesField';
 import { CoverImageField } from '@/components/admin/CoverImageField';
 import { AdminSelectField, AdminTextareaField, AdminTextField } from '@/components/admin/FormControls';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,6 @@ interface GalleryFormProps {
         event_id: number | null;
         cover_image_url: string | null;
         status: string;
-        sort: number;
         photo_count: number;
     };
     statuses: Record<string, string>;
@@ -31,20 +31,25 @@ interface GalleryFormData {
     description: string;
     event_id: string;
     status: string;
-    sort: number;
     /** Newly selected cover image; uploaded with the next save. */
     cover: File | null;
     /** Explicit removal of the stored cover image. */
     remove_cover: boolean;
+    /** Newly selected gallery photographs; uploaded with the next save. */
+    images: File[];
 }
 
 /**
  * The create/edit form for a photo gallery.
  *
- * Every field maps to a real `galleries` column — nothing invented. The
- * optional "Related Event" uses the existing galleries.event_id relationship
- * the public event pages render (Event → Galleries → Photos). The public
- * slug is created once and never editable, so gallery URLs stay stable.
+ * Phase 31: Display Order is gone, and the form now takes the gallery's
+ * photographs directly — select several images while creating and they are
+ * attached when the gallery is created; select more while editing and they
+ * are added without touching the existing photographs (individual removal
+ * happens in the photo grid below the form). The optional "Related Event"
+ * uses the existing galleries.event_id relationship the public event pages
+ * render (Event → Galleries → Photos). The public slug is created once and
+ * never editable, so gallery URLs stay stable.
  */
 export function GalleryForm({ gallery, statuses, events, preselectEvent }: GalleryFormProps) {
     const isEdit = gallery !== undefined;
@@ -58,9 +63,9 @@ export function GalleryForm({ gallery, statuses, events, preselectEvent }: Galle
               ? String(gallery.event_id)
               : '',
         status: gallery?.status ?? 'draft',
-        sort: gallery?.sort ?? 0,
         cover: null,
         remove_cover: false,
+        images: [],
     });
 
     const [dirtyNotified, setDirtyNotified] = useState(false);
@@ -95,13 +100,15 @@ export function GalleryForm({ gallery, statuses, events, preselectEvent }: Galle
     function submit(event: React.FormEvent) {
         event.preventDefault();
 
+        // A multipart body only parses as a POST request on the server, so
+        // any upload travels via POST with Laravel's method spoofing;
+        // text-only saves keep the PUT verb.
+        const uploading = form.data.cover !== null || form.data.remove_cover || form.data.images.length > 0;
+
         if (isEdit) {
             const url = route('admin.galleries.update', { gallery: gallery.slug });
 
-            if (form.data.cover !== null || form.data.remove_cover) {
-                // A multipart body only parses as a POST request on the
-                // server, so the upload travels via POST with Laravel's
-                // method spoofing; text-only saves keep the PUT verb.
+            if (uploading) {
                 form.transform((data) => ({ ...data, _method: 'put' }));
                 form.post(url);
             } else {
@@ -117,7 +124,7 @@ export function GalleryForm({ gallery, statuses, events, preselectEvent }: Galle
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Gallery details</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Official SPIN photo galleries as they should appear on the public website.
+                    Official photo galleries as they should appear on the public website.
                 </p>
 
                 <div className="mt-5 space-y-5">
@@ -155,6 +162,19 @@ export function GalleryForm({ gallery, statuses, events, preselectEvent }: Galle
                         remove={form.data.remove_cover}
                         onRemoveChange={(remove) => form.setData('remove_cover', remove)}
                         error={form.errors.cover}
+                        disabled={form.processing}
+                    />
+
+                    <BulkImagesField
+                        label={isEdit ? 'Add Photographs' : 'Photographs'}
+                        hint={
+                            isEdit
+                                ? 'New photographs are added to this gallery — existing ones are kept.'
+                                : 'Select the photographs to place in this gallery.'
+                        }
+                        files={form.data.images}
+                        onFilesChange={(files) => form.setData('images', files)}
+                        error={form.errors.images}
                         disabled={form.processing}
                     />
                 </div>
@@ -199,20 +219,6 @@ export function GalleryForm({ gallery, statuses, events, preselectEvent }: Galle
                         onChange={(event) => form.setData('status', event.target.value)}
                         error={form.errors.status}
                     />
-
-                    <AdminTextField
-                        id="sort"
-                        name="sort"
-                        label="Display order"
-                        type="number"
-                        min={0}
-                        max={10000}
-                        step={1}
-                        hint="Lower numbers list first."
-                        value={String(form.data.sort)}
-                        onChange={(event) => form.setData('sort', Number(event.target.value))}
-                        error={form.errors.sort}
-                    />
                 </div>
 
                 {isEdit && (
@@ -232,7 +238,11 @@ export function GalleryForm({ gallery, statuses, events, preselectEvent }: Galle
                     <Link href={route('admin.galleries.index')}>Cancel</Link>
                 </Button>
                 <Button type="submit" disabled={form.processing}>
-                    {form.processing ? 'Saving…' : isEdit ? 'Save changes' : 'Create gallery'}
+                    {form.processing
+                        ? 'Saving…'
+                        : isEdit
+                          ? 'Save changes'
+                          : 'Create gallery'}
                 </Button>
             </div>
         </form>

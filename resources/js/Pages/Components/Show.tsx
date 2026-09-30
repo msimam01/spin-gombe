@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { useState } from 'react';
 import {
     ArrowLeft,
     ArrowRight,
@@ -10,15 +11,20 @@ import {
     ListChecks,
     Target,
 } from 'lucide-react';
-import { componentIcon, componentNumberLabel } from '@/config/components';
+import { COMPONENT_PHOTOS, componentIcon, componentNumberLabel } from '@/config/components';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { Reveal } from '@/components/shared/Reveal';
+import { ImageHero } from '@/components/shared/ImageHero';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
+import { ProjectCard } from '@/components/shared/ProjectCard';
+import { Reveal } from '@/components/shared/Reveal';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Photo, ProjectComponent } from '@/types';
+
+/** Photos shown before the collection is expanded — keeps long pages navigable. */
+const PHOTO_LIMIT = 8;
 
 /** A component as delivered by ComponentsShowController. */
 interface ComponentEntry extends ProjectComponent {
@@ -34,8 +40,20 @@ interface Neighbour {
     url_slug: string;
 }
 
+interface RelatedProject {
+    id: number;
+    slug: string;
+    title: string;
+    type: string;
+    summary: string | null;
+    cover_image: string | null;
+    location_name?: string | null;
+}
+
 interface RelatedContent {
-    projects: { id: number; slug: string; title: string; type: string; summary: string | null; cover_image: string | null }[];
+    projects: RelatedProject[];
+    /** Total related records — drives the "View all" link when > 3. */
+    projects_count: number;
     documents: { id: number; title: string; category: string | null; file_url: string | null; published_on: string | null }[];
     photos: Photo[];
     videos: { id: number; title: string; embed_url: string | null; watch_url: string | null; thumbnail_url: string | null }[];
@@ -50,6 +68,14 @@ interface ComponentsShowProps {
 /**
  * A single official SPIN project component.
  *
+ * Phase 29: an image-led detail page. The hero carries the component's own
+ * approved imagery from the shared COMPONENT_PHOTOS map (the genuine Balanga
+ * Dam photograph for the dam component, representative imagery elsewhere —
+ * never presented as a photograph of a specific SPIN activity). Related
+ * projects and activities render as a full-width three-column card grid
+ * above a separate media section; photos expand in place via the same
+ * "Show all" pattern as the project and news pages.
+ *
  * Every section is data-driven: objectives and activities render from the
  * component record when supplied, and related projects/documents/photos/
  * videos render published records when they exist. Nothing is invented —
@@ -57,11 +83,12 @@ interface ComponentsShowProps {
  */
 export default function ComponentsShow({ component, neighbours, related }: ComponentsShowProps) {
     const Icon = componentIcon(component, component.position);
-    const hasRelated =
-        related.projects.length > 0 ||
-        related.documents.length > 0 ||
-        related.photos.length > 0 ||
-        related.videos.length > 0;
+    const [showAllPhotos, setShowAllPhotos] = useState(false);
+
+    const heroPhoto = COMPONENT_PHOTOS[component.position];
+    const visiblePhotos = showAllPhotos ? related.photos : related.photos.slice(0, PHOTO_LIMIT);
+    const hasMedia =
+        related.documents.length > 0 || related.photos.length > 0 || related.videos.length > 0;
 
     return (
         <PublicLayout>
@@ -70,56 +97,51 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                 description={component.summary ?? undefined}
             />
 
-            {/* 1 — Component hero */}
-            <section className="relative overflow-hidden border-b border-border bg-brand-50">
-                <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -top-24 right-0 size-80 rounded-full bg-brand-100/50 blur-3xl"
-                />
-                <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute bottom-0 left-1/4 size-56 rounded-full bg-gold-100/40 blur-3xl"
-                />
+            {/* 1 — Image-led hero: the component's own approved imagery */}
+            <ImageHero
+                image={heroPhoto?.src ?? '/images/hero/balanga-dam.jpg'}
+                alt={heroPhoto?.alt ?? 'Balanga Dam in Gombe State'}
+                position={heroPhoto?.position}
+                priority
+            >
+                <nav aria-label="Breadcrumb" className="mb-6">
+                    <ol className="flex flex-wrap items-center gap-1.5 text-xs text-white/70">
+                        <li>
+                            <Link href={route('home')} className="transition-colors hover:text-white">
+                                Home
+                            </Link>
+                        </li>
+                        <li className="flex items-center gap-1.5">
+                            <ChevronRight aria-hidden="true" className="size-3.5" />
+                            <Link href={route('components.index')} className="transition-colors hover:text-white">
+                                Components
+                            </Link>
+                        </li>
+                        <li className="flex items-center gap-1.5">
+                            <ChevronRight aria-hidden="true" className="size-3.5" />
+                            <span aria-current="page" className="font-medium text-white">
+                                {component.short_name ?? component.name}
+                            </span>
+                        </li>
+                    </ol>
+                </nav>
 
-                <Container className="relative py-14 lg:py-20">
-                    <nav aria-label="Breadcrumb" className="mb-6">
-                        <ol className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                            <li>
-                                <Link href={route('home')} className="transition-colors hover:text-primary">
-                                    Home
-                                </Link>
-                            </li>
-                            <li className="flex items-center gap-1.5">
-                                <ChevronRight aria-hidden="true" className="size-3.5" />
-                                <Link href={route('components.index')} className="transition-colors hover:text-primary">
-                                    Components
-                                </Link>
-                            </li>
-                            <li className="flex items-center gap-1.5">
-                                <ChevronRight aria-hidden="true" className="size-3.5" />
-                                <span aria-current="page" className="font-medium text-foreground">
-                                    {component.short_name ?? component.name}
-                                </span>
-                            </li>
-                        </ol>
-                    </nav>
+                <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-gold-300 uppercase">
+                    <span aria-hidden="true" className="h-px w-6 bg-accent" />
+                    Component {String(component.position + 1).padStart(2, '0')} of{' '}
+                    {String(component.total).padStart(2, '0')}
+                </p>
 
-                    <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-gold-700 uppercase">
-                        <span aria-hidden="true" className="h-px w-6 bg-accent" />
-                        Component {String(component.position + 1).padStart(2, '0')}
+                <h1 className="max-w-3xl text-2xl leading-[1.15] font-bold text-white sm:text-3xl lg:text-4xl">
+                    {component.name}
+                </h1>
+
+                {component.summary && (
+                    <p className="mt-5 max-w-2xl text-base leading-relaxed text-brand-100 [text-align:justify] sm:text-lg">
+                        {component.summary}
                     </p>
-
-                    <h1 className="max-w-3xl text-2xl leading-[1.15] font-bold text-foreground sm:text-3xl lg:text-4xl">
-                        {component.name}
-                    </h1>
-
-                    {component.summary && (
-                        <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                            {component.summary}
-                        </p>
-                    )}
-                </Container>
-            </section>
+                )}
+            </ImageHero>
 
             {/* 2 — Overview (official supplied description) */}
             <section aria-labelledby="overview" className="border-b border-border bg-background">
@@ -134,7 +156,7 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                 What this component covers
                             </h2>
                             {component.description ? (
-                                <p className="mt-6 text-lg leading-relaxed text-foreground sm:text-xl sm:leading-relaxed">
+                                <p className="mt-6 text-lg leading-relaxed text-foreground [text-align:justify] sm:text-xl sm:leading-relaxed">
                                     {component.description}
                                 </p>
                             ) : (
@@ -239,85 +261,69 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                 </section>
             )}
 
-            {/* 5 + 6 — Related projects, documents, photos, videos */}
-            <section aria-label="Related content" className="border-b border-border bg-background">
+            {/* 5 — Related projects & activities: full-width, three columns on wide screens */}
+            <section aria-labelledby="related-projects" className="border-b border-border bg-background">
                 <Container className="py-14 sm:py-16">
-                    <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
-                        Related projects & resources
+                    <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-brand-700 uppercase">
+                        <span aria-hidden="true" className="h-px w-6 bg-accent" />
+                        Implementation
+                    </p>
+                    <h2 id="related-projects" className="text-2xl font-bold text-foreground sm:text-3xl">
+                        Related projects &amp; activities
                     </h2>
 
-                    {hasRelated ? (
-                        <div className="mt-10 grid gap-10 lg:grid-cols-2">
-                            {related.projects.length > 0 && (
-                                <div>
-                                    <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
-                                        Projects & activities
-                                    </h3>
-                                    <ul className="mt-4 space-y-3">
-                                        {related.projects.map((project) => (
-                                            <li key={project.id}>
-                                                <Link
-                                                    href={route('projects.show', { slug: project.slug })}
-                                                    className="block rounded-md border border-border bg-background p-5 shadow-subtle transition-colors hover:bg-muted"
-                                                >
-                                                    <p className="text-xs font-semibold tracking-wide text-gold-700 uppercase">
-                                                        {project.type === 'activity' ? 'Activity' : 'Project'}
-                                                    </p>
-                                                    <h4 className="mt-1 font-semibold text-foreground">{project.title}</h4>
-                                                    {project.summary && (
-                                                        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                                                            {project.summary}
-                                                        </p>
-                                                    )}
-                                                </Link>
-                                            </li>
-                                        ))}
-                                    </ul>
+                    {related.projects.length > 0 ? (
+                        <>
+                            <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+                                {related.projects.map((project) => (
+                                    <li key={project.id}>
+                                        <ProjectCard project={project} />
+                                    </li>
+                                ))}
+                            </ul>
+
+                            {/* Deep link to the full filtered listing, only when more exist. */}
+                            {related.projects_count > related.projects.length && (
+                                <div className="mt-8">
+                                    <Link
+                                        href={`${route('projects.index')}?component=${encodeURIComponent(component.url_slug)}`}
+                                        className="inline-flex items-center gap-2 rounded-md border border-brand-200 bg-background px-5 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                                    >
+                                        View all projects and activities
+                                        <ArrowRight aria-hidden="true" className="size-4" />
+                                    </Link>
+                                    <p className="mt-2 text-xs text-muted-foreground">
+                                        Showing {related.projects.length} of {related.projects_count} under this
+                                        component.
+                                    </p>
                                 </div>
                             )}
+                        </>
+                    ) : (
+                        <div className="mt-8">
+                            <EmptyState
+                                icon={<FolderOpen aria-hidden="true" className="size-5" />}
+                                title="No related projects or activities yet"
+                                description="Projects and activities carried out under this component are listed here when published."
+                            />
+                        </div>
+                    )}
+                </Container>
+            </section>
 
-                            {related.documents.length > 0 && (
-                                <div>
-                                    <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
-                                        Documents
-                                    </h3>
-                                    <ul className="mt-4 space-y-3">
-                                        {related.documents.map((document) => (
-                                            <li key={document.id}>
-                                                <article className="flex items-start gap-4 rounded-md border border-border bg-background p-5 shadow-subtle">
-                                                    <span className="flex size-10 shrink-0 items-center justify-center rounded-sm bg-brand-50 text-brand-700">
-                                                        <FileText aria-hidden="true" className="size-5" />
-                                                    </span>
-                                                    <span className="min-w-0">
-                                                        <span className="block font-semibold text-foreground">
-                                                            {document.title}
-                                                        </span>
-                                                        {(document.category || document.published_on) && (
-                                                            <span className="mt-1 block text-xs text-muted-foreground">
-                                                                {[document.category, document.published_on]
-                                                                    .filter(Boolean)
-                                                                    .join(' · ')}
-                                                            </span>
-                                                        )}
-                                                        {document.file_url && (
-                                                            <a
-                                                                href={document.file_url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
-                                                            >
-                                                                Open document
-                                                                <ArrowUpRight aria-hidden="true" className="size-3.5" />
-                                                            </a>
-                                                        )}
-                                                    </span>
-                                                </article>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
+            {/* 6 — Media: a separate section below the projects grid */}
+            <section aria-labelledby="component-media" className="border-b border-border bg-brand-50/60">
+                <Container className="py-14 sm:py-16">
+                    <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-brand-700 uppercase">
+                        <span aria-hidden="true" className="h-px w-6 bg-accent" />
+                        Media
+                    </p>
+                    <h2 id="component-media" className="text-2xl font-bold text-foreground sm:text-3xl">
+                        Photos &amp; videos
+                    </h2>
 
+                    {hasMedia ? (
+                        <div className="mt-10 space-y-12">
                             {related.photos.length > 0 && (
                                 <div>
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
@@ -325,10 +331,22 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                     </h3>
                                     <div className="mt-4">
                                         <PhotoGrid
-                                            photos={related.photos}
+                                            photos={visiblePhotos}
                                             contextLabel={`${component.name} photos`}
                                         />
                                     </div>
+                                    {related.photos.length > PHOTO_LIMIT && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAllPhotos((current) => !current)}
+                                            aria-expanded={showAllPhotos}
+                                            className="mt-4 inline-flex items-center gap-2 rounded-md border border-brand-200 bg-background px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                                        >
+                                            {showAllPhotos
+                                                ? 'Show fewer photos'
+                                                : `Show all ${related.photos.length} photos`}
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
@@ -337,15 +355,15 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
                                         Videos
                                     </h3>
-                                    <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+                                    <ul className="mt-4 grid gap-6 sm:grid-cols-2">
                                         {related.videos.map((video) => (
                                             <li key={video.id}>
                                                 <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
                                                     {video.embed_url ? (
                                                         /*
                                                          * Embedded player, same pattern as the media
-                                                         * centre: lazy-loaded, 16:9, no autoplay
-                                                         * (`?rel=0` only limits related videos).
+                                                         * centre: privacy-enhanced (youtube-nocookie),
+                                                         * lazy-loaded, 16:9, never autoplaying.
                                                          */
                                                         <iframe
                                                             src={`${video.embed_url}?rel=0`}
@@ -381,6 +399,50 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                                             >
                                                                 Watch on YouTube
                                                                 <ArrowUpRight aria-hidden="true" className="size-3" />
+                                                                <span className="sr-only">(opens in a new tab)</span>
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </article>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {related.documents.length > 0 && (
+                                <div>
+                                    <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
+                                        Documents
+                                    </h3>
+                                    <ul className="mt-4 grid gap-3 lg:grid-cols-2">
+                                        {related.documents.map((document) => (
+                                            <li key={document.id}>
+                                                <article className="flex h-full items-start gap-4 rounded-md border border-border bg-background p-5 shadow-subtle">
+                                                    <span className="flex size-10 shrink-0 items-center justify-center rounded-sm bg-brand-50 text-brand-700">
+                                                        <FileText aria-hidden="true" className="size-5" />
+                                                    </span>
+                                                    <div className="min-w-0">
+                                                        <h4 className="font-semibold text-foreground">
+                                                            {document.title}
+                                                        </h4>
+                                                        {(document.category || document.published_on) && (
+                                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                                {[document.category, document.published_on]
+                                                                    .filter(Boolean)
+                                                                    .join(' · ')}
+                                                            </p>
+                                                        )}
+                                                        {document.file_url && (
+                                                            <a
+                                                                href={document.file_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
+                                                            >
+                                                                Open document
+                                                                <ArrowUpRight aria-hidden="true" className="size-3.5" />
+                                                                <span className="sr-only">(opens in a new tab)</span>
                                                             </a>
                                                         )}
                                                     </div>
@@ -392,11 +454,11 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                             )}
                         </div>
                     ) : (
-                        <div className="mt-10">
+                        <div className="mt-8">
                             <EmptyState
                                 icon={<FolderOpen aria-hidden="true" className="size-5" />}
-                                title="No related content yet"
-                                description="Projects, activities, documents, photos and videos connected to this component are listed here when available."
+                                title="No media yet"
+                                description="Photos and videos connected to this component are listed here when available."
                             />
                         </div>
                     )}
@@ -404,7 +466,7 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
             </section>
 
             {/* 7 — Component navigation: previous / all / next */}
-            <nav aria-label="Component navigation" className="border-b border-border bg-brand-50/60">
+            <nav aria-label="Component navigation" className="bg-brand-50/60">
                 <Container className="grid gap-4 py-8 sm:grid-cols-3 sm:items-stretch">
                     {neighbours.previous ? (
                         <Link

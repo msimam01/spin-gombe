@@ -31,7 +31,7 @@ export function ProjectBackground() {
             <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
                 <div className="lg:col-span-7">
                     <Reveal>
-                        <p className="text-lg leading-relaxed text-foreground sm:text-xl sm:leading-relaxed">
+                        <p className="text-lg leading-relaxed text-foreground sm:text-xl sm:leading-relaxed [text-align:justify]">
                             {balanga}
                         </p>
                     </Reveal>
@@ -60,7 +60,7 @@ export function ProjectBackground() {
                             <h3 className="text-xs font-semibold tracking-widest text-gold-700 uppercase">
                                 The project's response
                             </h3>
-                            <p className="mt-2 text-sm leading-relaxed text-foreground">
+                            <p className="mt-2 text-sm leading-relaxed text-foreground [text-align:justify]">
                                 SPIN was designed to address three big challenges at once — dam
                                 safety, irrigation and hydropower — strengthening water resources
                                 management, modernizing irrigation services and improving dam
@@ -72,10 +72,23 @@ export function ProjectBackground() {
 
                 <Reveal delay={120} className="lg:col-span-5">
                     <aside className="rounded-md border border-brand-100 bg-gradient-to-br from-brand-50 via-background to-brand-50/50 p-6 shadow-card sm:p-8">
+                        {/*
+                         * Genuine client-supplied photograph of the dam the aside
+                         * describes — the real subject, never a stand-in.
+                         */}
+                        <img
+                            src="/images/hero/balanga-dam-1.jpg"
+                            alt="Balanga Dam and its surrounding water body in Gombe State"
+                            className="mb-5 aspect-[16/10] w-full rounded-md object-cover shadow-subtle"
+                            loading="lazy"
+                            decoding="async"
+                            width={1008}
+                            height={454}
+                        />
                         <h3 className="font-display text-lg font-bold text-foreground">
-                            Balanga Dam & Irrigation Scheme
+                            Balanga Dam &amp; Irrigation Scheme
                         </h3>
-                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground [text-align:justify]">
                             The selected area in Gombe State — originally developed to support
                             agricultural production through a controlled water supply for
                             dry-season farming, and now the focus of the project's

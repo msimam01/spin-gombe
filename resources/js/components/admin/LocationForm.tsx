@@ -93,7 +93,7 @@ export function LocationForm({ location, statuses }: LocationFormProps) {
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Location details</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Official SPIN location information as it should appear on the public website.
+                    Official location information as it should appear on the public website.
                 </p>
 
                 <div className="mt-5 space-y-5">
@@ -138,7 +138,7 @@ export function LocationForm({ location, statuses }: LocationFormProps) {
                         name="description"
                         label="Description"
                         rows={3}
-                        hint="Optional context for the location as supplied by SPIN."
+                        hint="Optional context for the location"
                         value={form.data.description}
                         onChange={(event) => form.setData('description', event.target.value)}
                         error={form.errors.description}
@@ -149,8 +149,7 @@ export function LocationForm({ location, statuses }: LocationFormProps) {
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Coordinates</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Optional. Only enter latitude and longitude once SPIN has confirmed the
-                    exact point — never estimate or look up approximate values. A location
+                    Optional. Only enter latitude and longitude. A location
                     without coordinates is saved normally but cannot appear on the public
                     project map.
                 </p>

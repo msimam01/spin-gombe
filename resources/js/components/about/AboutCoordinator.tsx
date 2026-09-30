@@ -15,6 +15,9 @@ import type { SharedProps } from '@/types';
  * responsive cropping, and the alt text names the person from the
  * established project content. If no portrait were configured, the frame
  * degrades to a neutral identity mark — never a workflow notice.
+ *
+ * Client revision (Phase 27): biography paragraphs are justified and the
+ * section follows the compacted vertical rhythm.
  */
 export function AboutCoordinator() {
     const { site } = usePage<SharedProps>().props;
@@ -22,7 +25,7 @@ export function AboutCoordinator() {
 
     return (
         <section id="coordinator" aria-labelledby="coordinator" className="border-y border-brand-100 bg-brand-50/60">
-            <Container className="py-14 sm:py-16 lg:py-20">
+            <Container className="py-10 sm:py-12 lg:py-16">
                 <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
                     {/* Portrait / identity column. */}
                     <Reveal className="lg:col-span-4">
@@ -80,7 +83,7 @@ export function AboutCoordinator() {
                     <Reveal delay={100} className="lg:col-span-8">
                         <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-brand-700 uppercase">
                             <span aria-hidden="true" className="h-px w-6 bg-accent" />
-                            Project Coordination
+                            Project Coordinator
                         </p>
                         <h2 className="max-w-2xl text-2xl font-bold text-foreground sm:text-3xl">
                             Leadership of the project in Gombe State
@@ -88,7 +91,7 @@ export function AboutCoordinator() {
 
                         <div className="mt-6 max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground">
                             {coordinator.bio.map((paragraph) => (
-                                <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+                                <p key={paragraph.slice(0, 48)} className="[text-align:justify]">{paragraph}</p>
                             ))}
                         </div>
                     </Reveal>

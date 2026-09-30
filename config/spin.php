@@ -21,7 +21,7 @@ return [
     // ---- Identity ---------------------------------------------------------
     'name' => 'Sustainable Power and Irrigation for Nigeria Project',
     'acronym' => 'SPIN',
-    'site_title' => 'SPIN Gombe State Project',
+    'site_title' => 'SPIN Project Gombe',
 
     /*
      * Short overview of the project. Deliberately concise — the long-form
@@ -64,7 +64,7 @@ return [
     'background' => [
         'The Federal Government of Nigeria, through the Federal Ministry of Water '
             .'Resources and Sanitation (FMWRS), is implementing the Sustainable Power '
-            .'and Irrigation for Nigeria (SPIN) Project — a World Bank-financed '
+            .'and Irrigation for Nigeria (SPIN) Project a World Bank-financed '
             .'operation designed to enhance irrigation service delivery, improve dam '
             .'safety and hydropower, and strengthen water resources management across '
             .'selected river basins in Nigeria, including Gombe State.',
@@ -80,7 +80,7 @@ return [
             .'26 September 2024 and flagged off on 10 March 2026. It is jointly '
             .'implemented by the Federal Ministry of Water Resources and Sanitation '
             .'and the Federal Ministry of Power under the Renewed Hope Agenda, and is '
-            .'designed as a follow-up to the TRIMING Project — a transformational '
+            .'designed as a follow-up to the TRIMING Project a transformational '
             .'water–energy–agriculture programme meant to address three big '
             .'challenges at once: dam safety, irrigation and hydropower.',
 
@@ -264,7 +264,7 @@ return [
 
     // ---- SEO defaults -----------------------------------------------------
     'seo' => [
-        'title_suffix' => 'SPIN Gombe State Project',
+        'title_suffix' => 'SPIN Project Gombe',
         'description' => 'Official website of the Sustainable Power and Irrigation for Nigeria '
             .'(SPIN) Project, Gombe State — irrigation modernisation, dam safety and sustainable '
             .'hydropower development.',
@@ -289,13 +289,15 @@ return [
 
     /*
      * Institutional partner strip (homepage). Each entry renders its official
-     * logo from `logos` when available. All three institutions are named in
-     * the collection form as implementing partners — no others are added. The
-     * state implementing ministry has its own About-page card and logo.
+     * logo from `logos` when available. The federal ministry and the World
+     * Bank are named in the collection form as implementing partners; the
+     * state implementing ministry fronts the project in Gombe. The federal
+     * power ministry's logo stays available for the About-page institutions
+     * card.
      */
     'partners' => [
         ['key' => 'federal', 'label' => 'Federal Ministry of Water Resources and Sanitation'],
-        ['key' => 'power', 'label' => 'Federal Ministry of Power'],
+        ['key' => 'gombe', 'label' => 'Gombe State Ministry of Water Resources'],
         ['key' => 'world_bank', 'label' => 'The World Bank'],
     ],
 

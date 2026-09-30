@@ -20,6 +20,8 @@ const FACT_ICONS: Record<string, LucideIcon> = {
  * A single surface with internal hairline dividers, a gold rule on the leading
  * edge and one unified label/value hierarchy: the band reads as a single
  * official statement. Only SPIN-supplied facts are shown — no statistics.
+ *
+ * Client revision (Phase 27): compacted to the shared vertical rhythm.
  */
 export function ProjectSnapshot() {
     const { site } = usePage<SharedProps>().props;
@@ -30,7 +32,7 @@ export function ProjectSnapshot() {
 
     return (
         <section aria-label="Project snapshot" className="border-b border-border bg-background">
-            <Container className="py-10 lg:py-12">
+            <Container className="py-8 lg:py-10">
                 <div className="relative overflow-hidden rounded-md border border-brand-100 bg-gradient-to-br from-brand-50 via-background to-brand-50/50 shadow-card">
                     <span
                         aria-hidden="true"

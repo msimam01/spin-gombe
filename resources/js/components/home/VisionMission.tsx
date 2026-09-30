@@ -10,6 +10,8 @@ import type { SharedProps } from '@/types';
  * Deliberately a different visual language from the rest of the page: a deep
  * green band with generous typography, so the institutional statements feel
  * set apart. The wording is the supplied SPIN text, unaltered in meaning.
+ *
+ * Client revision (Phase 27): compacted to the shared vertical rhythm.
  */
 export function VisionMission() {
     const { site } = usePage<SharedProps>().props;
@@ -29,8 +31,8 @@ export function VisionMission() {
                 <path d="M9.2 14.4c1.6 1.4 4 1.4 5.6 0" />
             </svg>
 
-            <Container className="py-14 sm:py-16 lg:py-20">
-                <div className="grid gap-10 lg:grid-cols-2 lg:gap-px lg:rounded-md lg:bg-brand-400/25 lg:shadow-raised lg:ring-1 lg:ring-white/10">
+            <Container className="py-10 sm:py-12 lg:py-16">
+                <div className="grid gap-8 lg:grid-cols-2 lg:gap-px lg:rounded-md lg:bg-brand-400/25 lg:shadow-raised lg:ring-1 lg:ring-white/10">
                     <Reveal className="lg:bg-primary lg:p-8 lg:pb-10 xl:p-10">
                         <div className="flex items-center gap-3">
                             <span className="flex size-11 items-center justify-center rounded-sm bg-white/10 text-gold-300 ring-1 ring-white/15">
@@ -41,7 +43,7 @@ export function VisionMission() {
                             </h2>
                         </div>
 
-                        <p className="mt-6 text-base leading-relaxed text-white/90 sm:text-lg sm:leading-relaxed">
+                        <p className="mt-6 text-base leading-relaxed text-white/90 [text-align:justify] sm:text-lg sm:leading-relaxed">
                             {site.vision}
                         </p>
                     </Reveal>
@@ -56,7 +58,7 @@ export function VisionMission() {
                             </h2>
                         </div>
 
-                        <p className="mt-6 text-base leading-relaxed text-white/90 sm:text-lg sm:leading-relaxed">
+                        <p className="mt-6 text-base leading-relaxed text-white/90 [text-align:justify] sm:text-lg sm:leading-relaxed">
                             {site.mission}
                         </p>
 

@@ -52,21 +52,21 @@ export function Logo({
             <span className="flex min-w-0 flex-col leading-tight">
                 <span
                     className={cn(
-                        'font-display text-lg font-bold tracking-tight',
+                        'font-display text-md font-bold tracking-tight',
                         inverted ? 'text-white' : 'text-foreground',
                     )}
                 >
                     {site.acronym}
-                    <span className={inverted ? 'text-brand-200' : 'text-muted-foreground'}> Gombe</span>
+                    <span className={inverted ? 'text-brand-200' : 'text-muted-foreground'}> Project Gombe</span>
                 </span>
-                <span
+                {/* <span
                     className={cn(
                         'truncate text-xs font-medium',
                         inverted ? 'text-brand-100' : 'text-muted-foreground',
                     )}
                 >
-                    State Project
-                </span>
+                    Gombe
+                </span> */}
             </span>
         </Link>
     );

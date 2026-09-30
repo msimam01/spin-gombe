@@ -28,7 +28,7 @@ const PAGE_SECTIONS = [
     { id: 'objectives', label: 'Objectives' },
     { id: 'key-dates', label: 'Key Dates' },
     { id: 'institutions', label: 'Institutions' },
-    { id: 'coordinator', label: 'Coordinator' },
+    { id: 'coordinator', label: 'Project Coordinator' },
 ];
 
 /**

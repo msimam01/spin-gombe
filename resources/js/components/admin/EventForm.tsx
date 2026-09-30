@@ -1,33 +1,35 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { BulkImagesField } from '@/components/admin/BulkImagesField';
 import { CoverImageField } from '@/components/admin/CoverImageField';
+import { ExistingImagesGrid } from '@/components/admin/ExistingImagesGrid';
 import { AdminSelectField, AdminTextField, AdminTextareaField } from '@/components/admin/FormControls';
 import { Button } from '@/components/ui/button';
 import { route } from '@/lib/routes';
-import type { AdminEvent, SelectOption } from '@/types/admin';
+import type { AdminEvent } from '@/types/admin';
 
 interface EventFormProps {
     /** Present in edit mode; absent on create. */
     event?: AdminEvent;
     statuses: Record<string, string>;
-    locations: SelectOption[];
 }
 
 interface EventFormData {
     title: string;
     description: string;
     venue: string;
-    location_id: string;
     starts_at: string;
     ends_at: string;
-    published_at: string;
     status: string;
-    sort: number;
     /** Newly selected cover photo; uploaded with the next save. */
     cover: File | null;
     /** Explicit removal of the stored cover photo. */
     remove_cover: boolean;
+    /** Newly selected supporting images; uploaded with the next save. */
+    images: File[];
+    /** Existing event photographs ticked for removal. */
+    remove_photo_ids: number[];
 }
 
 /** ISO date-time → the local wall-clock value a datetime-local input shows. */
@@ -50,33 +52,27 @@ function toIso(value: string): string {
 /**
  * The create/edit form for an event.
  *
- * Every field maps to a real `events` column — nothing invented. The event's
- * own start date/time is the single source of truth for the public
- * upcoming/past classification; there is no separate event-status field. The
- * end date/time is optional and validated to come after the start. Location
- * links reuse the Phase 13.1 Locations module — coordinates are never
- * entered here. Cover-image upload arrives with the Media phase; the column
- * is preserved untouched.
+ * Phase 31: Venue is the one place-related field — no separate Location
+ * record select. The Publication Date and Display Order fields are gone:
+ * the event's own start date/time remains the single source of truth for
+ * the public upcoming/past classification, and publication is stamped by
+ * the publishing concern. The cover image and bulk supporting photographs
+ * round out the form; photographs attach to the event's own gallery.
  */
-export function EventForm({ event, statuses, locations }: EventFormProps) {
+export function EventForm({ event, statuses }: EventFormProps) {
     const isEdit = event !== undefined;
 
     const form = useForm<EventFormData>({
         title: event?.title ?? '',
         description: event?.description ?? '',
         venue: event?.venue ?? '',
-        location_id: event?.location_id !== undefined && event?.location_id !== null
-            ? String(event.location_id)
-            : '',
         starts_at: toLocalInput(event?.starts_at),
         ends_at: toLocalInput(event?.ends_at),
-        published_at: event?.published_at !== undefined && event?.published_at !== null
-            ? event.published_at.slice(0, 10)
-            : '',
         status: event?.status ?? 'draft',
-        sort: event?.sort ?? 0,
         cover: null,
         remove_cover: false,
+        images: [],
+        remove_photo_ids: [],
     });
 
     const [dirtyNotified, setDirtyNotified] = useState(false);
@@ -125,7 +121,7 @@ export function EventForm({ event, statuses, locations }: EventFormProps) {
         // server, and a file-bearing EDIT travels as POST with Laravel's
         // method spoofing (a multipart body only parses as POST). Creation
         // is already a POST, so it needs no spoofing.
-        const uploading = isEdit && form.data.cover !== null;
+        const uploading = isEdit && (form.data.cover !== null || form.data.images.length > 0);
 
         form.transform((data) => ({
             ...data,
@@ -152,7 +148,7 @@ export function EventForm({ event, statuses, locations }: EventFormProps) {
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Event details</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Official SPIN events, engagements and stakeholder activities as they
+                    Official events, engagements and stakeholder activities as they
                     should appear on the public website.
                 </p>
 
@@ -191,36 +187,36 @@ export function EventForm({ event, statuses, locations }: EventFormProps) {
                         error={form.errors.cover}
                         disabled={form.processing}
                     />
+
+                    <BulkImagesField
+                        label="Supporting Images"
+                        hint="Photographs from this event, shown on its public page."
+                        files={form.data.images}
+                        onFilesChange={(files) => form.setData('images', files)}
+                        error={form.errors.images}
+                        disabled={form.processing}
+                    />
+
+                    {isEdit && (event.photos?.length ?? 0) > 0 && (
+                        <ExistingImagesGrid
+                            images={event.photos ?? []}
+                            selectedIds={form.data.remove_photo_ids}
+                            onSelectionChange={(ids) => form.setData('remove_photo_ids', ids)}
+                            disabled={form.processing}
+                        />
+                    )}
                 </div>
             </div>
 
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Where it happens</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Both are optional: a named place from the Locations module, a free-text
-                    venue (e.g. a hall), or both.
-                </p>
 
-                <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                    <AdminSelectField
-                        id="location_id"
-                        name="location_id"
-                        label="Location"
-                        hint="A named place managed under Content → Locations. Optional."
-                        options={[
-                            { value: '', label: 'Select location…' },
-                            ...locations,
-                        ]}
-                        value={form.data.location_id}
-                        onChange={(event) => form.setData('location_id', event.target.value)}
-                        error={form.errors.location_id}
-                    />
-
+                <div className="mt-5">
                     <AdminTextField
                         id="venue"
                         name="venue"
                         label="Venue"
-                        hint="Free text, e.g. the hall or building name. Optional."
+                        hint="Where the event takes place — e.g. the hall, town or site name. Optional."
                         value={form.data.venue}
                         onChange={(event) => form.setData('venue', event.target.value)}
                         error={form.errors.venue}
@@ -233,7 +229,7 @@ export function EventForm({ event, statuses, locations }: EventFormProps) {
                 <h2 className="text-base font-semibold text-foreground">Date &amp; time</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                     The start date/time decides whether the event appears under upcoming or
-                    past on the public website — there is no separate setting for that.
+                    past on the public website.
                 </p>
 
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -270,17 +266,6 @@ export function EventForm({ event, statuses, locations }: EventFormProps) {
                 </p>
 
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                    <AdminTextField
-                        id="published_at"
-                        name="published_at"
-                        label="Publication date"
-                        type="date"
-                        hint="Leave empty to publish now when you publish. A future date schedules the event — it stays hidden until that day."
-                        value={form.data.published_at}
-                        onChange={(event) => form.setData('published_at', event.target.value)}
-                        error={form.errors.published_at}
-                    />
-
                     <AdminSelectField
                         id="status"
                         name="status"
@@ -290,20 +275,6 @@ export function EventForm({ event, statuses, locations }: EventFormProps) {
                         value={form.data.status}
                         onChange={(event) => form.setData('status', event.target.value)}
                         error={form.errors.status}
-                    />
-
-                    <AdminTextField
-                        id="sort"
-                        name="sort"
-                        label="Display order"
-                        type="number"
-                        min={0}
-                        max={10000}
-                        step={1}
-                        hint="Lower numbers list first within the admin."
-                        value={String(form.data.sort)}
-                        onChange={(event) => form.setData('sort', Number(event.target.value))}
-                        error={form.errors.sort}
                     />
                 </div>
 

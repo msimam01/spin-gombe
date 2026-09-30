@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\EventResource;
+use App\Http\Resources\NewsPostResource;
 use App\Http\Resources\PhotoResource;
 use App\Http\Resources\ProjectComponentResource;
+use App\Http\Resources\ProjectResource;
+use App\Http\Resources\VideoResource;
 use App\Models\Document;
 use App\Models\Event;
 use App\Models\NewsPost;
@@ -19,6 +23,9 @@ use Inertia\Response;
 
 class HomeController extends Controller
 {
+    /** Preview sections show three records; the rest live on their own pages. */
+    private const SECTION_LIMIT = 3;
+
     /**
      * Public home page.
      *
@@ -26,29 +33,34 @@ class HomeController extends Controller
      * is still being supplied, sections degrade to honest empty states
      * rather than showing placeholder data.
      *
-     * Each collection is wrapped in a try/catch on purpose: until the full
-     * migration set has run (e.g. a fresh clone mid-migration), the homepage
-     * still renders instead of failing on a missing table.
+     * Every preview section is serialised through its public resource, so
+     * covers arrive as resolved, publicly usable URLs (or null — never a
+     * raw storage path). Sections are previews: exactly the newest three
+     * records, with the section's "View all" link leading to the full
+     * listing page (which carries the site's pagination and Load More
+     * controls).
      */
     public function __invoke(): Response
     {
         return Inertia::render('Home', [
             'components' => $this->publishedComponents(),
 
-            'projects' => $this->collect(
+            'projects' => $this->preview(
                 Project::query()
                     ->published()
-                    ->ordered()
-                    ->with(['component:id,name,short_name', 'location:id,name'])
-                    ->limit(3)
+                    ->latestFirst()
+                    ->with(['component:id,name,short_name', 'location:id,name']),
+                ProjectResource::class,
             ),
 
-            'news' => $this->collect(
-                NewsPost::query()->published()->latestFirst()->limit(3)
+            'news' => $this->preview(
+                NewsPost::query()->published()->latestFirst(),
+                NewsPostResource::class,
             ),
 
-            'events' => $this->collect(
-                Event::query()->published()->upcoming()->limit(3)
+            'events' => $this->preview(
+                Event::query()->published()->upcoming(),
+                EventResource::class,
             ),
 
             'photos' => $this->collect(
@@ -57,13 +69,41 @@ class HomeController extends Controller
             ),
 
             'videos' => $this->collect(
-                Video::query()->published()->ordered()->limit(2)
+                Video::query()->published()->ordered()->limit(2),
+                VideoResource::class,
             ),
 
             'mapLocations' => ProjectLocations::forMap(),
 
             'documentCounts' => $this->documentCounts(),
         ]);
+    }
+
+    /**
+     * A homepage preview section: the newest three records through the
+     * section's public resource. The homepage never paginates — the full
+     * listing (with its own Load More control) lives on the section's page.
+     *
+     * @return array<int, mixed>
+     */
+    private function preview($query, string $resourceClass): array
+    {
+        try {
+            return $resourceClass::collection(
+                $query->limit(self::SECTION_LIMIT)->get()
+            )->resolve();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    private function safeCount($query): int
+    {
+        try {
+            return $query->count();
+        } catch (\Throwable) {
+            return 0;
+        }
     }
 
     /**

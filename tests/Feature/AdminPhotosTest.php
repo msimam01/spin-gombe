@@ -160,11 +160,9 @@ class AdminPhotosTest extends TestCase
 
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.photos.store'), [
-                'image' => $this->jpeg(),
-                'alt_text' => 'Independent field photo',
+                'images' => [$this->jpeg()],
                 'related_to' => 'general',
                 'status' => 'draft',
-                'sort' => 0,
             ])
             ->assertRedirect(route('admin.photos.edit', ['photo' => 1]))
             ->assertSessionHasNoErrors();
@@ -184,12 +182,10 @@ class AdminPhotosTest extends TestCase
 
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.photos.store'), [
-                'image' => $this->jpeg(),
-                'alt_text' => 'Site photo',
+                'images' => [$this->jpeg()],
                 'related_to' => 'project',
                 'related_id' => $project->id,
                 'status' => 'draft',
-                'sort' => 0,
             ])
             ->assertSessionHasNoErrors();
 
@@ -206,12 +202,10 @@ class AdminPhotosTest extends TestCase
 
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.photos.store'), [
-                'image' => $this->jpeg(),
-                'alt_text' => 'Component photo',
+                'images' => [$this->jpeg()],
                 'related_to' => 'component',
                 'related_id' => $component->id,
                 'status' => 'draft',
-                'sort' => 0,
             ])
             ->assertSessionHasNoErrors();
 
@@ -228,12 +222,10 @@ class AdminPhotosTest extends TestCase
 
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.photos.store'), [
-                'image' => $this->jpeg(),
-                'alt_text' => 'Gallery photo',
+                'images' => [$this->jpeg()],
                 'related_to' => 'gallery',
                 'related_id' => $gallery->id,
                 'status' => 'draft',
-                'sort' => 0,
             ])
             ->assertSessionHasNoErrors();
 
@@ -247,12 +239,10 @@ class AdminPhotosTest extends TestCase
     {
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.photos.store'), [
-                'image' => $this->jpeg(),
-                'alt_text' => 'Bad relation',
+                'images' => [$this->jpeg()],
                 'related_to' => 'project',
                 'related_id' => 999999,
                 'status' => 'draft',
-                'sort' => 0,
             ])
             ->assertSessionHasErrors('related_id');
 
@@ -263,30 +253,40 @@ class AdminPhotosTest extends TestCase
     {
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.photos.store'), [
-                'image' => $this->notAnImage(),
-                'alt_text' => 'Not an image',
+                'images' => [$this->notAnImage()],
                 'related_to' => 'general',
                 'status' => 'draft',
-                'sort' => 0,
             ])
-            ->assertSessionHasErrors('image');
+            ->assertSessionHasErrors('images.0');
 
         $this->assertSame(0, Photo::count());
     }
 
-    public function test_alt_text_is_required(): void
+    public function test_alt_text_is_generated_from_the_filename(): void
     {
+        Storage::fake('public');
+
+        // Alt text is no longer a form field: it is derived server-side from
+        // the uploaded filename (cleaned and title-cased) — a meaningful
+        // photograph is never left with a blank alt attribute.
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.photos.store'), [
-                'image' => $this->jpeg(),
-                'alt_text' => '',
+                'images' => [
+                    new UploadedFile(
+                        $this->tempFile(base64_decode(self::JPEG_BYTES)),
+                        'balanga-dam-overview.jpg',
+                        'image/jpeg',
+                        null,
+                        true,
+                    ),
+                ],
                 'related_to' => 'general',
                 'status' => 'draft',
-                'sort' => 0,
             ])
-            ->assertSessionHasErrors('alt_text');
+            ->assertSessionHasNoErrors();
 
-        $this->assertSame(0, Photo::count());
+        $photo = Photo::firstOrFail();
+        $this->assertSame('Balanga dam overview', $photo->alt_text);
     }
 
     public function test_a_partial_update_never_touches_the_relationship(): void
@@ -351,8 +351,9 @@ class AdminPhotosTest extends TestCase
         Storage::disk('public')->put($originalPath, 'original bytes');
 
         $this->actingAs(User::factory()->administrator()->create())
-            ->put(route('admin.photos.update', ['photo' => $photo->id]), [
+            ->post(route('admin.photos.update', ['photo' => $photo->id]), [
                 'image' => $this->jpeg(),
+                '_method' => 'put',
             ])
             ->assertSessionHasNoErrors();
 
@@ -390,8 +391,9 @@ class AdminPhotosTest extends TestCase
         Storage::disk('public')->put($originalPath, 'original bytes');
 
         $this->actingAs(User::factory()->administrator()->create())
-            ->put(route('admin.photos.update', ['photo' => $photo->id]), [
+            ->post(route('admin.photos.update', ['photo' => $photo->id]), [
                 'image' => $this->notAnImage(),
+                '_method' => 'put',
             ])
             ->assertSessionHasErrors('image');
 
@@ -414,27 +416,34 @@ class AdminPhotosTest extends TestCase
         Storage::disk('public')->assertMissing($photo->getOriginal('image_path'));
     }
 
-    public function test_draft_photos_are_hidden_from_the_public_and_published_ones_appear(): void
+    public function test_supporting_photos_appear_with_their_published_owner(): void
     {
+        Storage::fake('public');
         $project = Project::factory()->published()->create(['slug' => 'dadin-kowa-rehab']);
         Photo::factory()->for($project)->published()->create(['alt_text' => 'Public photo']);
         Photo::factory()->for($project)->create(['alt_text' => 'Draft photo']);
 
+        // Both photographs reach the project's page: a draft upload is a
+        // supporting image on an already-published page.
         $this->get(route('projects.show', ['slug' => 'dadin-kowa-rehab']))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->has('project.photos', 1)
-                ->where('project.photos.0.alt_text', 'Public photo'));
+                ->has('project.photos', 2));
 
-        // Publish the draft via the admin endpoint; it becomes public.
+        // The standalone media listing stays publication-only, though.
+        $this->get(route('media.photos'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('photos', 1));
+
+        // Publishing the draft via the admin endpoint makes it standalone-public too.
         $draft = Photo::query()->where('alt_text', 'Draft photo')->firstOrFail();
         $this->actingAs(User::factory()->administrator()->create())
             ->patch(route('admin.photos.publish', ['photo' => $draft->id]), ['action' => 'publish'])
             ->assertRedirect();
 
-        $this->get(route('projects.show', ['slug' => 'dadin-kowa-rehab']))
+        $this->get(route('media.photos'))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->has('project.photos', 2));
+            ->assertInertia(fn ($page) => $page->has('photos', 2));
     }
 
     public function test_the_media_dashboard_reflects_the_database(): void

@@ -1,11 +1,17 @@
 import { Link } from '@inertiajs/react';
+import { useState } from 'react';
 import { ArrowLeft, ArrowRight, CalendarDays, ChevronRight, MapPin } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
+import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
+import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Photo } from '@/types';
+
+/** Photographs revealed per Load More click — three per row on desktop. */
+const PHOTO_STEP = 3;
 
 /** An event as delivered by EventsShowController. */
 interface EventDetail {
@@ -15,6 +21,8 @@ interface EventDetail {
     description: string | null;
     venue: string | null;
     cover_image: string | null;
+    /** Cover image, or the first published gallery photo as representative image. */
+    lead_image: string | null;
     starts_at: string | null;
     ends_at: string | null;
     starts_on: string | null;
@@ -81,6 +89,23 @@ function dateRange(event: EventDetail): string {
  * published galleries with photos exist. Nothing is fabricated.
  */
 export default function EventsShow({ event }: { event: EventDetail }) {
+    const [visiblePhotoCount, setVisiblePhotoCount] = useState(PHOTO_STEP);
+
+    // Every gallery's photos share one reveal count: the whole event's
+    // photography is one collection for the visitor, expanded in one grid.
+    const allPhotos = event.galleries.flatMap((gallery) => gallery.photos);
+    const visiblePhotoTotal = Math.min(visiblePhotoCount, allPhotos.length);
+
+    // Distribute the visible count across the galleries in order, so the
+    // grid keeps its per-gallery grouping while expanding three at a time.
+    let remaining = visiblePhotoTotal;
+    const visibleGalleries = event.galleries.map((gallery) => {
+        const photos = gallery.photos.slice(0, Math.max(remaining, 0));
+        remaining -= photos.length;
+
+        return { ...gallery, photos };
+    }).filter((gallery) => gallery.photos.length > 0);
+
     const isUpcoming = event.starts_at ? new Date(event.starts_at) >= new Date() : false;
     const time = formatTime(event.starts_at);
     const placeParts = [
@@ -209,11 +234,26 @@ export default function EventsShow({ event }: { event: EventDetail }) {
                 <Container className="py-14 sm:py-16">
                     <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
                         <div className="lg:col-span-7">
-                            {event.cover_image && (
+                            {/*
+                             * Lead image: the event's own cover, or a photograph from
+                             * its published galleries used strictly as a representative
+                             * image (the existing Event → Gallery → Photo relationship);
+                             * with neither, the branded placeholder. A genuine event
+                             * photograph is never fabricated.
+                             */}
+                            {event.lead_image ? (
                                 <img
-                                    src={event.cover_image}
-                                    alt={event.title}
+                                    src={event.lead_image}
+                                    alt={event.cover_image ? event.title : `Photograph from ${event.title}`}
                                     className="mb-10 aspect-[16/9] w-full rounded-md border border-border object-cover shadow-card"
+                                />
+                            ) : (
+                                /* Placeholder reserves the cover's own card frame in the column. */
+                                <MediaPlaceholder
+                                    icon={<CalendarDays aria-hidden="true" className="mr-1.5 size-3.5" />}
+                                    label="Event image to follow"
+                                    aspect="aspect-[16/9]"
+                                    className="mb-10 rounded-md border border-border"
                                 />
                             )}
                             {event.description && (
@@ -302,13 +342,13 @@ export default function EventsShow({ event }: { event: EventDetail }) {
             )}
 
             {/* Photo galleries — only published galleries with photos */}
-            {event.galleries.length > 0 && (
+            {allPhotos.length > 0 && (
                 <section aria-label="Event photos" className="border-b border-border bg-brand-50/60">
                     <Container className="py-14 sm:py-16">
                         <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Photos from this event</h2>
 
                         <div className="mt-10 space-y-12">
-                            {event.galleries.map((gallery) => (
+                            {visibleGalleries.map((gallery) => (
                                 <div key={gallery.id}>
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
                                         {gallery.title}
@@ -317,11 +357,19 @@ export default function EventsShow({ event }: { event: EventDetail }) {
                                         <PhotoGrid
                                             photos={gallery.photos}
                                             contextLabel={`${gallery.title} — ${event.title} photos`}
+                                            columnsClass="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                                         />
                                     </div>
                                 </div>
                             ))}
                         </div>
+
+                        <LoadMoreButton
+                            shown={visiblePhotoTotal}
+                            total={allPhotos.length}
+                            unit="photos"
+                            onReveal={() => setVisiblePhotoCount((current) => current + PHOTO_STEP)}
+                        />
                     </Container>
                 </section>
             )}

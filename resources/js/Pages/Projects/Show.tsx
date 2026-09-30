@@ -7,20 +7,24 @@ import {
     ChevronRight,
     FileText,
     Landmark,
+    MapPinned,
     Tag,
 } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { Reveal } from '@/components/shared/Reveal';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
+import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
+import { ProjectCard, type ProjectCardProject } from '@/components/shared/ProjectCard';
+import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
 import { ProjectsMap } from '@/components/shared/ProjectsMap';
 import type { MapMarkerLocation } from '@/components/shared/ProjectsMap';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Photo } from '@/types';
 
-/** Photos shown before the collection is expanded — keeps long pages navigable. */
-const PHOTO_LIMIT = 8;
+/** Photos revealed per Load More click — three per row on desktop. */
+const PHOTO_STEP = 3;
 
 interface ProjectDetail {
     id: number;
@@ -58,7 +62,7 @@ interface ProjectDetail {
         watch_url: string | null;
         thumbnail_url: string | null;
     }[];
-    related: { slug: string; title: string; type: string; summary: string | null }[];
+    related: ProjectCardProject[];
 }
 
 /**
@@ -69,7 +73,7 @@ interface ProjectDetail {
  * sections appear only when records exist. Nothing is fabricated.
  */
 export default function ProjectsShow({ project }: { project: ProjectDetail }) {
-    const [showAllPhotos, setShowAllPhotos] = useState(false);
+    const [visiblePhotoCount, setVisiblePhotoCount] = useState(PHOTO_STEP);
 
     const hasCoordinates =
         project.location?.latitude != null && project.location?.longitude != null;
@@ -106,9 +110,7 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
         ];
     }, [project]);
 
-    const visiblePhotos = showAllPhotos
-        ? project.photos
-        : project.photos.slice(0, PHOTO_LIMIT);
+    const visiblePhotos = project.photos.slice(0, visiblePhotoCount);
     const infoRows = [
         project.component && {
             label: 'Component',
@@ -201,12 +203,29 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                         </p>
                     )}
 
-                    {project.cover_image && (
+                    {project.cover_image ? (
+                        /*
+                         * The record's own published cover image — the existing
+                         * column, resolved through the storage conventions. Promoted
+                         * above the Overview section as the page's lead visual.
+                         */
                         <Reveal className="mt-10">
                             <img
                                 src={project.cover_image}
-                                alt={project.title}
+                                alt={`Cover image for ${project.title}`}
                                 className="aspect-[21/9] w-full rounded-md border border-border object-cover shadow-card"
+                            />
+                        </Reveal>
+                    ) : (
+                        /*
+                         * Branded designed fallback — never stock imagery presented
+                         * as a photograph of this project.
+                         */
+                        <Reveal className="mt-10">
+                            <MediaPlaceholder
+                                icon={<MapPinned aria-hidden="true" className="mr-1.5 size-3.5" />}
+                                label={project.type === 'activity' ? 'Activity' : 'Project'}
+                                aspect="aspect-[21/9]"
                             />
                         </Reveal>
                     )}
@@ -225,7 +244,7 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                             <h2 id="overview" className="text-2xl font-bold text-foreground sm:text-3xl">
                                 About this {project.type === 'activity' ? 'activity' : 'project'}
                             </h2>
-                            <p className="mt-6 text-lg leading-relaxed text-foreground sm:text-xl sm:leading-relaxed">
+                            <p className="mt-6 text-lg leading-relaxed [text-align:justify]   text-foreground sm:text-xl sm:leading-relaxed">
                                 {project.description ?? project.summary}
                             </p>
                         </div>
@@ -302,9 +321,9 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
             {(project.photos.length > 0 || project.documents.length > 0 || project.videos.length > 0) && (
                 <section aria-label="Related media and documents" className="border-b border-border bg-brand-50/60">
                     <Container className="py-14 sm:py-16">
-                        <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Media & documents</h2>
+                        <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Media</h2>
 
-                        <div className="mt-10 grid gap-10 lg:grid-cols-2">
+                        <div className="mt-10 grid gap-10 lg:grid-cols-1">
                             {project.photos.length > 0 && (
                                 <div>
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
@@ -314,20 +333,15 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                                         <PhotoGrid
                                             photos={visiblePhotos}
                                             contextLabel={`${project.title} photos`}
+                                            columnsClass="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                                         />
                                     </div>
-                                    {project.photos.length > PHOTO_LIMIT && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowAllPhotos((current) => !current)}
-                                            aria-expanded={showAllPhotos}
-                                            className="mt-4 inline-flex items-center gap-2 rounded-md border border-brand-200 bg-background px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-brand-50"
-                                        >
-                                            {showAllPhotos
-                                                ? 'Show fewer photos'
-                                                : `Show all ${project.photos.length} photos`}
-                                        </button>
-                                    )}
+                                    <LoadMoreButton
+                                        shown={visiblePhotos.length}
+                                        total={project.photos.length}
+                                        unit="photos"
+                                        onReveal={() => setVisiblePhotoCount((current) => current + PHOTO_STEP)}
+                                    />
                                 </div>
                             )}
 
@@ -388,7 +402,7 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
                                         Videos
                                     </h3>
-                                    <ul className="mt-4 grid gap-6 sm:grid-cols-2">
+                                    <ul className="mt-4 grid gap-6 sm:grid-cols-1">
                                         {project.videos.map((video) => (
                                             <li key={video.id}>
                                                 <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
@@ -461,30 +475,8 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                         </h2>
                         <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                             {project.related.map((related) => (
-                                <li key={related.slug}>
-                                    <Link
-                                        href={route('projects.show', { slug: related.slug })}
-                                        className="group flex h-full flex-col rounded-md border border-border bg-background p-5 shadow-subtle transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised"
-                                    >
-                                        <p className="text-xs font-semibold tracking-widest text-gold-700 uppercase">
-                                            {related.type === 'activity' ? 'Activity' : 'Project'}
-                                        </p>
-                                        <h3 className="mt-2 text-base leading-snug font-semibold text-foreground transition-colors group-hover:text-brand-800">
-                                            {related.title}
-                                        </h3>
-                                        {related.summary && (
-                                            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                                                {related.summary}
-                                            </p>
-                                        )}
-                                        <span className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-medium text-primary">
-                                            View details
-                                            <ArrowRight
-                                                aria-hidden="true"
-                                                className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
-                                            />
-                                        </span>
-                                    </Link>
+                                <li key={related.id}>
+                                    <ProjectCard project={related} />
                                 </li>
                             ))}
                         </ul>

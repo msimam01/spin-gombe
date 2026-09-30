@@ -3,14 +3,12 @@ import { ChevronLeft } from 'lucide-react';
 import { EventForm } from '@/components/admin/EventForm';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { route } from '@/lib/routes';
-import type { SelectOption } from '@/types/admin';
 
 interface CreateEventProps {
     statuses: Record<string, string>;
-    locations: SelectOption[];
 }
 
-export default function CreateEvent({ statuses, locations }: CreateEventProps) {
+export default function CreateEvent({ statuses }: CreateEventProps) {
     return (
         <AdminLayout>
             <Link
@@ -29,7 +27,7 @@ export default function CreateEvent({ statuses, locations }: CreateEventProps) {
             </p>
 
             <div className="mt-6 max-w-3xl">
-                <EventForm statuses={statuses} locations={locations} />
+                <EventForm statuses={statuses} />
             </div>
             <div className="h-6" />
         </AdminLayout>

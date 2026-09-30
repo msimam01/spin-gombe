@@ -553,8 +553,9 @@ class PublicWebsiteTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Home')
                 ->has('navigation.primary')
-                ->where('navigation.primary.7.route', 'media.index')
-                ->has('navigation.primary.7.children', 2)
+                ->where('navigation.primary.4.route', 'project-locations')
+                ->where('navigation.primary.8.route', 'media.index')
+                ->has('navigation.primary.8.children', 2)
             );
     }
 

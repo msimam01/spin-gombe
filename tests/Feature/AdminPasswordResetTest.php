@@ -448,8 +448,9 @@ class AdminPasswordResetTest extends TestCase
         // Security note for users who did not request the reset.
         $this->assertStringContainsString('Did not request a reset?', $html);
 
-        // Sender identity is the project, not a placeholder.
-        $this->assertSame('SPIN Gombe State Project', config('mail.from.name'));
+        // Sender identity is the project, not a placeholder. Follows the
+        // client's app-name rebrand ("SPIN Project Gombe").
+        $this->assertSame('SPIN Project Gombe', config('mail.from.name'));
         $this->assertSame('spinprojectgombe@gmail.com', config('mail.from.address'));
 
         // No framework skin remnants: the framework markdown template wraps

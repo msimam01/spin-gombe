@@ -12,6 +12,10 @@ import type { SharedProps } from '@/types';
  * Uses only the biography supplied in the SPIN information collection form.
  * The portrait stays a designed frame until the official photograph is
  * supplied, then drops in via `site.coordinator.photo`.
+ *
+ * Client revision (Phase 27): the section was compacted for its new position
+ * directly beneath the hero — tighter section padding, a wider portrait
+ * column on desktop, compact paragraph rhythm and justified biography text.
  */
 export function ProjectCoordinator() {
     const { site } = usePage<SharedProps>().props;
@@ -24,12 +28,12 @@ export function ProjectCoordinator() {
     const middle = remaining.slice(0, -1);
 
     return (
-        <section id="coordinator" aria-labelledby="coordinator" className="border-y border-brand-100 bg-brand-50/60">
-            <Container className="py-14 sm:py-16 lg:py-20">
-                <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
-                    {/* Portrait / identity column. */}
-                    <Reveal className="lg:col-span-4">
-                        <div className="mx-auto max-w-sm lg:mx-0">
+        <section id="coordinator" aria-labelledby="coordinator" className="border-b border-brand-100 bg-brand-50/60">
+            <Container className="py-10 sm:py-12 lg:py-16">
+                <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
+                    {/* Portrait / identity column — wider (5 of 12) per client revision. */}
+                    <Reveal className="lg:col-span-5">
+                        <div className="mx-auto max-w-sm lg:mx-0 lg:max-w-none">
                             <div className="relative">
                                 <span
                                     aria-hidden="true"
@@ -60,7 +64,7 @@ export function ProjectCoordinator() {
                                 </div>
                             </div>
 
-                            <div className="mt-6 text-center lg:text-left">
+                            <div className="mt-5 text-center lg:text-left">
                                 <p className="inline-flex items-center gap-1.5 rounded-full bg-gold-50 px-3 py-1 text-xs font-semibold text-gold-700 ring-1 ring-gold-200">
                                     <BadgeCheck aria-hidden="true" className="size-3.5" />
                                     {coordinator.role}
@@ -72,21 +76,23 @@ export function ProjectCoordinator() {
                         </div>
                     </Reveal>
 
-                    {/* Biography column. */}
-                    <Reveal delay={100} className="lg:col-span-8">
+                    {/* Biography column — compact, justified, no scroll boxes. */}
+                    <Reveal delay={100} className="lg:col-span-7">
                         <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-brand-700 uppercase">
                             <span aria-hidden="true" className="h-px w-6 bg-accent" />
-                            Project Coordination
+                            Project Coordinator
                         </p>
                         <h2 className="max-w-2xl text-2xl font-bold text-foreground sm:text-3xl">
                             Leading implementation in Gombe State
                         </h2>
 
-                        <div className="mt-6 max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground">
-                            <p className="text-foreground">{first}</p>
-                            <p>{second}</p>
+                        <div className="mt-5 max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground sm:space-y-5">
+                            <p className="text-foreground [text-align:justify]">{first}</p>
+                            <p className="[text-align:justify]">{second}</p>
                             {middle.map((paragraph) => (
-                                <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+                                <p key={paragraph.slice(0, 48)} className="[text-align:justify]">
+                                    {paragraph}
+                                </p>
                             ))}
                         </div>
 
@@ -96,7 +102,7 @@ export function ProjectCoordinator() {
                             </blockquote>
                         )}
 
-                        <div className="mt-8">
+                        <div className="mt-7">
                             <Button asChild variant="outline">
                                 <Link href={route('team')}>
                                     Meet the project team

@@ -3,15 +3,14 @@ import { ChevronLeft } from 'lucide-react';
 import { EventForm } from '@/components/admin/EventForm';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { route } from '@/lib/routes';
-import type { AdminEvent, SelectOption } from '@/types/admin';
+import type { AdminEvent } from '@/types/admin';
 
 interface EditEventProps {
     event: AdminEvent;
     statuses: Record<string, string>;
-    locations: SelectOption[];
 }
 
-export default function EditEvent({ event, statuses, locations }: EditEventProps) {
+export default function EditEvent({ event, statuses }: EditEventProps) {
     return (
         <AdminLayout>
             <Link
@@ -28,7 +27,7 @@ export default function EditEvent({ event, statuses, locations }: EditEventProps
             </p>
 
             <div className="mt-6 max-w-3xl">
-                <EventForm event={event} statuses={statuses} locations={locations} />
+                <EventForm event={event} statuses={statuses} />
             </div>
             <div className="h-6" />
         </AdminLayout>

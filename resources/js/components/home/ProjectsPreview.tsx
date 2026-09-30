@@ -2,17 +2,23 @@ import { Link } from '@inertiajs/react';
 import { ArrowRight, MapPinned } from 'lucide-react';
 import { HomeSection } from '@/components/home/HomeSection';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
 import { route } from '@/lib/routes';
 import type { Project } from '@/types';
 
 /**
  * Projects & Activities preview.
  *
- * Renders the published project/activity records passed by the controller as
- * cards linking to their detail pages. With no published records the section
- * shows a polished neutral empty state — never invented entries.
+ * A homepage preview: the newest three published project/activity records as
+ * cards linking to their detail pages, three per row on desktop. The full
+ * listing — with its own pagination — lives on the Projects & Activities
+ * page, reached through the section's "View all" link. With no published
+ * records the section shows a polished neutral empty state — never invented
+ * entries.
  */
 export function ProjectsPreview({ projects }: { projects: Project[] }) {
+    const items = projects;
+
     return (
         <HomeSection
             id="projects-preview"
@@ -30,19 +36,34 @@ export function ProjectsPreview({ projects }: { projects: Project[] }) {
                 </Link>
             }
         >
-            {projects.length > 0 ? (
+            {items.length > 0 ? (
+                <>
                 <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {projects.map((project) => (
+                    {items.map((project) => (
                         <li key={project.id}>
                             <Link
                                 href={route('projects.show', { slug: project.slug })}
                                 className="group block h-full rounded-md border border-border bg-card shadow-card transition-all duration-200 hover:border-brand-300 hover:shadow-raised"
                             >
-                                {project.cover_image && (
+                                {project.cover_image ? (
+                                    /*
+                                     * Client revision (Phase 27): the cover image now
+                                     * visually dominates the upper portion of every card.
+                                     * Projects without a cover carry the branded designed
+                                     * treatment — never a broken image or blank rectangle.
+                                     */
                                     <img
                                         src={project.cover_image}
                                         alt=""
-                                        className="aspect-[16/9] w-full rounded-t-md object-cover"
+                                        className="aspect-[16/9] w-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
+                                    />
+                                ) : (
+                                    <MediaPlaceholder
+                                        icon={<MapPinned aria-hidden="true" className="mr-1.5 size-3.5" />}
+                                        label={project.type === 'activity' ? 'Activity' : 'Project'}
+                                        aspect="aspect-[16/9]"
                                     />
                                 )}
                                 <div className="p-6">
@@ -58,7 +79,7 @@ export function ProjectsPreview({ projects }: { projects: Project[] }) {
                                         </p>
                                     )}
                                     {project.summary && (
-                                        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                                        <p className="mt-2 line-clamp-3 text-sm [text-align:justify] leading-relaxed text-muted-foreground">
                                             {project.summary}
                                         </p>
                                     )}
@@ -71,6 +92,7 @@ export function ProjectsPreview({ projects }: { projects: Project[] }) {
                         </li>
                     ))}
                 </ul>
+                </>
             ) : (
                 <EmptyState
                     icon={<MapPinned aria-hidden="true" className="size-5" />}

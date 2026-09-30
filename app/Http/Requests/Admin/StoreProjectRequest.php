@@ -12,10 +12,16 @@ use Illuminate\Validation\Rules\Enum;
  * Validation for creating a project or an activity.
  *
  * One request class serves both record types because they share the single
- * `projects` table — `type` is just a validated column. The form exposes
- * exactly the fields the schema supports; nothing is invented. Authorisation
- * is enforced here as well: only active administrators may mutate content,
+ * `projects` table — `type` is just a validated column. Authorisation is
+ * enforced here as well: only active administrators may mutate content,
  * independently of what the browser shows.
+ *
+ * Phase 31: `sort` is no longer a form field — public listings order by
+ * creation date (newest first), so it stays optional and defaults to 0.
+ * The Cover Image and bulk Supporting Images fields arrive as file uploads
+ * (`cover`, `images[]`) validated with the project-wide image rules; the
+ * controllers perform the actual storage/attachment through the shared
+ * CoverImage and BulkImages mechanisms.
  */
 class StoreProjectRequest extends FormRequest
 {
@@ -40,6 +46,8 @@ class StoreProjectRequest extends FormRequest
             'started_on' => $this->filled('started_on') ? $this->input('started_on') : null,
             'completed_on' => $this->filled('completed_on') ? $this->input('completed_on') : null,
 
+            // Display order is no longer presented in the CMS; when absent it
+            // defaults to 0 (public ordering no longer depends on it).
             'sort' => $this->filled('sort') ? (int) $this->input('sort') : 0,
         ]);
     }
@@ -70,8 +78,29 @@ class StoreProjectRequest extends FormRequest
             'started_on' => ['nullable', 'date', 'before_or_equal:today'],
             'completed_on' => ['nullable', 'date', 'after_or_equal:started_on'],
 
+            // The uploaded cover image. MIME sniffing — not the filename —
+            // decides whether this really is an image; the shared 4 MB limit
+            // matches every other image upload in the application.
+            'cover' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+
+            // Explicit cover removal is its own flag so that a plain save
+            // never clears an existing cover by accident.
+            'remove_cover' => ['nullable', 'boolean'],
+
+            // Bulk supporting images — each file validated individually with
+            // the same rules, and the whole set bounded so a request can
+            // never become unbounded.
+            'images' => ['nullable', 'array', 'max:20'],
+            'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+
+            // Existing supporting images the administrator ticked for removal
+            // (edit form only). Each id is re-verified against this project
+            // in the controller before anything is deleted.
+            'remove_photo_ids' => ['nullable', 'array', 'max:100'],
+            'remove_photo_ids.*' => ['integer'],
+
             'status' => ['required', new Enum(PublicationStatus::class)],
-            'sort' => ['required', 'integer', 'min:0', 'max:10000'],
+            'sort' => ['sometimes', 'integer', 'min:0', 'max:10000'],
         ];
     }
 
@@ -88,6 +117,8 @@ class StoreProjectRequest extends FormRequest
             'status_label' => 'project status',
             'started_on' => 'start date',
             'completed_on' => 'completion date',
+            'cover' => 'cover image',
+            'images.*' => 'supporting image',
         ];
     }
 }

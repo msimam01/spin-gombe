@@ -1,15 +1,19 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
-import { ArrowRight, ChevronRight, ClipboardList, MapPinned } from 'lucide-react';
+import { ChevronRight, ClipboardList, MapPinned } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Reveal } from '@/components/shared/Reveal';
+import { ProjectCard } from '@/components/shared/ProjectCard';
 import { ProjectsMap } from '@/components/shared/ProjectsMap';
 import type { MapMarkerLocation } from '@/components/shared/ProjectsMap';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Project, SharedProps } from '@/types';
+
+/** Cards displayed before Show More reveals the rest of the filtered set. */
+const PAGE_SIZE = 9;
 
 /** A project as delivered by ProjectsIndexController. */
 type ProjectEntry = Project & {
@@ -28,20 +32,35 @@ interface ProjectsIndexProps {
     components: FilterOption[];
     /** One entry per Location record — the map never counts projects. */
     mapLocations: MapMarkerLocation[];
+    /** Component filter preselected from `?component=<slug>` (View-all deep links). */
+    initialComponent: string | null;
 }
 
 /**
  * Projects & Activities — the public listing of SPIN Gombe work.
  *
- * The listing renders published records with their component and location;
- * component filters appear only when there are published projects to filter.
- * The map is location-driven: one marker and one entry in the location count
- * per recorded Location, however many records sit there.
+ * Phase 29: the listing renders published records through the shared
+ * image-led ProjectCard, in a responsive grid (three columns on desktop,
+ * two on tablet, one on mobile). Records are progressively revealed with a
+ * Show More control over the filtered set — the same pattern as the site's
+ * photo collections — so the page never grows unbounded; the control hides
+ * once every filtered record is visible. The component filter can be
+ * preselected from `?component=<slug>` so component pages can deep-link to
+ * their full listing; filter state stays in sync via URL updates.
+ *
+ * The map is location-driven: one marker and one entry in the location
+ * count per recorded Location, however many records sit there.
  */
-export default function ProjectsIndex({ projects, components, mapLocations }: ProjectsIndexProps) {
+export default function ProjectsIndex({
+    projects,
+    components,
+    mapLocations,
+    initialComponent,
+}: ProjectsIndexProps) {
     const { site } = usePage<SharedProps>().props;
-    const [componentFilter, setComponentFilter] = useState<string | null>(null);
+    const [componentFilter, setComponentFilter] = useState<string | null>(initialComponent);
     const [typeFilter, setTypeFilter] = useState<'all' | 'project' | 'activity'>('all');
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
     const filtered = useMemo(
         () =>
@@ -56,6 +75,31 @@ export default function ProjectsIndex({ projects, components, mapLocations }: Pr
             }),
         [projects, componentFilter, typeFilter],
     );
+
+    const visible = filtered.slice(0, visibleCount);
+    const hasMore = filtered.length > visibleCount;
+
+    /** Switching filters always resets the progressive reveal. */
+    const changeFilter = (apply: () => void) => {
+        apply();
+        setVisibleCount(PAGE_SIZE);
+    };
+
+    /** Keep the address bar shareable when a deep-link filter is active. */
+    const syncUrl = (slug: string | null) => {
+        const url = new URL(window.location.href);
+        if (slug) {
+            url.searchParams.set('component', slug);
+        } else {
+            url.searchParams.delete('component');
+        }
+        window.history.replaceState(window.history.state, '', url);
+    };
+
+    const selectComponent = (slug: string | null) => {
+        changeFilter(() => setComponentFilter(slug));
+        syncUrl(slug);
+    };
 
     return (
         <PublicLayout>
@@ -102,14 +146,14 @@ export default function ProjectsIndex({ projects, components, mapLocations }: Pr
                     </h1>
 
                     <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                        Explore SPIN project interventions and activities across Gombe State — from
+                        Explore SPIN project interventions and activities across Gombe State, from
                         irrigation modernisation and dam safety to hydropower and institutional
                         strengthening.
                     </p>
                 </Container>
             </section>
 
-            {/* 2 + 3 — Listing with lightweight filters */}
+            {/* 2 — Listing with lightweight filters and progressive reveal */}
             <section aria-labelledby="projects-listing" className="border-b border-border bg-background">
                 <Container className="py-14 sm:py-16 lg:py-20">
                     <h2 id="projects-listing" className="sr-only">
@@ -130,7 +174,7 @@ export default function ProjectsIndex({ projects, components, mapLocations }: Pr
                                         <button
                                             key={value}
                                             type="button"
-                                            onClick={() => setTypeFilter(value)}
+                                            onClick={() => changeFilter(() => setTypeFilter(value))}
                                             aria-pressed={typeFilter === value}
                                             className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                                                 typeFilter === value
@@ -147,7 +191,7 @@ export default function ProjectsIndex({ projects, components, mapLocations }: Pr
                                     <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by component">
                                         <button
                                             type="button"
-                                            onClick={() => setComponentFilter(null)}
+                                            onClick={() => selectComponent(null)}
                                             aria-pressed={componentFilter === null}
                                             className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                                                 componentFilter === null
@@ -161,12 +205,12 @@ export default function ProjectsIndex({ projects, components, mapLocations }: Pr
                                             <button
                                                 key={component.slug}
                                                 type="button"
-                                                onClick={() => setComponentFilter(componentFilter === component.slug ? null : component.slug)}
+                                                onClick={() => selectComponent(componentFilter === component.slug ? null : component.slug)}
                                                 aria-pressed={componentFilter === component.slug}
                                                 className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                                                     componentFilter === component.slug
                                                         ? 'bg-primary text-primary-foreground'
-                                                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                                                        : 'bg-muted text-muted-foreground hover:text-foreground'
                                                 }`}
                                             >
                                                 {component.name}
@@ -176,67 +220,52 @@ export default function ProjectsIndex({ projects, components, mapLocations }: Pr
                                 )}
                             </div>
 
-                            <ul className="space-y-5">
-                                {filtered.map((project, index) => (
-                                    <li key={project.id}>
-                                        <Reveal delay={Math.min(index * 60, 300)}>
-                                            <Link
-                                                href={route('projects.show', { slug: project.slug })}
-                                                className="group relative block overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised"
-                                            >
-                                                <span
-                                                    aria-hidden="true"
-                                                    className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-primary via-gold-400 to-gold-500"
-                                                />
-
-                                                <div className="grid gap-5 p-6 pl-8 sm:p-7 sm:pl-9 lg:grid-cols-12 lg:items-center lg:gap-8">
-                                                    <div className="lg:col-span-8">
-                                                        <p className="text-xs font-semibold tracking-widest text-gold-700 uppercase">
-                                                            {project.type === 'activity' ? 'Activity' : 'Project'}
-                                                            {project.component && ` · ${project.component.name}`}
-                                                        </p>
-                                                        <h3 className="mt-2 text-lg leading-snug font-bold text-foreground transition-colors group-hover:text-brand-800 sm:text-xl">
-                                                            {project.title}
-                                                        </h3>
-                                                        {project.summary && (
-                                                            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                                                                {project.summary}
-                                                            </p>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground lg:col-span-4 lg:justify-end">
-                                                        {project.location && (
-                                                            <span className="inline-flex items-center gap-1.5">
-                                                                <MapPinned aria-hidden="true" className="size-3.5 text-primary" />
-                                                                {project.location.name}
-                                                                {project.location.lga ? ` — ${project.location.lga}` : ''}
-                                                            </span>
-                                                        )}
-                                                        {project.status_label && (
-                                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 font-medium text-brand-800 ring-1 ring-brand-100">
-                                                                {project.status_label}
-                                                            </span>
-                                                        )}
-                                                        <span className="inline-flex items-center gap-1.5 font-medium text-primary">
-                                                            View details
-                                                            <ArrowRight
-                                                                aria-hidden="true"
-                                                                className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
-                                                            />
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </Reveal>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            {filtered.length === 0 && (
-                                <p className="mt-8 rounded-md border border-dashed border-border bg-muted/60 px-6 py-8 text-center text-sm text-muted-foreground">
+                            {visible.length > 0 ? (
+                                <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                    {visible.map((project) => (
+                                        <li key={project.id}>
+                                            <ProjectCard
+                                                project={{
+                                                    id: project.id,
+                                                    slug: project.slug,
+                                                    title: project.title,
+                                                    type: project.type,
+                                                    summary: project.summary,
+                                                    cover_image: project.cover_image,
+                                                    component_name: project.component?.name ?? null,
+                                                    location_name: project.location
+                                                        ? [project.location.name, project.location.lga]
+                                                              .filter(Boolean)
+                                                              .join(' — ')
+                                                        : null,
+                                                }}
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="rounded-md border border-dashed border-border bg-muted/60 px-6 py-8 text-center text-sm text-muted-foreground">
                                     No records match the selected filters.
                                 </p>
+                            )}
+
+                            {hasMore && (
+                                <div className="mt-10 text-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+                                        aria-label={`Show more projects and activities (${filtered.length - visibleCount} more of ${filtered.length})`}
+                                        className="inline-flex items-center gap-2 rounded-md border border-brand-200 bg-background px-5 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                                    >
+                                        Load more
+                                    </button>
+                                    <p className="mt-2 text-xs text-muted-foreground">
+                                        Showing {visible.length} of {filtered.length}
+                                    </p>
+                                    <span className="sr-only" aria-live="polite">
+                                        Showing {visible.length} of {filtered.length} projects and activities.
+                                    </span>
+                                </div>
                             )}
                         </>
                     ) : (
@@ -254,7 +283,7 @@ export default function ProjectsIndex({ projects, components, mapLocations }: Pr
                 </Container>
             </section>
 
-            {/* 4 — Project location map (one marker per recorded Location record) */}
+            {/* 3 — Project location map (one marker per recorded Location record) */}
             <section aria-labelledby="project-locations" className="bg-brand-50/60">
                 <Container className="py-14 sm:py-16">
                     <div className="mb-8 max-w-2xl">
@@ -266,7 +295,7 @@ export default function ProjectsIndex({ projects, components, mapLocations }: Pr
                             id="project-locations"
                             className="text-2xl leading-tight font-bold text-foreground sm:text-3xl"
                         >
-                            Where SPIN is working
+                            Where SPIN Gombe is working
                         </h2>
                         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                             Each marker is a recorded project location in Gombe State. Open a marker

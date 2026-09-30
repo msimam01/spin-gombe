@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, Droplets, ShieldCheck, Sprout, Zap, type LucideIcon } from 'lucide-react';
 import { Container } from '@/components/layout/Container';
+import { ProjectCarousel, type ProjectCarouselSlide } from '@/components/shared/ProjectCarousel';
 import { PartnerStrip } from '@/components/shared/PartnerStrip';
 import { Button } from '@/components/ui/button';
 import { route } from '@/lib/routes';
@@ -15,193 +16,138 @@ const THEME_ICONS: Record<string, LucideIcon> = {
 };
 
 /**
- * The designed placeholder visual — an abstract landscape panel (sky, sun,
- * highlands, reservoir, dam wall and irrigation channels) drawn with theme
- * tokens. It is deliberately not stock photography: no generic image is ever
- * presented as SPIN imagery. It renders until an approved project photograph
- * is configured.
+ * The hero slides, built only from client-supplied project assets.
+ *
+ * The repository holds two genuine client-supplied Balanga Dam photographs
+ * (`public/images/hero/`, the same approved source `config/spin.php` uses for
+ * the hero). No third project photograph exists, so — per the no-fabrication
+ * rule — the carousel runs three slides built from these two real images
+ * (the approved photograph is presented twice with different crops) instead
+ * of inventing imagery. Slide copy is derived strictly from the approved
+ * configuration text; no new official claims are introduced. Adding a new
+ * slide later means adding one entry to `SLIDES` — nothing else.
  */
-function HeroPlaceholder() {
-    return (
-        <svg viewBox="0 0 480 320" aria-hidden="true" className="h-auto w-full">
-            <defs>
-                <linearGradient id="hero-sky" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" className="[stop-color:var(--brand-50)]" />
-                    <stop offset="100%" className="[stop-color:var(--brand-100)]" />
-                </linearGradient>
-                <linearGradient id="hero-water" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" className="[stop-color:var(--brand-200)]" />
-                    <stop offset="100%" className="[stop-color:var(--brand-400)]" />
-                </linearGradient>
-            </defs>
-
-            <rect width="480" height="320" fill="url(#hero-sky)" />
-
-            <circle cx="384" cy="72" r="30" className="fill-gold-300 opacity-50" />
-            <circle
-                cx="384"
-                cy="72"
-                r="38"
-                className="fill-none stroke-gold-500 opacity-40"
-                strokeWidth="1.5"
-            />
-
-            {/* Highlands. */}
-            <path
-                d="M-8 190 L70 128 L128 176 L190 108 L262 190 Z"
-                className="fill-brand-200"
-            />
-            <path
-                d="M170 190 L250 140 L318 190 Z"
-                className="fill-brand-300 opacity-70"
-            />
-
-            {/* Reservoir. */}
-            <path d="M0 190 C 90 178 170 196 250 190 S 410 178 480 190 L480 320 L0 320 Z" fill="url(#hero-water)" opacity="0.55" />
-            <path d="M0 214 C 96 202 176 222 256 214 S 416 202 480 214 L480 320 L0 320 Z" fill="url(#hero-water)" opacity="0.7" />
-
-            {/* Dam wall. */}
-            <path d="M300 182 L342 182 L358 288 L286 288 Z" className="fill-brand-700/85" />
-            <path d="M300 182 L342 182 L358 288 L286 288 Z" className="fill-none stroke-brand-800/70" strokeWidth="1.5" />
-            <g className="fill-background/25">
-                <rect x="308" y="196" width="26" height="4" rx="2" />
-                <rect x="306" y="214" width="30" height="4" rx="2" />
-                <rect x="303" y="232" width="34" height="4" rx="2" />
-                <rect x="299" y="250" width="39" height="4" rx="2" />
-            </g>
-
-            {/* Ripples. */}
-            <g className="fill-none stroke-background/70" strokeWidth="1.5">
-                <ellipse cx="120" cy="252" rx="72" ry="11" />
-                <ellipse cx="120" cy="252" rx="46" ry="7" />
-            </g>
-
-            {/* Irrigation channels. */}
-            <g className="stroke-brand-700/60" strokeWidth="2" strokeLinecap="round">
-                <path d="M366 254 h92" />
-                <path d="M382 272 h76" />
-            </g>
-            <g className="fill-brand-600/80">
-                <circle cx="412" cy="254" r="4" />
-                <circle cx="440" cy="272" r="4" />
-            </g>
-
-            {/* Field rows. */}
-            <g className="stroke-brand-800/30" strokeWidth="2" strokeLinecap="round">
-                <path d="M40 296 h84" />
-                <path d="M40 306 h84" />
-                <path d="M40 316 h84" />
-            </g>
-        </svg>
-    );
-}
+const SLIDES: ProjectCarouselSlide[] = [
+    {
+        image: '/images/hero/slide-1.jfif',
+        alt: 'Balanga Dam in Gombe State',
+        position: 'object-center',
+        kicker: 'Welcome to the official project website',
+        title: 'Sustainable Power and Irrigation for Nigeria Project',
+        text:
+            'Strengthening water resources management, irrigation, dam safety and sustainable hydropower development to support food, water and energy security in Gombe State.',
+    },
+    {
+        image: '/images/hero/slide-2.jfif',
+        alt: 'Balanga Dam and its surrounding water body in Gombe State',
+        position: 'object-center',
+        kicker: 'Water Resources · Irrigation',
+        title: 'Water and irrigation for food and water security',
+        text:
+            'The Balanga Dam and its associated irrigation scheme, the selected SPIN area in Gombe State are the focus of rehabilitation and modernization under the project.',
+    },
+    {
+        image: '/images/hero/slide-3.jfif',
+        alt: 'Balanga Dam in Gombe State',
+        position: 'object-[72%_center]',
+        kicker: 'Dam Safety · Hydropower',
+        title: 'Safe dams and sustainable hydropower',
+        text:
+            'Improving dam operations, dam safety and sustainable hydropower development so infrastructure supports water and energy security in Gombe State.',
+    },
+];
 
 /**
- * Hero visual frame.
+ * Hero — a full-bleed image carousel of client-supplied project photography.
  *
- * Renders the approved project photograph when one is configured (via
- * `spin.hero.image` in config/spin.php or a settings override) and the
- * abstract placeholder until then. The frame, badge and layout are shared by
- * both branches, so swapping in the official image requires no other change.
- */
-function HeroVisual() {
-    const { site } = usePage<SharedProps>().props;
-
-    return (
-        <div className="relative mx-auto w-full max-w-lg">
-            <div className="overflow-hidden rounded-lg border border-brand-100/60 bg-background shadow-raised">
-                {site.hero.image ? (
-                    /*
-                     * Approved project photograph (client-supplied image of
-                     * Balanga Dam). Fixed aspect ratio keeps the layout
-                     * identical to the placeholder branch while `object-cover`
-                     * prevents distortion at any width.
-                     */
-                    <img
-                        src={site.hero.image}
-                        alt={site.hero.image_alt ?? ''}
-                        width={1008}
-                        height={454}
-                        className="block aspect-[480/320] w-full object-cover"
-                        loading="eager"
-                        decoding="async"
-                    />
-                ) : (
-                    <HeroPlaceholder />
-                )}
-            </div>
-
-            <p className="absolute -bottom-4 left-5 inline-flex items-center gap-2 rounded-full border border-brand-100 bg-background px-4 py-1.5 text-xs font-semibold text-brand-800 shadow-card">
-                <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
-                {site.state} · Official Project Website
-            </p>
-        </div>
-    );
-}
-
-/**
- * Hero — the opening statement of the website.
- *
- * Communicates immediately: the project, the state, what it does and the four
- * themes it is built around, followed by the clear calls to action. All copy
- * is read from the shared `site` prop (config/spin.php), never hard-coded.
+ * Phase 28 refactor: the carousel mechanics (cross-fade, autoplay with
+ * hover/focus pause, reduced-motion handling, labelled controls) moved into
+ * the shared `ProjectCarousel` so the About page hero can reuse the exact
+ * same behaviour. This component now only supplies the slides and each
+ * slide's content, and mounts the partner band beneath. Phase 27.1 heights
+ * (440/480/540) are the shared default, keeping controls inside the viewport
+ * on common laptop and mobile screens.
  */
 export function HomeHero() {
     const { site } = usePage<SharedProps>().props;
 
     return (
-        <section className="border-b border-border bg-brand-50">
-            <Container className="grid items-center gap-14 py-14 lg:grid-cols-12 lg:gap-10 lg:py-20">
-                <div className="lg:col-span-6">
-                    <p className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-background px-3.5 py-1.5 text-xs font-semibold tracking-wide uppercase text-brand-800">
-                        <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
-                        World Bank Assisted Project · {site.state}
-                    </p>
+        <section aria-label="Project highlights">
+            <ProjectCarousel
+                slides={SLIDES}
+                ariaLabel="SPIN project highlights"
+                renderContent={(slide, index, isActive) => {
+                    const Title = index === 0 ? 'h1' : 'p';
 
-                    <h1 className="mt-6 max-w-xl text-3xl leading-[1.12] font-bold text-foreground sm:text-4xl lg:text-[3.1rem]">
-                        {site.name}
-                    </h1>
+                    return (
+                        <>
+                            <p className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white uppercase backdrop-blur-sm">
+                                <span aria-hidden="true" className="size-1.5 rounded-full bg-gold-400" />
+                                SPIN  Project · {site.state}
+                            </p>
 
-                    <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                        {site.hero.summary}
-                    </p>
+                            <p className="mt-5 text-xs font-semibold tracking-[0.18em] text-gold-300 uppercase">
+                                {slide.kicker}
+                            </p>
 
-                    <ul className="mt-7 flex flex-wrap gap-2" aria-label="Project themes">
-                        {site.themes.map((theme) => {
-                            const Icon = THEME_ICONS[theme.key];
+                            <Title
+                                className={`mt-2 text-3xl leading-[1.12] font-bold text-white sm:text-4xl lg:text-[3.1rem] ${
+                                    Title === 'p' ? 'lg:text-4xl' : ''
+                                }`}
+                            >
+                                {slide.title}
+                            </Title>
 
-                            return (
-                                <li key={theme.key}>
-                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-background px-3 py-1.5 text-xs font-medium text-brand-800">
-                                        {Icon && <Icon aria-hidden="true" className="size-3.5 text-primary" />}
-                                        {theme.label}
-                                    </span>
-                                </li>
-                            );
-                        })}
-                    </ul>
+                            <p className="mt-5 max-w-xl text-base leading-relaxed text-brand-100 sm:text-lg">
+                                {slide.text}
+                            </p>
 
-                    <div className="mt-9 flex flex-wrap gap-3">
-                        <Button asChild size="lg">
-                            <Link href={route('about')}>
-                                Explore the Project
-                                <ArrowRight aria-hidden="true" />
-                            </Link>
-                        </Button>
-                        <Button asChild size="lg" variant="outline">
-                            <Link href={route('components.index')}>View Components</Link>
-                        </Button>
-                    </div>
-                </div>
+                            {index === 0 && (
+                                <ul className="mt-7 flex flex-wrap gap-2" aria-label="Project themes">
+                                    {site.themes.map((theme) => {
+                                        const Icon = THEME_ICONS[theme.key];
 
-                <div className="lg:col-span-6">
-                    <HeroVisual />
-                </div>
-            </Container>
+                                        return (
+                                            <li key={theme.key}>
+                                                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+                                                    {Icon && <Icon aria-hidden="true" className="size-3.5 text-gold-300" />}
+                                                    {theme.label}
+                                                </span>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
 
-            <Container className="pb-10 lg:pb-14">
-                <PartnerStrip className="border-t border-brand-100 pt-7" />
-            </Container>
+                            {isActive && (
+                                <div className="mt-9 flex flex-wrap gap-3">
+                                    <Button asChild size="lg">
+                                        <Link href={route('about')} tabIndex={0}>
+                                            Explore the Project
+                                            <ArrowRight aria-hidden="true" />
+                                        </Link>
+                                    </Button>
+                                    <Button
+                                        asChild
+                                        size="lg"
+                                        variant="outline"
+                                        className="border-white/50 bg-white/10 text-white hover:border-white hover:bg-white/20"
+                                    >
+                                        <Link href={route('components.index')}>View Components</Link>
+                                    </Button>
+                                </div>
+                            )}
+                        </>
+                    );
+                }}
+            />
+
+            {/* ---- Partner identification band (enlarged institutional cards) ---- */}
+            <div className="border-b border-border bg-brand-50">
+                <Container className="py-8 lg:py-10">
+                    <PartnerStrip />
+                </Container>
+            </div>
         </section>
     );
 }

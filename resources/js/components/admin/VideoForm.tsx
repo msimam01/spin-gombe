@@ -121,7 +121,7 @@ export function VideoForm({ video, statuses, projects, components, newsPosts }: 
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Video details</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Official SPIN YouTube videos. Nothing is uploaded to the project server.
+                    Official SPIN YouTube videos.
                 </p>
 
                 <div className="mt-5 space-y-5">

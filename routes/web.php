@@ -14,6 +14,7 @@ use App\Http\Controllers\Site\MediaPhotosController;
 use App\Http\Controllers\Site\MediaVideosController;
 use App\Http\Controllers\Site\NewsIndexController;
 use App\Http\Controllers\Site\NewsShowController;
+use App\Http\Controllers\Site\ProjectLocationsController;
 use App\Http\Controllers\Site\ProjectsIndexController;
 use App\Http\Controllers\Site\ProjectsShowController;
 use App\Http\Controllers\Site\ResourcesIndexController;
@@ -55,6 +56,9 @@ Route::get('/projects', ProjectsIndexController::class)->name('projects.index');
 Route::get('/projects/{slug}', ProjectsShowController::class)
     ->where('slug', '[a-z0-9-]+')
     ->name('projects.show');
+
+Route::get('/project-locations', ProjectLocationsController::class)
+    ->name('project-locations');
 
 Route::get('/news', NewsIndexController::class)->name('news.index');
 

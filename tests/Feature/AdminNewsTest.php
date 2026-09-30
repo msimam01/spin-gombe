@@ -173,12 +173,10 @@ class AdminNewsTest extends TestCase
             ->post(route('admin.news.store'), [
                 'title' => '',
                 'project_component_id' => 99999,
-                'published_at' => 'not-a-date',
                 'status' => 'not-a-status',
-                'sort' => -3,
             ])
             ->assertRedirect(route('admin.news.create'))
-            ->assertSessionHasErrors(['title', 'project_component_id', 'published_at', 'status', 'sort']);
+            ->assertSessionHasErrors(['title', 'project_component_id', 'status']);
 
         $this->assertSame(0, NewsPost::count());
     }
@@ -213,13 +211,12 @@ class AdminNewsTest extends TestCase
         ]);
         $originalSlug = $post->slug;
 
-        // A partial update: only the fields sent change — the body, excerpt,
+        // A partial update: only the fields sent change — the body,
         // component and cover image stay untouched.
         $this->actingAs(User::factory()->administrator()->create())
             ->put(route('admin.news.update', ['post' => $post->slug]), [
                 'title' => 'Renamed Headline',
                 'status' => 'draft',
-                'sort' => $post->sort,
             ])
             ->assertRedirect(route('admin.news.index'))
             ->assertSessionHas('toast');
@@ -230,7 +227,6 @@ class AdminNewsTest extends TestCase
         $this->assertSame($originalSlug, $post->slug, 'Slug must never change on rename.');
         $this->assertSame('keep-me.jpg', $post->cover_image, 'Unrelated fields must be preserved.');
         $this->assertSame($component->id, $post->project_component_id, 'A partial update must not clear the component.');
-        $this->assertNotNull($post->excerpt, 'A partial update must not clear the excerpt.');
         $this->assertNotNull($post->body, 'A partial update must not clear the body.');
     }
 
@@ -333,50 +329,32 @@ class AdminNewsTest extends TestCase
         $this->assertDatabaseHas('news_posts', ['slug' => 'programme-reaches-halfway-mark']);
     }
 
-    public function test_a_scheduled_future_date_stays_hidden_until_due(): void
+    public function test_the_public_date_is_the_creation_timestamp(): void
     {
-        // Created as published with a future date — legitimate scheduling.
-        $this->actingAs(User::factory()->administrator()->create())
-            ->post(route('admin.news.store'), [
-                'title' => 'Scheduled Announcement',
-                'status' => 'published',
-                'published_at' => now()->addWeek()->toDateString(),
-                'sort' => 0,
-            ]);
-
-        $post = NewsPost::query()->where('slug', 'scheduled-announcement')->firstOrFail();
-        $this->assertSame('published', $post->status->value);
-        $this->assertTrue($post->published_at->isFuture());
-
-        // The public scope hides it until the date arrives — everywhere.
-        $this->get(route('news.index'))
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page->has('posts', 0));
-
-        $this->get(route('news.show', ['slug' => 'scheduled-announcement']))->assertNotFound();
-        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page->has('news', 0));
-    }
-
-    public function test_a_supplied_past_publication_date_is_honoured_not_overwritten(): void
-    {
-        $date = now()->subDays(10)->startOfDay();
-
+        // The publication date is no longer a form field: any client-supplied
+        // value is ignored, and the public date is the article's own
+        // created_at timestamp.
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.news.store'), [
                 'title' => 'Dated Announcement',
+                'body' => 'The announcement body.',
                 'status' => 'published',
-                'published_at' => $date->toDateString(),
-                'sort' => 0,
-            ]);
+                'published_at' => now()->addWeek()->toDateString(),
+            ])
+            ->assertRedirect(route('admin.news.index'))
+            ->assertSessionHasNoErrors();
 
         $post = NewsPost::query()->where('slug', 'dated-announcement')->firstOrFail();
 
-        $this->assertTrue($post->published_at->equalTo($date), 'The supplied publication date must be kept.');
-        $this->assertNotSame($post->created_at->toDateString(), $post->published_at->toDateString(), 'created_at must never stand in for the publication date.');
+        $this->assertSame('published', $post->status->value);
+        $this->assertFalse($post->published_at->isFuture(), 'The client-supplied publication date must be ignored.');
 
+        // The public payload exposes created_at as the article's date.
         $this->get(route('news.index'))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->has('posts', 1));
+            ->assertInertia(fn ($page) => $page
+                ->has('posts', 1)
+                ->where('posts.0.published_at', $post->created_at->toIso8601String()));
     }
 
     public function test_invalid_publication_actions_are_rejected(): void
@@ -423,7 +401,7 @@ class AdminNewsTest extends TestCase
     {
         $post = NewsPost::factory()->published()->create([
             'title' => 'Regression Check Article',
-            'excerpt' => 'Before the CMS touches anything.',
+            'body' => "First paragraph of the regression check.\n\nSecond paragraph.",
         ]);
 
         $this->get(route('news.show', ['slug' => $post->slug]))
@@ -433,17 +411,17 @@ class AdminNewsTest extends TestCase
         $this->actingAs(User::factory()->administrator()->create())
             ->put(route('admin.news.update', ['post' => $post->slug]), [
                 'title' => 'Regression Check Article',
-                'excerpt' => 'Updated by the CMS.',
+                'body' => "Updated first paragraph.\n\nSecond paragraph.",
                 'status' => 'published',
-                'sort' => $post->sort,
             ])
             ->assertRedirect();
 
+        // The card summary is derived from the body at presentation time.
         $this->get(route('news.index'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->has('posts', 1)
-                ->where('posts.0.excerpt', 'Updated by the CMS.'));
+                ->where('posts.0.excerpt', 'Updated first paragraph.'));
 
         $this->get(route('news.show', ['slug' => $post->slug]))->assertOk();
     }

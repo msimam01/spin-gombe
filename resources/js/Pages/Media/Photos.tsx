@@ -3,6 +3,8 @@ import { Camera, ChevronRight, Images } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
+import { useProgressiveLoad } from '@/components/shared/useProgressiveLoad';
 import { Reveal } from '@/components/shared/Reveal';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
@@ -10,20 +12,37 @@ import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Gallery, Photo, SharedProps } from '@/types';
 
+/** Loose photos revealed per Load More click. */
+const PHOTO_STEP = 16;
+
 interface MediaPhotosProps {
     galleries: Gallery[];
     photos: Photo[];
+    /** Server-side total of loose published photos. */
+    photo_total: number;
 }
 
 /**
  * Photo Gallery (/media/photos) — published albums first, then published
- * photographs that are not attached to any album. Photographs open the
- * shared photo viewer; navigation stays within the page's collection.
- * Everything renders from official records only.
+ * photographs that are not attached to any album. Albums render in full
+ * (each is a link to its own page); the loose-photo section reveals
+ * progressively via server-driven partial reloads — records 1..N, so records
+ * never duplicate or disappear. Photographs open the shared photo viewer;
+ * navigation stays within the page's collection. Everything renders from
+ * official records only.
  */
-export default function MediaPhotos({ galleries, photos }: MediaPhotosProps) {
+export default function MediaPhotos({ galleries, photos, photo_total }: MediaPhotosProps) {
     const { site } = usePage<SharedProps>().props;
-    const hasContent = galleries.length > 0 || photos.length > 0;
+
+    const photoLoad = useProgressiveLoad<Photo>({
+        initialItems: photos,
+        total: photo_total,
+        step: PHOTO_STEP,
+        only: ['photos', 'photos_shown'],
+        url: route('media.photos'),
+    });
+
+    const hasContent = galleries.length > 0 || photoLoad.items.length > 0;
 
     return (
         <PublicLayout>
@@ -148,7 +167,7 @@ export default function MediaPhotos({ galleries, photos }: MediaPhotosProps) {
                                 </>
                             )}
 
-                            {photos.length > 0 && (
+                            {photoLoad.items.length > 0 && (
                                 <div className={galleries.length > 0 ? 'mt-14 border-t border-border pt-12' : ''}>
                                     <h3 className="flex items-center gap-2 text-sm font-semibold tracking-widest text-brand-700 uppercase">
                                         <Camera aria-hidden="true" className="size-4" />
@@ -158,11 +177,19 @@ export default function MediaPhotos({ galleries, photos }: MediaPhotosProps) {
                                     <div className="mt-6">
                                         <Reveal>
                                             <PhotoGrid
-                                                photos={photos}
+                                                photos={photoLoad.items}
                                                 contextLabel="SPIN Gombe photographs"
                                                 aspect="aspect-square"
                                             />
                                         </Reveal>
+
+                                        <LoadMoreButton
+                                            shown={photoLoad.items.length}
+                                            total={photo_total}
+                                            unit="photographs"
+                                            onReveal={photoLoad.loadMore}
+                                            loading={photoLoad.loading}
+                                        />
                                     </div>
                                 </div>
                             )}

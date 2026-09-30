@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\PublicationStatus;
+use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -10,14 +11,17 @@ use Illuminate\Validation\Rules\Enum;
 /**
  * Validation for creating a news post.
  *
- * The form exposes exactly the fields the `news_posts` schema supports —
- * nothing is invented (there is no featured flag or tags column, so none is
- * accepted). The body stays the public site's plain-text paragraph format:
- * blank lines separate paragraphs, single newlines break lines. Future-dated
- * `published_at` is legitimate scheduling, not an error.
+ * Phase 31: the Excerpt, Publication Date and Display Order fields are gone
+ * from the CMS. The public publication date is the article's own
+ * `created_at` timestamp (rendered by the public resources), and excerpts
+ * are derived from the body at presentation time (App\Support\NewsExcerpt)
+ * — neither is accepted from the client any more. `published_at` remains an
+ * internal publishing field, stamped by the publishing concern when the
+ * article is published; scheduling via a hand-entered date is no longer
+ * offered and any value sent by old clients is ignored.
  *
- * Authorisation is enforced here as well: only active administrators may
- * mutate content, independently of what the browser shows.
+ * The Cover Image and bulk Supporting Images fields arrive as file uploads
+ * (`cover`, `images[]`) validated with the project-wide image rules.
  */
 class StoreNewsPostRequest extends FormRequest
 {
@@ -32,14 +36,18 @@ class StoreNewsPostRequest extends FormRequest
             // Absent optional relations/text stay null so the nullable
             // columns are used as designed.
             'project_component_id' => $this->filled('project_component_id') ? (int) $this->input('project_component_id') : null,
-            'excerpt' => $this->filled('excerpt') ? trim((string) $this->input('excerpt')) : null,
             'body' => $this->filled('body') ? (string) $this->input('body') : null,
 
-            // An explicitly supplied publication date is honoured (scheduling);
-            // a blank one is null and the controller stamps it on publish.
-            'published_at' => $this->filled('published_at') ? $this->input('published_at') : null,
+            // Legacy/no-longer-present fields are dropped outright: excerpt
+            // is derived from the body, published_at is stamped by the
+            // publishing concern, and display order is no longer a concept.
+            'excerpt' => null,
+            'published_at' => null,
+            'sort' => 0,
 
-            'sort' => $this->filled('sort') ? (int) $this->input('sort') : 0,
+            // Explicit cover removal is its own boolean, normalised from the
+            // checkbox's common client encodings.
+            'remove_cover' => in_array($this->input('remove_cover'), [true, 'true', '1', 1], true),
         ]);
     }
 
@@ -50,7 +58,6 @@ class StoreNewsPostRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'excerpt' => ['nullable', 'string', 'max:1000'],
             'body' => ['nullable', 'string'],
 
             // Server-side existence check — the browser's option list is a
@@ -58,22 +65,22 @@ class StoreNewsPostRequest extends FormRequest
             // news that is not tied to a specific component.
             'project_component_id' => ['nullable', Rule::exists('project_components', 'id')],
 
-            // The real publication date field — never faked from created_at.
-            // Future dates schedule the post (the public scope hides them
-            // until due); any date the administrator supplies is legitimate.
-            'published_at' => ['nullable', 'date'],
-
             // The uploaded cover photo. MIME sniffing — not the filename —
             // decides whether this really is an image; jpeg/png/webp are the
             // common web formats the public site renders.
             'cover' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
 
-            // Explicit cover removal is its own checkbox so that a plain
-            // save never clears an existing photo by accident.
             'remove_cover' => ['nullable', 'boolean'],
 
+            // Bulk supporting images, each validated individually.
+            'images' => ['nullable', 'array', 'max:20'],
+            'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+
+            // Existing supporting images selected for removal (edit form).
+            'remove_photo_ids' => ['nullable', 'array', 'max:100'],
+            'remove_photo_ids.*' => ['integer'],
+
             'status' => ['required', new Enum(PublicationStatus::class)],
-            'sort' => ['required', 'integer', 'min:0', 'max:10000'],
         ];
     }
 
@@ -86,8 +93,8 @@ class StoreNewsPostRequest extends FormRequest
     {
         return [
             'project_component_id' => 'component',
-            'published_at' => 'publication date',
             'cover' => 'cover photo',
+            'images.*' => 'supporting image',
         ];
     }
 }

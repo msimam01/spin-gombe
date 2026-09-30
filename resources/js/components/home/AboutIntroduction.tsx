@@ -26,14 +26,14 @@ export function AboutIntroduction() {
         >
             <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
                 <div className="lg:col-span-7">
-                    <blockquote className="border-l-2 border-gold-400 pl-5 text-lg leading-relaxed font-medium text-foreground sm:text-xl sm:leading-relaxed">
+                    <blockquote className="border-l-2 border-gold-400 pl-5 text-lg leading-relaxed font-medium text-foreground [text-align:justify] sm:text-xl sm:leading-relaxed">
                         <Quote aria-hidden="true" className="mb-3 size-5 text-gold-500" />
                         {opening}
                     </blockquote>
 
                     <div className="mt-6 space-y-4 text-base leading-relaxed text-muted-foreground">
                         {rest.map((paragraph) => (
-                            <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+                            <p key={paragraph.slice(0, 48)} className="[text-align:justify]">{paragraph}</p>
                         ))}
                     </div>
 
@@ -52,9 +52,9 @@ export function AboutIntroduction() {
                         <h3 className="text-sm font-semibold tracking-widest text-brand-800 uppercase">
                             Balanga Dam & Irrigation Scheme
                         </h3>
-                        <p className="mt-4 text-sm leading-relaxed text-brand-900/80">
+                        <p className="mt-4 text-sm leading-relaxed text-brand-900/80 [text-align:justify]">
                             The selected SPIN area in Gombe State is the Balanga Dam and its
-                            associated irrigation scheme — originally developed to support
+                            associated irrigation scheme originally developed to support
                             dry-season farming, now the focus of rehabilitation and
                             modernization under the project.
                         </p>
@@ -64,7 +64,7 @@ export function AboutIntroduction() {
                         <h3 className="text-sm font-semibold tracking-widest text-brand-800 uppercase">
                             Continuity from TRIMING
                         </h3>
-                        <p className="mt-4 text-sm leading-relaxed text-brand-900/80">
+                        <p className="mt-4 text-sm leading-relaxed text-brand-900/80 [text-align:justify]">
                             SPIN is designed as a follow-up to the TRIMING Project, carrying
                             forward Nigeria's water-sector reform programme under the Renewed
                             Hope Agenda.
@@ -75,7 +75,7 @@ export function AboutIntroduction() {
                         <h3 className="text-sm font-semibold tracking-widest text-brand-800 uppercase">
                             Joint federal implementation
                         </h3>
-                        <p className="mt-4 text-sm leading-relaxed text-brand-900/80">
+                        <p className="mt-4 text-sm leading-relaxed text-brand-900/80 [text-align:justify]">
                             Implemented jointly by the Federal Ministry of Water Resources and
                             Sanitation and the Federal Ministry of Power, with World Bank
                             financing.

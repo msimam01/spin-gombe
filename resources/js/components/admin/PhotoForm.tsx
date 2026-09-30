@@ -1,7 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { CoverImageField } from '@/components/admin/CoverImageField';
+import { BulkImagesField } from '@/components/admin/BulkImagesField';
 import { AdminSelectField, AdminTextField } from '@/components/admin/FormControls';
 import { RelatedToField, type RelatedToOption } from '@/components/admin/RelatedToField';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,7 @@ interface PhotoFormProps {
         image_url: string | null;
         alt_text: string | null;
         caption: string | null;
-        credit: string | null;
-        taken_on: string | null;
         status: string;
-        sort: number;
         related: MediaRelated;
         project_id: number | null;
         project_component_id: number | null;
@@ -36,30 +33,27 @@ interface PhotoFormProps {
 }
 
 interface PhotoFormData {
-    alt_text: string;
     caption: string;
-    credit: string;
-    taken_on: string;
     related_to: RelatedToOption | '';
     related_id: string;
     status: string;
-    sort: number;
-    /** Newly selected image; uploaded with the next save. */
+    /** Newly selected image(s); one on edit, one or many on create. */
+    images: File[];
+    /** Replacement image on edit (single-select from the same field). */
     image: File | null;
 }
 
 /**
- * The create/edit form for a photograph.
+ * The create/edit form for photographs.
  *
- * Every field maps to a real `photos` column — nothing invented. There is
- * no image-removal control: `photos.image_path` is NOT NULL, so a
- * photograph is its image and the form offers replacement only. The
- * "Related to" choice travels as `related_to` + `related_id`; the server
- * normalises the actual foreign keys, so the form never juggles IDs.
- *
- * Selecting a News article is what publishes the photograph on that article:
- * a photograph is never shown on a news article just because the article
- * references the same component.
+ * Phase 31: administrators add photographs, not metadata — Alt Text is
+ * generated automatically from the filename (or the related content's
+ * title), and Credit, Taken On and Display Order are gone. One form handles
+ * single AND bulk uploads: on create, every selected image is stored with
+ * the same owner; on edit, the field replaces the stored photograph.
+ * Selecting a News article is what publishes the photograph on that
+ * article: a photograph is never shown on a news article just because the
+ * article references the same component.
  */
 export function PhotoForm({
     photo,
@@ -97,14 +91,11 @@ export function PhotoForm({
           : '';
 
     const form = useForm<PhotoFormData>({
-        alt_text: photo?.alt_text ?? '',
         caption: photo?.caption ?? '',
-        credit: photo?.credit ?? '',
-        taken_on: photo?.taken_on ?? '',
         related_to: initialRelatedTo,
         related_id: initialRelatedId,
         status: photo?.status ?? 'draft',
-        sort: photo?.sort ?? 0,
+        images: [],
         image: null,
     });
 
@@ -143,11 +134,14 @@ export function PhotoForm({
         if (isEdit) {
             const url = route('admin.photos.update', { photo: photo.id });
 
-            if (form.data.image !== null) {
-                // A multipart body only parses as a POST request on the
-                // server, so the upload travels via POST with Laravel's
-                // method spoofing; text-only saves keep the PUT verb.
-                form.transform((data) => ({ ...data, _method: 'put' }));
+            if (form.data.images.length > 0) {
+                // Replacement: send the first selected file as `image` (the
+                // update endpoint replaces the stored photograph).
+                form.transform((data) => ({
+                    ...data,
+                    image: data.images[0] ?? null,
+                    _method: 'put',
+                }));
                 form.post(url);
             } else {
                 form.put(url);
@@ -160,42 +154,38 @@ export function PhotoForm({
     return (
         <form onSubmit={submit} noValidate className="space-y-6">
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
-                <h2 className="text-base font-semibold text-foreground">The photograph</h2>
+                <h2 className="text-base font-semibold text-foreground">
+                    {isEdit ? 'The photograph' : 'The photographs'}
+                </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Official SPIN photographs only. Nothing is generated or borrowed from stock libraries.
+                    Official photographs only.
                 </p>
 
                 <div className="mt-5 space-y-5">
-                    <CoverImageField
-                        id="image"
-                        name="image"
-                        label={isEdit ? 'Photo' : 'Photo (required)'}
+                    {isEdit && photo.image_url && (
+                        <figure className="overflow-hidden rounded-sm border border-border bg-muted/30">
+                            <img
+                                src={photo.image_url}
+                                alt={photo.alt_text ?? 'Current photograph'}
+                                className="aspect-[16/9] w-full object-cover"
+                            />
+                            <figcaption className="px-3 py-2 text-xs text-muted-foreground">
+                                Current photograph — select a replacement below to change it.
+                            </figcaption>
+                        </figure>
+                    )}
+
+                    <BulkImagesField
+                        label={isEdit ? 'Replacement Photo' : 'Photos'}
                         hint={
                             isEdit
-                                ? 'Replace or remove the stored photograph. JPEG, PNG or WebP up to 4\u00a0MB.'
-                                : 'Required. This image is the photograph itself. JPEG, PNG or WebP up to 4\u00a0MB.'
+                                ? 'Select a new image to replace the stored photograph.'
+                                : 'Select one or more images — they are uploaded together.'
                         }
-                        emptyHint={isEdit ? 'Select a replacement image' : 'Select the photograph'}
-                        allowRemove={false}
-                        existingUrl={photo?.image_url ?? null}
-                        file={form.data.image}
-                        onFileChange={(file) => form.setData('image', file)}
-                        remove={false}
-                        onRemoveChange={() => {}}
-                        error={form.errors.image}
+                        files={form.data.images}
+                        onFilesChange={(files) => form.setData('images', files)}
+                        error={form.errors.images ?? form.errors['images.0']}
                         disabled={form.processing}
-                    />
-
-                    <AdminTextField
-                        id="alt_text"
-                        name="alt_text"
-                        label="Alt text"
-                        required
-                        hint="Describe the photograph for screen readers — required for accessibility."
-                        value={form.data.alt_text}
-                        onChange={(event) => form.setData('alt_text', event.target.value)}
-                        error={form.errors.alt_text}
-                        autoComplete="off"
                     />
 
                     <AdminTextField
@@ -208,38 +198,14 @@ export function PhotoForm({
                         error={form.errors.caption}
                         autoComplete="off"
                     />
-
-                    <div className="grid gap-5 sm:grid-cols-2">
-                        <AdminTextField
-                            id="credit"
-                            name="credit"
-                            label="Credit"
-                            hint="Who took or supplied the photograph. Optional."
-                            value={form.data.credit}
-                            onChange={(event) => form.setData('credit', event.target.value)}
-                            error={form.errors.credit}
-                            autoComplete="off"
-                        />
-
-                        <AdminTextField
-                            id="taken_on"
-                            name="taken_on"
-                            label="Taken on"
-                            type="date"
-                            hint="When the photograph was taken, if known. Optional."
-                            value={form.data.taken_on}
-                            onChange={(event) => form.setData('taken_on', event.target.value)}
-                            error={form.errors.taken_on}
-                        />
-                    </div>
                 </div>
             </div>
 
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Categorisation</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    A photograph belongs to at most one place. Choosing a new related record
-                    moves the photograph there.
+                    A photograph belongs to at most one place. Every uploaded photo uses this
+                    same choice; choosing a new related record moves the photograph there.
                 </p>
 
                 <div className="mt-5">
@@ -277,20 +243,6 @@ export function PhotoForm({
                         onChange={(event) => form.setData('status', event.target.value)}
                         error={form.errors.status}
                     />
-
-                    <AdminTextField
-                        id="sort"
-                        name="sort"
-                        label="Display order"
-                        type="number"
-                        min={0}
-                        max={10000}
-                        step={1}
-                        hint="Lower numbers list first."
-                        value={String(form.data.sort)}
-                        onChange={(event) => form.setData('sort', Number(event.target.value))}
-                        error={form.errors.sort}
-                    />
                 </div>
             </div>
 
@@ -299,7 +251,13 @@ export function PhotoForm({
                     <Link href={route('admin.photos.index')}>Cancel</Link>
                 </Button>
                 <Button type="submit" disabled={form.processing}>
-                    {form.processing ? 'Saving…' : isEdit ? 'Save changes' : 'Create photo'}
+                    {form.processing
+                        ? 'Saving…'
+                        : isEdit
+                          ? 'Save changes'
+                          : form.data.images.length > 1
+                            ? `Upload ${form.data.images.length} photos`
+                            : 'Create photo'}
                 </Button>
             </div>
         </form>

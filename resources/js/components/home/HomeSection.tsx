@@ -30,6 +30,10 @@ const TONES = {
  * Guarantees identical heading structure, vertical rhythm and surface tones
  * across the whole homepage so the page reads as one designed document
  * instead of fourteen unrelated blocks.
+ *
+ * Client revision (Phase 27): the vertical rhythm was compacted — section
+ * padding sits at py-10/12/16 and the heading-to-content gap at mt-7/8 —
+ * reducing scroll length without cramping any single section.
  */
 export function HomeSection({
     eyebrow,
@@ -48,7 +52,7 @@ export function HomeSection({
 
     return (
         <section id={id} aria-labelledby={id} className={cn(TONES[tone], className)}>
-            <Container className="py-14 sm:py-16 lg:py-20">
+            <Container className="py-10 sm:py-12 lg:py-16">
                 {splitHeader && action ? (
                     <div className="flex flex-wrap items-end justify-between gap-6">
                         {heading}
@@ -58,7 +62,7 @@ export function HomeSection({
                     heading
                 )}
 
-                <div className="mt-10 lg:mt-12">{children}</div>
+                <div className="mt-7 lg:mt-8">{children}</div>
             </Container>
         </section>
     );

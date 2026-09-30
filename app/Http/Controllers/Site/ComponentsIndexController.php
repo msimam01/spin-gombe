@@ -9,15 +9,17 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Public Components overview page.
+ *
+ * Only published components are listed, in their manual order. The seeded
+ * slugs are long, so each component also carries a compact URL slug used for
+ * its detail route and navigation. Related projects and activities live on
+ * each component's detail page — this listing keeps the card grid focused on
+ * the four official components themselves.
+ */
 class ComponentsIndexController extends Controller
 {
-    /**
-     * Public Components overview page.
-     *
-     * Only published components are listed, in their manual order. The
-     * seeded slugs are long, so each component also carries a compact URL
-     * slug used for its detail route and navigation.
-     */
     public function __invoke(): Response
     {
         $components = ProjectComponent::query()

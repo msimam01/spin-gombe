@@ -159,9 +159,11 @@ class PublicMediaExperienceTest extends TestCase
         $project = Project::factory()->published()->create();
         Photo::factory()->for($project, 'project')->create(); // draft
 
+        // The draft photograph shows on its own owner's page (supporting
+        // image), but never enters the standalone public media listing.
         $this->get(route('projects.show', ['slug' => $project->slug]))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->has('project.photos', 0));
+            ->assertInertia(fn ($page) => $page->has('project.photos', 1));
 
         $this->get(route('media.photos'))
             ->assertOk()

@@ -144,7 +144,7 @@ class NewsMediaOwnershipTest extends TestCase
             );
     }
 
-    /** Draft media attached to a published article stays private. */
+    /** Draft photos attached to a published article still show on its page; videos do not. */
     public function test_draft_news_media_is_never_published(): void
     {
         $post = NewsPost::factory()->published()->create();
@@ -152,12 +152,18 @@ class NewsMediaOwnershipTest extends TestCase
         Photo::factory()->create(['news_post_id' => $post->id]);
         Video::factory()->create(['news_post_id' => $post->id]);
 
+        // Bulk-uploaded supporting photographs ride the article's visibility…
         $this->get(route('news.show', ['slug' => $post->slug]))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->has('post.photos', 0)
+                ->has('post.photos', 1)
                 ->has('post.videos', 0)
             );
+
+        // …but never leak into the standalone media listing.
+        $this->get(route('media.photos'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('photos', 0));
     }
 
     /**
@@ -218,12 +224,10 @@ class NewsMediaOwnershipTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.photos.store'), [
-                'image' => $this->jpeg(),
-                'alt_text' => 'Field visit',
+                'images' => [$this->jpeg()],
                 'related_to' => 'news',
                 'related_id' => (string) $post->id,
                 'status' => 'published',
-                'sort' => 0,
             ])
             ->assertSessionHasNoErrors();
 
@@ -240,7 +244,6 @@ class NewsMediaOwnershipTest extends TestCase
                 'related_to' => 'news',
                 'related_id' => (string) $post->id,
                 'status' => 'published',
-                'sort' => 0,
             ])
             ->assertSessionHasNoErrors();
 

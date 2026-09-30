@@ -21,7 +21,13 @@ class EventsShowController extends Controller
     {
         $event = Event::query()
             ->published()
-            ->with(['location', 'galleries.photos'])
+            ->with([
+                'location',
+                // Owner-aware visibility: photographs in this event's
+                // published galleries appear with it even while the photos
+                // themselves are still drafts.
+                'galleries.photos' => fn ($query) => $query->publishedWithOwner()->ordered(),
+            ])
             ->where('slug', $slug)
             ->firstOrFail();
 

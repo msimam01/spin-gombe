@@ -21,7 +21,7 @@ export function ContactPreview() {
 
     return (
         <section id="contact" aria-labelledby="contact" className="bg-background">
-            <Container className="py-14 sm:py-16 lg:py-20">
+            <Container className="py-10 sm:py-12 lg:py-16">
                 <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
                     {/* Contact details. */}
                     <Reveal className="lg:col-span-5">

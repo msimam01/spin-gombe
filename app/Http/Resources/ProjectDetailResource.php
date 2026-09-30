@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Project;
+use App\Support\CoverImage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -58,20 +59,33 @@ class ProjectDetailResource extends JsonResource
             'videos' => $this->whenLoaded('videos', fn () => $this->videos
                 ->map(fn ($video) => (new VideoResource($video))->resolve())
                 ->all()),
+            /*
+             * Related records are hard-limited to three: the section renders
+             * exactly the first three published siblings, with no expansion
+             * control — visitors use the Projects & Activities listing to
+             * see the rest. The current record is always excluded.
+             */
             'related' => $this->whenLoaded('component', function () {
                 $component = $this->component;
 
                 return $component
                     ? $component->projects()
                         ->published()
-                        ->ordered()
+                        ->latestFirst()
                         ->where('id', '!=', $this->id)
-                        ->get()
+                        ->limit(3)
+                        ->with('location:id,name')
+                        ->get(['id', 'slug', 'title', 'type', 'summary', 'cover_image', 'location_id'])
                         ->map(fn (Project $related) => [
+                            'id' => $related->id,
                             'slug' => $related->slug,
                             'title' => $related->title,
                             'type' => $related->type,
                             'summary' => $related->summary,
+                            // The related record's own cover, resolved against
+                            // the public disk — never another record's image.
+                            'cover_image' => CoverImage::url($related->cover_image),
+                            'location_name' => $related->location?->name,
                         ])->all()
                     : [];
             }),

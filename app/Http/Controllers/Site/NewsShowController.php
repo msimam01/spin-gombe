@@ -25,7 +25,11 @@ class NewsShowController extends Controller
             ->published()
             ->with([
                 'component:id,slug,name,short_name',
-                'photos' => fn ($query) => $query->published()->ordered(),
+                // Owner-aware visibility: photographs attached to this
+                // published article appear with it even while the photos
+                // themselves are still drafts (uploading supporting images
+                // to a published page publishes them with it).
+                'photos' => fn ($query) => $query->publishedWithOwner()->ordered(),
                 'videos' => fn ($query) => $query->published()->ordered(),
             ])
             ->where('slug', $slug)

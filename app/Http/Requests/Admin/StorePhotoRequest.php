@@ -8,18 +8,24 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 /**
- * Validation for creating a photograph.
+ * Validation for creating a photograph (single or bulk).
  *
- * The form exposes exactly the fields the `photos` schema supports. The
- * human "Related to" choice is normalised here — at the validation layer, not
- * only in React — so a photo always carries AT MOST ONE primary
- * relationship: selecting Project/Activity, Component, Gallery or News
- * article sets that one foreign key and nulls the others;
- * General/Independent sets all of them to null. Choosing a news article is
- * what puts a photograph on that article's page — never the component the
- * article happens to reference. The browser's option lists are convenience,
- * never authority: each related record's existence is re-checked
- * server-side.
+ * Phase 31: administrators no longer write Alt Text by hand — the server
+ * derives it from the uploaded filename (or the related content's title)
+ * through App\Support\ImageNaming, so the field is neither required nor
+ * accepted from the normal form. Credit, Taken On and Display Order are
+ * likewise no longer form fields; `alt_text`/`credit`/`taken_on`/`sort`
+ * stay nullable server-side and old values in the database are untouched.
+ *
+ * One or many images travel as `images[]`; every file is validated
+ * individually with the shared image rules and the set is bounded.
+ *
+ * The human "Related to" choice is normalised here — at the validation
+ * layer, not only in React — so every photo in one submission carries AT
+ * MOST ONE primary relationship. Choosing a news article is what puts a
+ * photograph on that article's page — never the component the article
+ * happens to reference. The browser's option lists are convenience, never
+ * authority: each related record's existence is re-checked server-side.
  */
 class StorePhotoRequest extends FormRequest
 {
@@ -48,9 +54,12 @@ class StorePhotoRequest extends FormRequest
             // rejects the empty string.
             'related_id' => $relatedId,
             'caption' => $this->filled('caption') ? trim((string) $this->input('caption')) : null,
+
+            // No longer form fields; kept nullable server-side.
+            'alt_text' => null,
             'credit' => $this->filled('credit') ? trim((string) $this->input('credit')) : null,
             'taken_on' => $this->filled('taken_on') ? $this->input('taken_on') : null,
-            'sort' => $this->filled('sort') ? (int) $this->input('sort') : 0,
+            'sort' => 0,
         ]);
     }
 
@@ -60,18 +69,13 @@ class StorePhotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // The photograph itself. MIME sniffing — not the filename —
-            // decides whether this really is an image; jpeg/png/webp are the
+            // The photograph(s). MIME sniffing — not the filename — decides
+            // whether each file really is an image; jpeg/png/webp are the
             // common web formats the public site renders.
-            'image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'images' => ['required', 'array', 'min:1', 'max:20'],
+            'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
 
-            // Alt text is required at the authoring level: it is how the
-            // image stays meaningful to screen readers (the public site's
-            // caption fallback is a safety net, not a licence to omit it).
-            'alt_text' => ['required', 'string', 'max:500'],
             'caption' => ['nullable', 'string', 'max:500'],
-            'credit' => ['nullable', 'string', 'max:255'],
-            'taken_on' => ['nullable', 'date'],
 
             // The human "Related to" choice and its record selector.
             'related_to' => ['required', 'string', 'in:general,project,component,gallery,news'],
@@ -94,7 +98,6 @@ class StorePhotoRequest extends FormRequest
             'news_post_id' => ['nullable', Rule::exists('news_posts', 'id')],
 
             'status' => ['required', new Enum(PublicationStatus::class)],
-            'sort' => ['required', 'integer', 'min:0', 'max:10000'],
         ];
     }
 
@@ -106,8 +109,7 @@ class StorePhotoRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'alt_text' => 'alt text',
-            'taken_on' => 'taken on date',
+            'images.*' => 'photo',
             'related_to' => 'related to',
             'related_id' => 'related record',
         ];

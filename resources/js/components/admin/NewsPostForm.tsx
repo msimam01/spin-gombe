@@ -1,7 +1,9 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { BulkImagesField } from '@/components/admin/BulkImagesField';
 import { CoverImageField } from '@/components/admin/CoverImageField';
+import { ExistingImagesGrid } from '@/components/admin/ExistingImagesGrid';
 import { AdminSelectField, AdminTextField, AdminTextareaField } from '@/components/admin/FormControls';
 import { Button } from '@/components/ui/button';
 import { route } from '@/lib/routes';
@@ -16,44 +18,43 @@ interface NewsPostFormProps {
 
 interface NewsPostFormData {
     title: string;
-    excerpt: string;
     body: string;
     project_component_id: string;
-    published_at: string;
     status: string;
-    sort: number;
     /** Newly selected cover photo; uploaded with the next save. */
     cover: File | null;
     /** Explicit removal of the stored cover photo. */
     remove_cover: boolean;
+    /** Newly selected supporting images; uploaded with the next save. */
+    images: File[];
+    /** Existing supporting images ticked for removal. */
+    remove_photo_ids: number[];
 }
 
 /**
  * The create/edit form for a news article.
  *
- * Every field maps to a real `news_posts` column — nothing invented (the
- * schema has no featured flag). The body stays the public site's plain-text
- * paragraph format: blank lines separate paragraphs, single newlines break
- * lines. Cover image upload arrives with the Media phase; the column is
- * preserved untouched.
+ * Phase 31: the Excerpt, Publication Date and Display Order fields are gone
+ * — the public date is the article's own creation timestamp, summaries are
+ * derived from the body, and ordering is chronological. The cover photo
+ * stays (replaceable, clearable, independent of the supporting images), and
+ * a bulk Supporting Images field attaches photographs to THIS article
+ * through its own ownership — never through the article's component.
  */
 export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) {
     const isEdit = post !== undefined;
 
     const form = useForm<NewsPostFormData>({
         title: post?.title ?? '',
-        excerpt: post?.excerpt ?? '',
         body: post?.body ?? '',
         project_component_id: post?.project_component_id !== undefined && post?.project_component_id !== null
             ? String(post.project_component_id)
             : '',
-        published_at: post?.published_at !== undefined && post?.published_at !== null
-            ? post.published_at.slice(0, 10)
-            : '',
         status: post?.status ?? 'draft',
-        sort: post?.sort ?? 0,
         cover: null,
         remove_cover: false,
+        images: [],
+        remove_photo_ids: [],
     });
 
     const [dirtyNotified, setDirtyNotified] = useState(false);
@@ -89,13 +90,15 @@ export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) 
     function submit(event: React.FormEvent) {
         event.preventDefault();
 
+        // A multipart body only parses as a POST request on the server, so
+        // any upload travels via POST with Laravel's method spoofing;
+        // text-only saves keep the PUT verb.
+        const uploading = form.data.cover !== null || form.data.images.length > 0;
+
         if (isEdit) {
             const url = route('admin.news.update', { post: post.slug });
 
-            if (form.data.cover !== null) {
-                // A multipart body only parses as a POST request on the
-                // server, so the upload travels via POST with Laravel's
-                // method spoofing; text-only saves keep the PUT verb.
+            if (uploading) {
                 form.transform((data) => ({ ...data, _method: 'put' }));
                 form.post(url);
             } else {
@@ -111,7 +114,7 @@ export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) 
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Article details</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Official SPIN news and updates as they should appear on the public website.
+                    Official news and updates as they should appear on the public website.
                 </p>
 
                 <div className="mt-5 space-y-5">
@@ -128,22 +131,11 @@ export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) 
                     />
 
                     <AdminTextareaField
-                        id="excerpt"
-                        name="excerpt"
-                        label="Excerpt"
-                        rows={2}
-                        hint="One or two sentences used in cards and listings. Optional."
-                        value={form.data.excerpt}
-                        onChange={(event) => form.setData('excerpt', event.target.value)}
-                        error={form.errors.excerpt}
-                    />
-
-                    <AdminTextareaField
                         id="body"
                         name="body"
                         label="Article body"
                         rows={12}
-                        hint="Plain text only: leave a blank line between paragraphs; a single line break starts a new line. Rich formatting arrives with a future phase."
+                        hint="Plain text only: leave a blank line between paragraphs; a single line break starts a new line. The first paragraph also becomes the card summary."
                         value={form.data.body}
                         onChange={(event) => form.setData('body', event.target.value)}
                         error={form.errors.body}
@@ -160,14 +152,32 @@ export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) 
                         error={form.errors.cover}
                         disabled={form.processing}
                     />
+
+                    <BulkImagesField
+                        label="Supporting Images"
+                        hint="Photographs shown on this article's page only."
+                        files={form.data.images}
+                        onFilesChange={(files) => form.setData('images', files)}
+                        error={form.errors.images}
+                        disabled={form.processing}
+                    />
+
+                    {isEdit && (post.photos?.length ?? 0) > 0 && (
+                        <ExistingImagesGrid
+                            images={post.photos ?? []}
+                            selectedIds={form.data.remove_photo_ids}
+                            onSelectionChange={(ids) => form.setData('remove_photo_ids', ids)}
+                            disabled={form.processing}
+                        />
+                    )}
                 </div>
             </div>
 
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Categorisation</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Optional. Related media and articles on the public page are drawn from the
-                    selected component.
+                    Optional. Related articles on the public page are drawn from the selected
+                    component.
                 </p>
 
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -191,22 +201,11 @@ export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) 
                 <h2 className="text-base font-semibold text-foreground">Publication</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                     {isEdit
-                        ? 'Draft articles are hidden from the public website until published.'
-                        : 'New articles start as drafts so nothing appears publicly before review.'}
+                        ? 'Draft articles are hidden from the public website until published. The public date is the article\'s creation date.'
+                        : 'New articles start as drafts so nothing appears publicly before review. The public date is the article\'s creation date.'}
                 </p>
 
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                    <AdminTextField
-                        id="published_at"
-                        name="published_at"
-                        label="Publication date"
-                        type="date"
-                        hint="Leave empty to publish now when you publish. A future date schedules the article — it stays hidden until that day."
-                        value={form.data.published_at}
-                        onChange={(event) => form.setData('published_at', event.target.value)}
-                        error={form.errors.published_at}
-                    />
-
                     <AdminSelectField
                         id="status"
                         name="status"
@@ -216,20 +215,6 @@ export function NewsPostForm({ post, statuses, components }: NewsPostFormProps) 
                         value={form.data.status}
                         onChange={(event) => form.setData('status', event.target.value)}
                         error={form.errors.status}
-                    />
-
-                    <AdminTextField
-                        id="sort"
-                        name="sort"
-                        label="Display order"
-                        type="number"
-                        min={0}
-                        max={10000}
-                        step={1}
-                        hint="Lower numbers list first within the admin."
-                        value={String(form.data.sort)}
-                        onChange={(event) => form.setData('sort', Number(event.target.value))}
-                        error={form.errors.sort}
                     />
                 </div>
 

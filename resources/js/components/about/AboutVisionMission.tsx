@@ -5,14 +5,15 @@ import { Reveal } from '@/components/shared/Reveal';
 import type { SharedProps } from '@/types';
 
 /**
- * Vision & Mission — the two official statements on the About page.
+ * Vision & Mission — the two official statements, side by side.
  *
- * Same institutional green band language as the homepage treatment, but
- * composed as a stacked, editorial sequence rather than two columns, so the
- * section feels deliberate on this page instead of repeated. The mission
- * targets (500,000 ha · 30 GW · 2030) are national programme targets from the
- * supplied mission statement — labelled exactly as such, never as Gombe
- * achievements.
+ * Phase 28: the cards now share a row from `md` up (stacked on mobile),
+ * matching the homepage's divided-card treatment. Equal column weights, a
+ * shared hairline divider and matched internal padding keep the two
+ * statements visually equal; the mission's national programme targets
+ * (500,000 ha · 30 GW · 2030 — labelled exactly as such, never as Gombe
+ * achievements) sit inside the mission card, which simply grows to the row
+ * height without clipping anything. The official statements are unaltered.
  */
 export function AboutVisionMission() {
     const { site } = usePage<SharedProps>().props;
@@ -31,9 +32,10 @@ export function AboutVisionMission() {
                 <path d="M9.2 14.4c1.6 1.4 4 1.4 5.6 0" />
             </svg>
 
-            <Container className="py-14 sm:py-16 lg:py-20">
-                <div className="space-y-px overflow-hidden rounded-md bg-brand-400/25 shadow-raised ring-1 ring-white/10">
-                    <Reveal className="bg-primary p-8 pb-10 xl:p-12">
+            <Container className="py-10 sm:py-12 lg:py-16">
+                {/* One row from md up: divided by a hairline, cards equal weight and height. */}
+                <div className="grid gap-8 md:grid-cols-2 md:gap-px md:overflow-hidden md:rounded-md md:bg-brand-400/25 md:shadow-raised md:ring-1 md:ring-white/10">
+                    <Reveal className="md:bg-primary md:p-8 md:pb-10 xl:p-10">
                         <div className="flex items-center gap-3">
                             <span className="flex size-11 items-center justify-center rounded-sm bg-white/10 text-gold-300 ring-1 ring-white/15">
                                 <Compass aria-hidden="true" className="size-5" />
@@ -42,12 +44,13 @@ export function AboutVisionMission() {
                                 Our Vision
                             </h2>
                         </div>
-                        <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/90 sm:text-lg sm:leading-relaxed">
+
+                        <p className="mt-6 text-base leading-relaxed text-white/90 [text-align:justify] sm:text-lg sm:leading-relaxed">
                             {site.vision}
                         </p>
                     </Reveal>
 
-                    <Reveal delay={120} className="bg-primary p-8 pb-10 xl:p-12">
+                    <Reveal delay={120} className="md:bg-primary md:p-8 md:pb-10 xl:p-10">
                         <div className="flex items-center gap-3">
                             <span className="flex size-11 items-center justify-center rounded-sm bg-white/10 text-gold-300 ring-1 ring-white/15">
                                 <Target aria-hidden="true" className="size-5" />
@@ -56,7 +59,8 @@ export function AboutVisionMission() {
                                 Our Mission
                             </h2>
                         </div>
-                        <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/90 sm:text-lg sm:leading-relaxed">
+
+                        <p className="mt-6 text-base leading-relaxed text-white/90 [text-align:justify] sm:text-lg sm:leading-relaxed">
                             {site.mission}
                         </p>
 

@@ -74,8 +74,13 @@ class NewsPost extends Model implements Publishable
         return $this->hasMany(Video::class);
     }
 
+    /**
+     * Newest first by the article's own creation timestamp — the public
+     * chronological order. The publishing pipeline (published scope) still
+     * gates visibility; a creation date never publishes anything.
+     */
     public function scopeLatestFirst(Builder $query): Builder
     {
-        return $query->orderByDesc('published_at')->orderByDesc('id');
+        return $query->orderByDesc('created_at')->orderByDesc('id');
     }
 }

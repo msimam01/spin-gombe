@@ -92,6 +92,16 @@ class Project extends Model implements Publishable
         return $query->where('type', self::TYPE_PROJECT);
     }
 
+    /**
+     * Newest first by creation timestamp — the public listing order since
+     * manual display order left the CMS. The publishing scope still gates
+     * visibility; a creation date never publishes anything.
+     */
+    public function scopeLatestFirst(Builder $query): Builder
+    {
+        return $query->orderByDesc('created_at')->orderByDesc('id');
+    }
+
     /** Projects whose location carries confirmed, geographically valid coordinates. */
     public function scopeMappable(Builder $query): Builder
     {

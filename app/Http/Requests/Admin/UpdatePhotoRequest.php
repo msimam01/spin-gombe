@@ -10,12 +10,14 @@ use Illuminate\Validation\Rules\Enum;
 /**
  * Validation for updating a photograph.
  *
- * Every field is `sometimes`: partial updates (for example re-assigning a
- * photo to a gallery from the gallery screen, or removing it from one) touch
- * only the sent fields and never clear anything they leave out. When
- * `related_to` IS sent, the primary relationship is re-normalised at the
- * validation layer — the newly chosen relationship is set and the other
- * foreign keys are explicitly nulled.
+ * Phase 31: the Alt Text, Credit, Taken On and Display Order fields are no
+ * longer presented — alt text is (re)generated server-side when a photo is
+ * created or replaced, never accepted from the normal form. Every field is
+ * `sometimes`: partial updates (for example re-assigning a photo to a
+ * gallery from the gallery screen) touch only the sent fields and never
+ * clear anything they leave out. When `related_to` IS sent, the primary
+ * relationship is re-normalised at the validation layer — the newly chosen
+ * relationship is set and the other foreign keys are explicitly nulled.
  */
 class UpdatePhotoRequest extends FormRequest
 {
@@ -34,6 +36,10 @@ class UpdatePhotoRequest extends FormRequest
             // browser) still normalises it, so the integer rule never sees it.
             if ($this->has('related_id') && ! $this->filled('related_id')) {
                 $this->merge(['related_id' => null]);
+            }
+
+            if ($this->has('caption')) {
+                $this->merge(['caption' => $this->filled('caption') ? trim((string) $this->input('caption')) : null]);
             }
 
             return;
@@ -64,10 +70,10 @@ class UpdatePhotoRequest extends FormRequest
             // photograph is its image, so the CMS offers replacement only.
             'image' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
 
-            'alt_text' => ['sometimes', 'required', 'string', 'max:500'],
+            // No longer accepted from the normal form (alt text is derived
+            // server-side on create/replacement). Caption remains editable.
+            'alt_text' => ['prohibited'],
             'caption' => ['sometimes', 'nullable', 'string', 'max:500'],
-            'credit' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'taken_on' => ['sometimes', 'nullable', 'date'],
 
             'related_to' => ['sometimes', 'required', 'string', 'in:general,project,component,gallery,news'],
             'related_id' => [
@@ -91,7 +97,6 @@ class UpdatePhotoRequest extends FormRequest
             'news_post_id' => ['sometimes', 'nullable', Rule::exists('news_posts', 'id')],
 
             'status' => ['sometimes', 'required', new Enum(PublicationStatus::class)],
-            'sort' => ['sometimes', 'required', 'integer', 'min:0', 'max:10000'],
         ];
     }
 
@@ -103,8 +108,6 @@ class UpdatePhotoRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'alt_text' => 'alt text',
-            'taken_on' => 'taken on date',
             'related_to' => 'related to',
             'related_id' => 'related record',
         ];

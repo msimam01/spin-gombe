@@ -1,44 +1,77 @@
-import { Droplets, ShieldCheck, Sprout, Users, Wheat, Zap, type LucideIcon } from 'lucide-react';
+import { Droplets, ShieldCheck, Sprout, Zap, type LucideIcon } from 'lucide-react';
 import { Container } from '@/components/layout/Container';
 import { SectionHeading } from '@/components/shared/SectionHeading';
+import { usePage } from '@inertiajs/react';
+import type { SharedProps } from '@/types';
+
+/** Icons for the four official project themes, keyed by config key. */
+const THEME_ICONS: Record<string, LucideIcon> = {
+    water: Droplets,
+    irrigation: Sprout,
+    dams: ShieldCheck,
+    hydro: Zap,
+};
 
 /**
- * The thematic areas the SPIN Project is designed around.
+ * The four official thematic areas, presented as a prominent 2×2 grid.
  *
- * These are themes named in the official project information, not claims or
- * statistics. Icons give the section meaning without decorative clutter.
+ * Client revision (Phase 27): upgraded from a small horizontal pill row to a
+ * large two-by-two card grid — bigger icons, bigger titles and one supporting
+ * line each, derived strictly from the approved project summary. Copy and
+ * icons come from the official themes in config/spin.php; no new claims.
  */
-const FOCUS_AREAS: { label: string; icon: LucideIcon }[] = [
-    { label: 'Water resources management', icon: Droplets },
-    { label: 'Irrigation modernization', icon: Sprout },
-    { label: 'Agriculture & food security', icon: Wheat },
-    { label: 'Dam operations & safety', icon: ShieldCheck },
-    { label: 'Hydropower development', icon: Zap },
-    { label: 'Institutional capacity', icon: Users },
-];
-
 export function FocusAreas() {
+    const { site } = usePage<SharedProps>().props;
+
+    const SUPPORTING_LINES: Record<string, string> = {
+        water: 'Strengthening how water resources are planned, allocated and managed.',
+        irrigation: 'Modernizing irrigation services for dry-season farming.',
+        dams: 'Improving dam operations and dam safety measures.',
+        hydro: 'Supporting sustainable hydropower development.',
+    };
+
     return (
-        <section className="border-y border-border bg-muted">
-            <Container className="py-14 lg:py-16">
+        <section className="border-b border-border bg-background" aria-label="Project thematic areas">
+            <Container className="py-10 sm:py-12 lg:py-16">
                 <SectionHeading
-                    eyebrow="Project Focus"
-                    title="What the project is built around"
-                    description="SPIN brings water and power together — improving how infrastructure is managed so irrigation, dam safety and hydropower support food, water and energy security."
+                    eyebrow="What the project does"
+                    title="Four thematic areas"
+                    description="SPIN is built around four themes supporting food, water and energy security in Gombe State."
                 />
 
-                <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {FOCUS_AREAS.map(({ label, icon: Icon }) => (
-                        <li
-                            key={label}
-                            className="flex items-center gap-3 rounded-md border border-border bg-background px-5 py-4"
-                        >
-                            <span className="flex size-10 shrink-0 items-center justify-center rounded-sm bg-brand-50 text-brand-700">
-                                <Icon aria-hidden="true" className="size-5" />
-                            </span>
-                            <span className="text-sm font-medium text-foreground">{label}</span>
-                        </li>
-                    ))}
+                <ul className="mt-7 grid gap-4 sm:grid-cols-2 lg:mt-8 lg:gap-5">
+                    {site.themes.map((theme, index) => {
+                        const Icon = THEME_ICONS[theme.key];
+
+                        return (
+                            <li
+                                key={theme.key}
+                                className="group relative flex items-start gap-5 rounded-md border border-border bg-card p-6 shadow-subtle transition-all duration-200 hover:border-brand-300 hover:shadow-card sm:p-7"
+                            >
+                                <span className="flex size-14 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-700 ring-1 ring-brand-100 transition-colors group-hover:bg-background">
+                                    {Icon && <Icon aria-hidden="true" className="size-7" />}
+                                </span>
+
+                                <div className="min-w-0">
+                                    <h3 className="text-lg leading-snug font-bold text-foreground sm:text-xl">
+                                        {theme.label}
+                                    </h3>
+                                    {SUPPORTING_LINES[theme.key] && (
+                                        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                                            {SUPPORTING_LINES[theme.key]}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute top-5 right-5 font-display text-3xl leading-none font-bold text-brand-100 transition-colors duration-300 group-hover:text-gold-300"
+                                >
+                                    {String(index + 1).padStart(2, '0')}
+                                </span>
+                            </li>
+                        );
+                    })}
                 </ul>
             </Container>
         </section>

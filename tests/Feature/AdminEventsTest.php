@@ -141,10 +141,9 @@ class AdminEventsTest extends TestCase
                 ->where('events.data.0.location.name', 'Funakaye North'));
     }
 
-    public function test_a_valid_event_can_be_created_with_a_location_and_venue(): void
+    public function test_a_valid_event_can_be_created_with_a_venue(): void
     {
         $admin = User::factory()->administrator()->create();
-        $location = Location::factory()->create();
 
         $starts = now()->addWeek();
         $ends = now()->addWeek()->addHours(4);
@@ -154,11 +153,9 @@ class AdminEventsTest extends TestCase
                 'title' => 'Farmer Sensitisation Workshop',
                 'description' => "First paragraph of the briefing.\n\nSecond paragraph.",
                 'venue' => 'Conference Hall, Gombe',
-                'location_id' => $location->id,
                 'starts_at' => $starts->format('Y-m-d\TH:i'),
                 'ends_at' => $ends->format('Y-m-d\TH:i'),
                 'status' => 'draft',
-                'sort' => 5,
             ])
             ->assertRedirect(route('admin.events.index'))
             ->assertSessionHas('toast');
@@ -167,7 +164,6 @@ class AdminEventsTest extends TestCase
 
         $this->assertSame('draft', $event->status->value);
         $this->assertNull($event->published_at);
-        $this->assertSame($location->id, $event->location_id);
         $this->assertSame('Conference Hall, Gombe', $event->venue);
         $this->assertTrue($event->starts_at->equalTo($starts->startOfMinute()));
         $this->assertTrue($event->ends_at?->equalTo($ends->startOfMinute()));
@@ -198,14 +194,11 @@ class AdminEventsTest extends TestCase
             ->from(route('admin.events.create'))
             ->post(route('admin.events.store'), [
                 'title' => '',
-                'location_id' => 99999,
                 'starts_at' => '',
-                'published_at' => 'not-a-date',
                 'status' => 'not-a-status',
-                'sort' => -3,
             ])
             ->assertRedirect(route('admin.events.create'))
-            ->assertSessionHasErrors(['title', 'location_id', 'starts_at', 'published_at', 'status', 'sort']);
+            ->assertSessionHasErrors(['title', 'starts_at', 'status']);
 
         $this->assertSame(0, Event::count());
     }
@@ -264,14 +257,13 @@ class AdminEventsTest extends TestCase
 
         // A partial update: only the fields sent change. The schema requires
         // a start date for every event (the form always carries it); the
-        // nullable fields — description, venue, end date, location — must
-        // survive untouched when absent from the payload.
+        // nullable fields — description, venue, end date — and the stored
+        // location link must survive untouched when absent from the payload.
         $this->actingAs(User::factory()->administrator()->create())
             ->put(route('admin.events.update', ['event' => $event->slug]), [
                 'title' => 'Renamed Event Title',
                 'starts_at' => $event->starts_at->format('Y-m-d\TH:i'),
                 'status' => 'draft',
-                'sort' => $event->sort,
             ])
             ->assertRedirect(route('admin.events.index'))
             ->assertSessionHas('toast');
@@ -280,7 +272,7 @@ class AdminEventsTest extends TestCase
 
         $this->assertSame('Renamed Event Title', $event->title);
         $this->assertSame($originalSlug, $event->slug, 'Slug must never change on rename.');
-        $this->assertSame($location->id, $event->location_id, 'A partial update must not clear the location.');
+        $this->assertSame($location->id, $event->location_id, 'A partial update must not clear the stored location link.');
         $this->assertSame('Keep this description.', $event->description, 'A partial update must not clear the description.');
         $this->assertSame('Original Hall', $event->venue, 'A partial update must not clear the venue.');
         $this->assertNotNull($event->ends_at, 'A partial update must not clear the end date.');
@@ -288,24 +280,23 @@ class AdminEventsTest extends TestCase
         $this->assertTrue($event->starts_at->equalTo($originalStart));
     }
 
-    public function test_the_location_can_be_changed_on_update(): void
+    public function test_a_venue_matching_a_location_name_relinks_the_record(): void
     {
-        $original = Location::factory()->create();
-        $replacement = Location::factory()->create(['name' => 'New Meeting Point']);
-
-        $event = Event::factory()->atLocation($original)->create();
+        $place = Location::factory()->create(['name' => 'New Meeting Point']);
+        $event = Event::factory()->create(['venue' => null, 'location_id' => null]);
 
         $this->actingAs(User::factory()->administrator()->create())
             ->put(route('admin.events.update', ['event' => $event->slug]), [
                 'title' => $event->title,
-                'location_id' => $replacement->id,
+                'venue' => 'New Meeting Point',
                 'starts_at' => $event->starts_at->format('Y-m-d\TH:i'),
                 'status' => 'draft',
-                'sort' => $event->sort,
             ])
             ->assertRedirect(route('admin.events.index'));
 
-        $this->assertSame($replacement->id, $event->refresh()->location_id);
+        // The venue text matching a real Location record re-links it —
+        // derived from real data, never a fabricated coordinate.
+        $this->assertSame($place->id, $event->refresh()->location_id);
     }
 
     public function test_slug_changes_are_rejected_on_update(): void
@@ -328,18 +319,16 @@ class AdminEventsTest extends TestCase
     public function test_the_publishing_pipeline_keeps_drafts_off_the_public_website(): void
     {
         $admin = User::factory()->administrator()->create();
-        $location = Location::factory()->create(['name' => 'Gombe Stadium', 'lga' => 'Gombe']);
+        Location::factory()->create(['name' => 'Gombe Stadium', 'lga' => 'Gombe']);
         $starts = now()->addWeek();
 
         $this->actingAs($admin)
             ->post(route('admin.events.store'), [
                 'title' => 'Midterm Stakeholder Review',
                 'description' => "A drafted stakeholder engagement.\n\nSecond paragraph.",
-                'venue' => 'Main Banquet Hall',
-                'location_id' => $location->id,
+                'venue' => 'Gombe Stadium',
                 'starts_at' => $starts->format('Y-m-d\TH:i'),
                 'status' => 'draft',
-                'sort' => 0,
             ])
             ->assertRedirect(route('admin.events.index'));
 
@@ -373,7 +362,9 @@ class AdminEventsTest extends TestCase
         $this->assertSame('published', $event->status->value);
         $this->assertNotNull($event->published_at);
 
-        // A future start date places it in the upcoming section.
+        // A future start date places it in the upcoming section. The venue
+        // matching a real Location record re-linked it (derived from real
+        // data), so the place still renders.
         $this->get(route('events.index'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
@@ -394,7 +385,7 @@ class AdminEventsTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('event.title', 'Midterm Stakeholder Review')
-                ->where('event.venue', 'Main Banquet Hall')
+                ->where('event.venue', 'Gombe Stadium')
                 ->where('event.location.name', 'Gombe Stadium')
                 ->where('event.starts_at', $event->starts_at->toIso8601String()));
 
@@ -443,29 +434,32 @@ class AdminEventsTest extends TestCase
         $this->get(route('events.show', ['slug' => 'completed-community-engagement']))->assertOk();
     }
 
-    public function test_a_scheduled_future_publication_date_stays_hidden_until_due(): void
+    public function test_publishing_stamps_the_publication_timestamp_internally(): void
     {
+        // The publication date is no longer a form field: the publishing
+        // concern stamps published_at when the event is published, and the
+        // value is never accepted from the client. A directly created
+        // published event is stamped at creation (now), so it is visible at
+        // once — but never at a client-chosen future date.
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.events.store'), [
                 'title' => 'Scheduled Launch Ceremony',
                 'starts_at' => now()->addWeek()->format('Y-m-d\TH:i'),
                 'status' => 'published',
                 'published_at' => now()->addDays(2)->toDateString(),
-                'sort' => 0,
-            ]);
+            ])
+            ->assertRedirect(route('admin.events.index'))
+            ->assertSessionHasNoErrors();
 
         $event = Event::query()->where('slug', 'scheduled-launch-ceremony')->firstOrFail();
         $this->assertSame('published', $event->status->value);
-        $this->assertTrue($event->published_at->isFuture());
+        $this->assertNotNull($event->published_at, 'A published event carries a publication timestamp.');
+        $this->assertFalse($event->published_at->isFuture(), 'The client-supplied publication date must be ignored.');
 
-        // The publication scope hides it until the publication date arrives,
-        // even though the event's own start date is in the future.
+        // The event appears immediately — publication is not scheduled.
         $this->get(route('events.index'))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->has('upcoming', 0)->has('past', 0));
-
-        $this->get(route('events.show', ['slug' => 'scheduled-launch-ceremony']))->assertNotFound();
-        $this->get('/')->assertOk()->assertInertia(fn ($page) => $page->has('events', 0));
+            ->assertInertia(fn ($page) => $page->has('upcoming', 1));
     }
 
     public function test_invalid_publication_actions_are_rejected(): void

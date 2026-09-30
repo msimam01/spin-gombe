@@ -18,6 +18,10 @@ use Inertia\Response;
  * Location records — never from the project count. Nothing is invented: with
  * no published records the page presents its empty state and the listing
  * fills automatically as records are published.
+ *
+ * The page also accepts `?component=<url-slug>` so the Components pages can
+ * deep-link into a pre-filtered listing (View all projects under a
+ * component); an unknown slug degrades to the unfiltered listing.
  */
 class ProjectsIndexController extends Controller
 {
@@ -27,7 +31,7 @@ class ProjectsIndexController extends Controller
             $projects = ProjectResource::collection(
                 Project::query()
                     ->published()
-                    ->ordered()
+                    ->latestFirst()
                     ->with(['component:id,slug,name,short_name', 'location:id,name,lga,latitude,longitude'])
                     ->get()
             )->resolve();
@@ -42,17 +46,26 @@ class ProjectsIndexController extends Controller
                 ])->all();
 
             $mapLocations = ProjectLocations::forMap();
+
+            // Preselect a component filter only when it matches a published
+            // component; anything else falls back to the unfiltered listing.
+            $requested = (string) request()->query('component', '');
+            $initialComponent = collect($components)->first(fn (array $component) => $component['slug'] === $requested)
+                ? $requested
+                : null;
         } catch (\Throwable) {
             // Fresh clone mid-migration: degrade to honest empty states.
             $projects = [];
             $components = [];
             $mapLocations = [];
+            $initialComponent = null;
         }
 
         return Inertia::render('Projects/Index', [
             'projects' => $projects,
             'components' => $components,
             'mapLocations' => $mapLocations,
+            'initialComponent' => $initialComponent,
         ]);
     }
 }

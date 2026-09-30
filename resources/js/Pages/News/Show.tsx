@@ -12,6 +12,7 @@ import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { Reveal } from '@/components/shared/Reveal';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
+import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Photo } from '@/types';
@@ -36,11 +37,11 @@ interface NewsDetail {
         watch_url: string | null;
         thumbnail_url: string | null;
     }[];
-    related: { slug: string; title: string; excerpt: string | null; published_at: string | null }[];
+    related: { slug: string; title: string; excerpt: string | null; cover_image: string | null; published_at: string | null }[];
 }
 
-/** Photos shown before the collection is expanded. */
-const PHOTO_LIMIT = 8;
+/** Photos revealed per Load More click — three per row on desktop. */
+const PHOTO_STEP = 3;
 
 /** Breaks paragraphs on blank lines; single newlines become line breaks. */
 function splitParagraphs(body: string): string[][] {
@@ -71,10 +72,10 @@ function formatDate(value: string | null): string {
  * fabricated.
  */
 export default function NewsShow({ post }: { post: NewsDetail }) {
-    const [showAllPhotos, setShowAllPhotos] = useState(false);
+    const [visiblePhotoCount, setVisiblePhotoCount] = useState(PHOTO_STEP);
 
     const paragraphs = post.body ? splitParagraphs(post.body) : [];
-    const visiblePhotos = showAllPhotos ? post.photos : post.photos.slice(0, PHOTO_LIMIT);
+    const visiblePhotos = post.photos.slice(0, visiblePhotoCount);
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'NewsArticle',
@@ -180,7 +181,7 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                                         key={index}
                                         className={`text-base leading-relaxed sm:text-lg ${
                                             index === 0 ? 'font-medium text-foreground' : 'text-muted-foreground'
-                                        }`}
+                                        } [text-align:justify]`}
                                     >
                                         {lines.map((line, lineIndex) => (
                                             <span key={lineIndex}>
@@ -202,7 +203,7 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                     <Container className="py-14 sm:py-16">
                         <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Media</h2>
 
-                        <div className="mt-10 grid gap-10 lg:grid-cols-2">
+                        <div className="mt-10 grid gap-10 lg:grid-cols-1">
                             {post.photos.length > 0 && (
                                 <div>
                                     <h3 className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
@@ -212,20 +213,15 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                                         <PhotoGrid
                                             photos={visiblePhotos}
                                             contextLabel={`${post.title} photos`}
+                                            columnsClass="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                                         />
                                     </div>
-                                    {post.photos.length > PHOTO_LIMIT && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowAllPhotos((current) => !current)}
-                                            aria-expanded={showAllPhotos}
-                                            className="mt-4 inline-flex items-center gap-2 rounded-md border border-brand-200 bg-background px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-brand-50"
-                                        >
-                                            {showAllPhotos
-                                                ? 'Show fewer photos'
-                                                : `Show all ${post.photos.length} photos`}
-                                        </button>
-                                    )}
+                                    <LoadMoreButton
+                                        shown={visiblePhotos.length}
+                                        total={post.photos.length}
+                                        unit="photos"
+                                        onReveal={() => setVisiblePhotoCount((current) => current + PHOTO_STEP)}
+                                    />
                                 </div>
                             )}
 
@@ -307,19 +303,55 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                                 <li key={related.slug}>
                                     <Link
                                         href={route('news.show', { slug: related.slug })}
-                                        className="group flex h-full flex-col rounded-md border border-border bg-background p-5 shadow-subtle transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised"
+                                        className="group flex h-full flex-col overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-raised"
                                     >
-                                        <p className="text-xs font-medium text-muted-foreground">
-                                            {formatDate(related.published_at)}
-                                        </p>
-                                        <h3 className="mt-2 text-base leading-snug font-semibold text-foreground transition-colors group-hover:text-brand-800">
-                                            {related.title}
-                                        </h3>
-                                        {related.excerpt && (
-                                            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                                                {related.excerpt}
-                                            </p>
+                                        {related.cover_image ? (
+                                            /*
+                                             * The article's own cover image, resolved by the
+                                             * backend — never another article's or a component
+                                             * image substituted in its place.
+                                             */
+                                            <div className="overflow-hidden">
+                                                <img
+                                                    src={related.cover_image}
+                                                    alt={related.title}
+                                                    className="aspect-[16/9] w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                                                    loading="lazy"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50 via-background to-gold-50">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="absolute -right-10 -top-10 size-40 rounded-full bg-brand-100/60 blur-2xl"
+                                                />
+                                                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/90 px-4 py-1.5 text-xs font-semibold tracking-widest text-brand-700 uppercase">
+                                                    <Newspaper aria-hidden="true" className="size-3.5" />
+                                                    SPIN Gombe Update
+                                                </span>
+                                            </div>
                                         )}
+
+                                        <div className="flex flex-1 flex-col p-5">
+                                            <p className="text-xs font-medium text-muted-foreground">
+                                                {formatDate(related.published_at)}
+                                            </p>
+                                            <h3 className="mt-2 text-base leading-snug font-semibold text-foreground transition-colors group-hover:text-brand-800">
+                                                {related.title}
+                                            </h3>
+                                            {related.excerpt && (
+                                                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                                                    {related.excerpt}
+                                                </p>
+                                            )}
+                                            <span className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-medium text-primary">
+                                                Read more
+                                                <ArrowRight
+                                                    aria-hidden="true"
+                                                    className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                                                />
+                                            </span>
+                                        </div>
                                     </Link>
                                 </li>
                             ))}

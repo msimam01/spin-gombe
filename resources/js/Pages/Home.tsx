@@ -2,10 +2,12 @@ import { usePage } from '@inertiajs/react';
 import { AboutIntroduction } from '@/components/home/AboutIntroduction';
 import { ComponentShowcase } from '@/components/home/ComponentShowcase';
 import { ContactPreview } from '@/components/home/ContactPreview';
+import { EventsPreview } from '@/components/home/EventsPreview';
+import { FocusAreas } from '@/components/home/FocusAreas';
 import { HomeHero } from '@/components/home/HomeHero';
 import { MapPreview } from '@/components/home/MapPreview';
 import { MediaHighlight } from '@/components/home/MediaHighlight';
-import { NewsEventsPreview } from '@/components/home/NewsEventsPreview';
+import { NewsPreview } from '@/components/home/NewsPreview';
 import { ProjectCoordinator } from '@/components/home/ProjectCoordinator';
 import { ProjectObjectives } from '@/components/home/ProjectObjectives';
 import { ProjectSnapshot } from '@/components/home/ProjectSnapshot';
@@ -32,6 +34,7 @@ import type { MapMarkerLocation } from '@/components/shared/ProjectsMap';
 
 interface HomeProps {
     components: ProjectComponent[];
+    /** Preview sections carry exactly the newest three records. */
     projects: Project[];
     news: NewsPost[];
     events: Event[];
@@ -48,6 +51,11 @@ interface HomeProps {
  * events, photos, videos, documents) renders published records when they
  * exist and holds a polished empty state until then. No invented content is
  * ever displayed.
+ *
+ * Client revision (Phase 27): reorganised for visual flow — the Project
+ * Coordinator now sits immediately beneath the hero, news and events became
+ * standalone sections, and a dedicated thematic-areas band follows the
+ * coordinator. No section content was removed.
  */
 export default function Home({
     components,
@@ -85,46 +93,52 @@ export default function Home({
         <PublicLayout>
             <Seo description={site.summary} jsonLd={jsonLd} />
 
-            {/* 1 — Hero */}
+            {/* 1 — Hero carousel (full-bleed client photography) */}
             <HomeHero />
 
-            {/* 2 — Project snapshot (official facts) */}
-            <ProjectSnapshot />
-
-            {/* 3 — Project introduction (supplied background) */}
-            <AboutIntroduction />
-
-            {/* 4 — Vision & Mission (supplied statements) */}
-            <VisionMission />
-
-            {/* 5 — Objectives (supplied) */}
-            <ProjectObjectives />
-
-            {/* 6 — The four components (from the database) */}
-            <ComponentShowcase components={components} />
-
-            {/* 7 — Projects & activities preview */}
-            <ProjectsPreview projects={projects} />
-
-            {/* 8 — Project location map preview */}
-            <MapPreview locations={mapLocations} />
-
-            {/* 9 + 10 — News and events previews */}
-            <NewsEventsPreview news={news} events={events} />
-
-            {/* 11 — Resources & documents */}
-            <ResourcesPreview counts={documentCounts} />
-
-            {/* 12 — Media highlight */}
-            <MediaHighlight photos={photos} videos={videos} />
-
-            {/* 13 — Project Coordinator (supplied profile) */}
+            {/* 2 — Project Coordinator (moved up per client revision) */}
             <ProjectCoordinator />
 
-            {/* 14 — Contact */}
+            {/* 3 — The four thematic areas (upgraded 2×2 grid) */}
+            <FocusAreas />
+
+            {/* 4 — Project snapshot (official facts) */}
+            <ProjectSnapshot />
+
+            {/* 5 — Project introduction (supplied background) */}
+            <AboutIntroduction />
+
+            {/* 6 — Vision & Mission (supplied statements) */}
+            <VisionMission />
+
+            {/* 7 — Objectives (supplied) */}
+            <ProjectObjectives />
+
+            {/* 8 — The four components (from the database, image-led cards) */}
+            <ComponentShowcase components={components} />
+
+            {/* 9 — Projects & activities preview (prominent covers) */}
+            <ProjectsPreview projects={projects} />
+
+            {/* 10 — Project location map preview */}
+            <MapPreview locations={mapLocations} />
+
+            {/* 11 — News (standalone section) */}
+            <NewsPreview news={news} />
+
+            {/* 12 — Upcoming events (standalone section) */}
+            <EventsPreview events={events} />
+
+            {/* 13 — Resources & documents */}
+            <ResourcesPreview counts={documentCounts} />
+
+            {/* 14 — Media highlight */}
+            <MediaHighlight photos={photos} videos={videos} />
+
+            {/* 15 — Contact */}
             <ContactPreview />
 
-            {/* 15 — Closing CTA above the footer */}
+            {/* 16 — Closing CTA above the footer */}
             <CallToAction
                 title="Learn more about SPIN Gombe"
                 description="Explore the project, its components, activities and official resources."

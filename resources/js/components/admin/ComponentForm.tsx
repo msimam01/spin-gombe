@@ -152,7 +152,7 @@ export function ComponentForm({ component, statuses }: ComponentFormProps) {
                     <ListEditorField
                         id="objectives"
                         label="Objectives"
-                        hint="Specific objectives for this component, shown on its public page. Leave empty until SPIN supplies them."
+                        hint="Specific objectives for this component, shown on its public page."
                         items={form.data.objectives}
                         onChange={(items) => form.setData('objectives', items)}
                         placeholder="e.g. Strengthen state-level water resource institutions"
@@ -163,7 +163,7 @@ export function ComponentForm({ component, statuses }: ComponentFormProps) {
                     <ListEditorField
                         id="activities"
                         label="Activities"
-                        hint="Planned or ongoing activities under this component. Leave empty until SPIN supplies them."
+                        hint="Planned or ongoing activities under this component."
                         items={form.data.activities}
                         onChange={(items) => form.setData('activities', items)}
                         placeholder="e.g. Rehabilitate irrigated command areas"

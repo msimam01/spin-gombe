@@ -25,7 +25,7 @@ class ProjectsShowController extends Controller
             ->with([
                 'component:id,slug,name,short_name',
                 'location:id,name,lga,ward,description,latitude,longitude',
-                'photos' => fn ($query) => $query->published()->ordered(),
+                'photos' => fn ($query) => $query->publishedWithOwner()->ordered(),
                 'documents' => fn ($query) => $query->published()->ordered()->with('category:id,slug,name'),
                 'videos' => fn ($query) => $query->published()->ordered(),
             ])

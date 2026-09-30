@@ -1,39 +1,56 @@
 import { usePage } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { ProjectCarousel, type ProjectCarouselSlide } from '@/components/shared/ProjectCarousel';
 import { Container } from '@/components/layout/Container';
-import { Reveal } from '@/components/shared/Reveal';
 import { route } from '@/lib/routes';
 import type { SharedProps } from '@/types';
 
 /**
- * About page hero — a strong internal-page hero with its own character.
+ * About page hero — the homepage's full-bleed image-led carousel, reused.
  *
- * Not a repeat of the homepage hero: a light brand wash with a large display
- * statement, breadcrumb, the project's full official name as a subtitle and
- * the site summary as the lead paragraph. A quiet framed panel on the right
- * carries the SAME approved Balanga Dam photograph configured for the
- * homepage hero (`site.hero.image`) — the asset and its alt text are reused
- * from config, never duplicated.
+ * Phase 28: replaces the previous light split hero. The carousel component
+ * (cross-fade, autoplay with hover/focus pause, reduced-motion handling,
+ * labelled keyboard-accessible controls) is the shared `ProjectCarousel`
+ * extracted from the homepage hero, so behaviour, overlay treatment, type
+ * scale and control placement match the homepage exactly.
+ *
+ * Imagery: only the two genuine client-supplied Balanga Dam photographs
+ * (`public/images/hero/`) are used — two slides rather than repeating one
+ * image or inventing imagery. All copy is the page's existing approved
+ * content: the eyebrow, heading, official project name (subtitle) and site
+ * summary on slide 1; the official background text on slide 2. No new
+ * claims are introduced and nothing implies the photographs document a
+ * specific event.
  */
 export function AboutHero() {
     const { site } = usePage<SharedProps>().props;
 
-    return (
-        <section className="relative overflow-hidden border-b border-border bg-brand-50">
-            {/* Soft wash accents, matching the site's restrained visual language. */}
-            <span
-                aria-hidden="true"
-                className="pointer-events-none absolute -top-24 right-0 size-80 rounded-full bg-brand-100/50 blur-3xl"
-            />
-            <span
-                aria-hidden="true"
-                className="pointer-events-none absolute bottom-0 left-1/4 size-56 rounded-full bg-gold-100/40 blur-3xl"
-            />
+    const slides: ProjectCarouselSlide[] = [
+        {
+            image: '/images/about-slide-1.jfif',
+            alt: 'Balanga Dam in Gombe State',
+            position: 'object-center',
+            kicker: 'The Project · Gombe State',
+            title: 'About SPIN',
+            text: site.summary,
+        },
+        {
+            image: '/images/about-slide-2.jfif',
+            alt: 'Balanga Dam and its surrounding water body in Gombe State',
+            position: 'object-center',
+            kicker: 'Water · Irrigation · Dams · Power',
+            title: 'Balanga Dam & Irrigation Scheme',
+            text: site.background[1],
+        },
+    ];
 
-            <Container className="relative grid items-center gap-12 py-14 lg:grid-cols-12 lg:py-20">
-                <div className="lg:col-span-8">
-                    <nav aria-label="Breadcrumb" className="mb-6">
+    return (
+        <>
+            {/* Breadcrumb — kept above the photograph for reliable contrast. */}
+            <div className="border-b border-border bg-background">
+                <Container>
+                    <nav aria-label="Breadcrumb" className="py-3">
                         <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <li>
                                 <Link href={route('home')} className="transition-colors hover:text-primary">
@@ -48,65 +65,41 @@ export function AboutHero() {
                             </li>
                         </ol>
                     </nav>
+                </Container>
+            </div>
 
-                    <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-brand-700 uppercase">
-                        <span aria-hidden="true" className="h-px w-6 bg-accent" />
-                        The Project · {site.state}
-                    </p>
+            <ProjectCarousel
+                slides={slides}
+                ariaLabel="About the SPIN Project"
+                renderContent={(slide, index) => (
+                    <>
+                        <p className="text-xs font-semibold tracking-[0.18em] text-gold-300 uppercase">{slide.kicker}</p>
 
-                    <h1 className="max-w-3xl text-3xl leading-[1.1] font-bold text-foreground sm:text-4xl lg:text-5xl">
-                        About SPIN
-                    </h1>
-
-                    <p className="mt-4 font-display text-base font-semibold text-brand-800 sm:text-lg">
-                        {site.name}
-                    </p>
-
-                    <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                        {site.summary}
-                    </p>
-                </div>
-
-                {/* Approved Balanga Dam photograph — the same asset configured for the homepage hero. */}
-                <Reveal delay={150} className="lg:col-span-4">
-                    <div className="relative mx-auto w-full max-w-xs rounded-lg border border-brand-100 bg-background p-3 shadow-raised lg:ml-auto lg:mr-0">
-                        <span
-                            aria-hidden="true"
-                            className="absolute -top-3 -right-3 h-16 w-16 rounded-tr-md border-t-2 border-r-2 border-gold-400"
-                        />
-                        {site.hero.image ? (
-                            <img
-                                src={site.hero.image}
-                                alt={site.hero.image_alt ?? ''}
-                                className="block aspect-[4/5] w-full rounded-md object-cover"
-                                loading="eager"
-                                decoding="async"
-                            />
+                        {index === 0 ? (
+                            <h1 className="mt-2 text-3xl leading-[1.1] font-bold text-white sm:text-4xl lg:text-5xl">
+                                {slide.title}
+                            </h1>
                         ) : (
-                            <div className="flex aspect-[4/5] w-full items-center justify-center rounded-md bg-brand-50">
-                                <span className="flex size-24 items-center justify-center rounded-md bg-primary font-display text-3xl font-bold text-white shadow-raised">
-                                    {site.acronym}
-                                </span>
-                            </div>
+                            <p className="mt-3 text-2xl leading-[1.15] font-bold text-white sm:text-3xl lg:text-4xl">
+                                {slide.title}
+                            </p>
                         )}
 
-                        <dl className="space-y-3 border-t border-brand-100 px-3 pb-3 pt-5 text-center">
-                            <div>
-                                <dt className="sr-only">Project scope</dt>
-                                <dd className="text-xs font-semibold tracking-widest text-brand-700 uppercase">
-                                    Water · Irrigation · Dams · Power
-                                </dd>
-                            </div>
-                            <div>
-                                <dt className="sr-only">Location</dt>
-                                <dd className="text-xs text-muted-foreground">
-                                    {site.state}, {site.country}
-                                </dd>
-                            </div>
-                        </dl>
-                    </div>
-                </Reveal>
-            </Container>
-        </section>
+                        {/* The official project name, required as the hero subtitle. */}
+                        {index === 0 && (
+                            <p className="mt-3 text-sm font-semibold tracking-wide text-brand-100 sm:text-base">
+                                {site.name}
+                            </p>
+                        )}
+
+                        {slide.text && (
+                            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-brand-100/90 [text-align:justify] sm:mt-5 sm:text-base">
+                                {slide.text}
+                            </p>
+                        )}
+                    </>
+                )}
+            />
+        </>
     );
 }

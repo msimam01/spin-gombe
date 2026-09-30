@@ -13,6 +13,11 @@ use Illuminate\Validation\Rules\Enum;
  * Every field is `sometimes`: partial updates touch only the sent fields and
  * never clear anything they leave out. The public slug is never editable —
  * existing gallery URLs stay stable after a rename.
+ *
+ * Phase 31: Display Order is no longer presented; bulk `images[]` uploads
+ * append photographs to the gallery without deleting previous ones, and
+ * existing photographs are removed individually via `remove_photo_ids`
+ * (each id is verified against this gallery in the controller).
  */
 class UpdateGalleryRequest extends FormRequest
 {
@@ -23,13 +28,11 @@ class UpdateGalleryRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (! $this->has('event_id')) {
-            return;
+        if ($this->has('event_id')) {
+            $this->merge([
+                'event_id' => $this->filled('event_id') ? (int) $this->input('event_id') : null,
+            ]);
         }
-
-        $this->merge([
-            'event_id' => $this->filled('event_id') ? (int) $this->input('event_id') : null,
-        ]);
     }
 
     /**
@@ -49,10 +52,19 @@ class UpdateGalleryRequest extends FormRequest
             // clears the stored cover by accident.
             'remove_cover' => ['sometimes', 'nullable', 'boolean'],
 
+            // Bulk supporting images, each validated individually.
+            'images' => ['sometimes', 'nullable', 'array', 'max:40'],
+            'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+
+            // Existing photographs selected for removal — ids are verified
+            // against this gallery before anything is deleted.
+            'remove_photo_ids' => ['sometimes', 'nullable', 'array', 'max:100'],
+            'remove_photo_ids.*' => ['integer'],
+
             'event_id' => ['sometimes', 'nullable', Rule::exists('events', 'id')],
 
             'status' => ['sometimes', 'required', new Enum(PublicationStatus::class)],
-            'sort' => ['sometimes', 'required', 'integer', 'min:0', 'max:10000'],
+            'sort' => ['sometimes', 'integer', 'min:0', 'max:10000'],
         ];
     }
 
@@ -66,6 +78,7 @@ class UpdateGalleryRequest extends FormRequest
         return [
             'event_id' => 'related event',
             'cover' => 'cover image',
+            'images.*' => 'photo',
         ];
     }
 }

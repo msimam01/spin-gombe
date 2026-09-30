@@ -3,14 +3,21 @@ import { ArrowRight, ChevronRight, Clapperboard, ExternalLink, Play, SquarePlay 
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
+import { useProgressiveLoad } from '@/components/shared/useProgressiveLoad';
 import { Reveal } from '@/components/shared/Reveal';
 import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { SharedProps, Video } from '@/types';
 
+/** Videos revealed per Load More click. */
+const VIDEO_STEP = 6;
+
 interface MediaVideosProps {
     videos: Video[];
+    /** Server-side total of published videos. */
+    video_total: number;
 }
 
 /**
@@ -19,11 +26,21 @@ interface MediaVideosProps {
  * Videos are official YouTube references: they embed through the model's
  * youtube-nocookie embed URL (no raw database HTML is ever rendered), keep a
  * normal link to the source, and fall back to a designed placeholder when a
- * video has no embeddable id. Nothing is fabricated while the library is
- * still empty.
+ * video has no embeddable id. The listing reveals progressively via
+ * server-driven partial reloads — records 1..N, so records never duplicate
+ * or disappear, and only revealed videos mount iframes. Nothing is fabricated
+ * while the library is still empty.
  */
-export default function MediaVideos({ videos }: MediaVideosProps) {
+export default function MediaVideos({ videos, video_total }: MediaVideosProps) {
     const { site } = usePage<SharedProps>().props;
+
+    const videoLoad = useProgressiveLoad<Video>({
+        initialItems: videos,
+        total: video_total,
+        step: VIDEO_STEP,
+        only: ['videos', 'videos_shown'],
+        url: route('media.videos'),
+    });
 
     return (
         <PublicLayout>
@@ -89,60 +106,70 @@ export default function MediaVideos({ videos }: MediaVideosProps) {
                         Official project videos
                     </h2>
 
-                    {videos.length > 0 ? (
-                        <ul className="grid gap-8 lg:grid-cols-2">
-                            {videos.map((video, index) => (
-                                <li key={video.id}>
-                                    <Reveal delay={Math.min(index * 60, 240)}>
-                                        <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-shadow duration-200 hover:shadow-raised">
-                                            {video.embed_url ? (
-                                                <iframe
-                                                    src={`${video.embed_url}?rel=0`}
-                                                    title={video.title}
-                                                    loading="lazy"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                    allowFullScreen
-                                                    className="aspect-video w-full"
-                                                />
-                                            ) : (
-                                                <MediaPlaceholder
-                                                    icon={<Play aria-hidden="true" className="size-3.5" />}
-                                                    label="Video"
-                                                    aspect="aspect-video"
-                                                />
-                                            )}
+                    {videoLoad.items.length > 0 ? (
+                        <>
+                            <ul className="grid gap-8 lg:grid-cols-2">
+                                {videoLoad.items.map((video, index) => (
+                                    <li key={video.id}>
+                                        <Reveal delay={Math.min(index * 60, 240)}>
+                                            <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-shadow duration-200 hover:shadow-raised">
+                                                {video.embed_url ? (
+                                                    <iframe
+                                                        src={`${video.embed_url}?rel=0`}
+                                                        title={video.title}
+                                                        loading="lazy"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                        allowFullScreen
+                                                        className="aspect-video w-full"
+                                                    />
+                                                ) : (
+                                                    <MediaPlaceholder
+                                                        icon={<Play aria-hidden="true" className="size-3.5" />}
+                                                        label="Video"
+                                                        aspect="aspect-video"
+                                                    />
+                                                )}
 
-                                            <div className="p-6 sm:p-7">
-                                                {video.published_on && (
-                                                    <p className="text-xs font-medium text-muted-foreground">
-                                                        {video.published_on}
-                                                    </p>
-                                                )}
-                                                <h3 className="mt-1 text-lg leading-snug font-bold text-foreground">
-                                                    {video.title}
-                                                </h3>
-                                                {video.description && (
-                                                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                                        {video.description}
-                                                    </p>
-                                                )}
-                                                {video.watch_url && (
-                                                    <a
-                                                        href={video.watch_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
-                                                    >
-                                                        Watch on YouTube
-                                                        <ExternalLink aria-hidden="true" className="size-3.5" />
-                                                    </a>
-                                                )}
-                                            </div>
-                                        </article>
-                                    </Reveal>
-                                </li>
-                            ))}
-                        </ul>
+                                                <div className="p-6 sm:p-7">
+                                                    {video.published_on && (
+                                                        <p className="text-xs font-medium text-muted-foreground">
+                                                            {video.published_on}
+                                                        </p>
+                                                    )}
+                                                    <h3 className="mt-1 text-lg leading-snug font-bold text-foreground">
+                                                        {video.title}
+                                                    </h3>
+                                                    {video.description && (
+                                                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                                            {video.description}
+                                                        </p>
+                                                    )}
+                                                    {video.watch_url && (
+                                                        <a
+                                                            href={video.watch_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
+                                                        >
+                                                            Watch on YouTube
+                                                            <ExternalLink aria-hidden="true" className="size-3.5" />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </article>
+                                        </Reveal>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <LoadMoreButton
+                                shown={videoLoad.items.length}
+                                total={video_total}
+                                unit="videos"
+                                onReveal={videoLoad.loadMore}
+                                loading={videoLoad.loading}
+                            />
+                        </>
                     ) : (
                         <EmptyState
                             icon={<SquarePlay aria-hidden="true" className="size-5" />}
