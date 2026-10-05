@@ -12,6 +12,8 @@ interface CoverImageFieldProps {
     hint?: string;
     /** Extra note surfaced in the empty state (e.g. required-ness). */
     emptyHint?: string;
+    /** Size wording shown in the empty state; forms with a larger server-side limit override it. */
+    maxSizeText?: string;
     /** Whether the stored image can be removed (photos cannot — replacement only). */
     allowRemove?: boolean;
     /** Public URL of the currently stored cover photo, when editing. */
@@ -42,6 +44,7 @@ export function CoverImageField({
     label = 'Cover Photo',
     hint = 'Optional. This image appears as the public cover image. JPEG, PNG or WebP up to 4\u00a0MB.',
     emptyHint,
+    maxSizeText = 'JPEG, PNG or WebP, up to 4 MB',
     allowRemove = true,
     existingUrl,
     file,
@@ -159,7 +162,7 @@ export function CoverImageField({
                         <span className="font-medium text-foreground">
                             {remove ? 'The current photo will be removed when you save' : (emptyHint ?? 'Select an image')}
                         </span>
-                        <span className="text-xs text-muted-foreground">JPEG, PNG or WebP, up to 4 MB</span>
+                        <span className="text-xs text-muted-foreground">{maxSizeText}</span>
                     </button>
                 )}
             </div>

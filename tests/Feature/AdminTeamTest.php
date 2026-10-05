@@ -52,6 +52,22 @@ class AdminTeamTest extends TestCase
         return new UploadedFile($path, $name, $mimeType, null, true);
     }
 
+    /** A real JPEG padded to an exact byte size — for upload size limits. */
+    private function jpegOfSize(int $bytes): UploadedFile
+    {
+        $image = base64_decode(self::JPEG_BYTES);
+
+        $this->assertGreaterThan(strlen($image), $bytes, 'Requested size must exceed the base JPEG.');
+
+        $path = tempnam(sys_get_temp_dir(), 'spin-team-photo-test-');
+        file_put_contents($path, $image.str_repeat("\n", $bytes - strlen($image)));
+        $this->tempFiles[] = $path;
+
+        $mimeType = (new \finfo(FILEINFO_MIME_TYPE))->file($path);
+
+        return new UploadedFile($path, 'sized-portrait.jpg', $mimeType, null, true);
+    }
+
     /** Content that is not an image at all, with an image-like name. */
     private function notAnImage(): UploadedFile
     {
@@ -570,6 +586,86 @@ class AdminTeamTest extends TestCase
 
         $this->assertSame(20, TeamMember::count());
         Storage::disk('public')->assertDirectoryEmpty('team/photos');
+    }
+
+    public function test_a_portrait_below_4mb_is_accepted(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs(User::factory()->administrator()->create())
+            ->post(route('admin.team.store'), [
+                'name' => 'Standard Portrait',
+                'position' => 'Role',
+                'status' => 'draft',
+                'photo' => $this->jpegOfSize(4000 * 1024),
+            ])
+            ->assertRedirect(route('admin.team.index'))
+            ->assertSessionHasNoErrors();
+
+        $member = TeamMember::query()->where('name', 'Standard Portrait')->firstOrFail();
+
+        Storage::disk('public')->assertExists($member->photo_path);
+    }
+
+    public function test_a_portrait_just_under_the_8mb_limit_is_accepted(): void
+    {
+        Storage::fake('public');
+
+        // 8191 KB sits above the previous 4096 KB limit and one kilobyte under
+        // the new one — both size bands must pass in a single submission.
+        $this->actingAs(User::factory()->administrator()->create())
+            ->post(route('admin.team.store'), [
+                'name' => 'Large Portrait',
+                'position' => 'Role',
+                'status' => 'draft',
+                'photo' => $this->jpegOfSize(8191 * 1024),
+            ])
+            ->assertRedirect(route('admin.team.index'))
+            ->assertSessionHasNoErrors();
+
+        $member = TeamMember::query()->where('name', 'Large Portrait')->firstOrFail();
+
+        Storage::disk('public')->assertExists($member->photo_path);
+    }
+
+    public function test_a_portrait_over_the_8mb_limit_is_rejected(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs(User::factory()->administrator()->create())
+            ->post(route('admin.team.store'), [
+                'name' => 'Too Big',
+                'position' => 'Role',
+                'status' => 'draft',
+                'photo' => $this->jpegOfSize(8193 * 1024),
+            ])
+            ->assertSessionHasErrors('photo');
+
+        $this->assertSame(20, TeamMember::count());
+        Storage::disk('public')->assertDirectoryEmpty('team/photos');
+    }
+
+    public function test_an_oversized_replacement_is_rejected_and_the_original_portrait_kept(): void
+    {
+        Storage::fake('public');
+
+        $originalPath = $this->jpeg()->store('team/photos', 'public');
+        $member = TeamMember::factory()->create(['photo_path' => $originalPath]);
+
+        $this->actingAs(User::factory()->administrator()->create())
+            ->put(route('admin.team.update', ['member' => $member->id]), [
+                'name' => $member->name,
+                'position' => $member->position,
+                'sort' => $member->sort,
+                'status' => 'draft',
+                'photo' => $this->jpegOfSize(8193 * 1024),
+            ])
+            ->assertSessionHasErrors('photo');
+
+        $member->refresh();
+
+        $this->assertSame($originalPath, $member->photo_path);
+        Storage::disk('public')->assertExists($originalPath);
     }
 
     public function test_a_portrait_can_be_replaced_and_the_old_file_removed(): void

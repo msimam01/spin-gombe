@@ -182,8 +182,9 @@ export function TeamForm({ member, statuses, hasCoordinator }: TeamFormProps) {
                         id="photo"
                         name="photo"
                         label="Official photograph"
-                        hint="Optional. Official portraits only — no placeholder or stock imagery is used. JPEG, PNG or WebP up to 4 MB."
+                        hint="Optional. Official portraits only — no placeholder or stock imagery is used. JPEG, PNG or WebP up to 8 MB."
                         emptyHint="Upload the official portrait"
+                        maxSizeText="JPEG, PNG or WebP, up to 8 MB"
                         existingUrl={member?.photo_url ?? null}
                         file={form.data.photo}
                         onFileChange={(file) => form.setData('photo', file)}

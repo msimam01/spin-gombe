@@ -60,7 +60,7 @@ class StoreTeamMemberRequest extends FormRequest
             // The official portrait, uploaded through the same managed-image
             // mechanism as every other administrator photo. MIME sniffing —
             // not the filename — decides whether this really is an image.
-            'photo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'photo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
 
             // Explicit portrait removal is its own flag so a plain save never
             // clears an existing photograph by accident.
