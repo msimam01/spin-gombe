@@ -434,6 +434,54 @@ class AdminTeamTest extends TestCase
     }
 
     // ------------------------------------------------------------------
+    // Public biography
+    // ------------------------------------------------------------------
+
+    /** Demote any seeded coordinator so the test member owns the slot. */
+    private function clearCoordinators(): void
+    {
+        TeamMember::query()->where('is_coordinator', true)->update(['is_coordinator' => false]);
+    }
+
+    public function test_a_crlf_biography_still_splits_into_paragraphs(): void
+    {
+        $this->clearCoordinators();
+
+        // Content pasted on Windows stores CRLF line endings; the blank-line
+        // paragraph breaks must survive that and reach the public page.
+        TeamMember::factory()->published()->coordinator()->create([
+            'bio' => implode("\r\n\r\n", [
+                'First coordinator paragraph.',
+                'Second coordinator paragraph.',
+                'Third coordinator paragraph.',
+            ]),
+        ]);
+
+        $this->get(route('team'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('coordinator.bio', 3)
+                ->where('coordinator.bio.0', 'First coordinator paragraph.')
+                ->where('coordinator.bio.1', 'Second coordinator paragraph.')
+                ->where('coordinator.bio.2', 'Third coordinator paragraph.'));
+    }
+
+    public function test_a_single_paragraph_biography_is_delivered_whole(): void
+    {
+        $this->clearCoordinators();
+
+        TeamMember::factory()->published()->coordinator()->create([
+            'bio' => 'One paragraph biography with no blank lines at all.',
+        ]);
+
+        $this->get(route('team'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('coordinator.bio', 1)
+                ->where('coordinator.bio.0', 'One paragraph biography with no blank lines at all.'));
+    }
+
+    // ------------------------------------------------------------------
     // Privacy
     // ------------------------------------------------------------------
 

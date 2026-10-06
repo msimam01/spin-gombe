@@ -30,8 +30,13 @@ class TeamMemberResource extends JsonResource
             'name' => $this->name,
             'position' => $this->position,
             'department' => $this->department,
+            // Paragraphs split on blank lines. Line endings are normalised
+            // first: content pasted on Windows stores CRLF (\r\n), and the
+            // split pattern below requires consecutive \n — without the
+            // normalisation a CRLF biography would arrive as a single
+            // unbroken paragraph.
             'bio' => $this->bio
-                ? (preg_split('/\n\n+/', trim($this->bio)) ?: null)
+                ? (preg_split('/\n\n+/', str_replace(["\r\n", "\r"], "\n", trim($this->bio))) ?: null)
                 : null,
             'photo_url' => $this->publicPhotoUrl(),
             'is_coordinator' => $this->is_coordinator,

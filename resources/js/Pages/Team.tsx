@@ -81,6 +81,11 @@ function MemberPortrait({
 export default function Team({ coordinator, team }: TeamProps) {
     const { site } = usePage<SharedProps>().props;
 
+    // Paragraphs of the coordinator's biography. With a single paragraph the
+    // "closing statement as the gold quote" treatment does not apply — the
+    // paragraph must still render, not disappear.
+    const bioParagraphs = coordinator?.bio ?? [];
+
     return (
         <PublicLayout>
             <Seo
@@ -184,19 +189,29 @@ export default function Team({ coordinator, team }: TeamProps) {
 
                                 {/* Biography column — the Home/About rhythm: justified
                                     paragraphs, closing statement as the gold quote. */}
-                                <div className="lg:col-span-8">
-                                    {coordinator.bio && coordinator.bio.length > 0 ? (
+                                    <Reveal delay={100} className="lg:col-span-7">
+                                                            {/* <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-widest text-brand-700 uppercase">
+                                                                <span aria-hidden="true" className="h-px w-6 bg-accent" />
+                                                                Project Coordinator
+                                                            </p> */}
+                                                            <h2 className="max-w-2xl text-2xl font-bold text-foreground sm:text-3xl">
+                                                                Leading implementation in Gombe State
+                                                            </h2>
+                                <div className="lg:col-span-8 mt-5">
+                                    {bioParagraphs.length > 0 ? (
                                         <>
                                             <div className="max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground">
-                                                {coordinator.bio.slice(0, -1).map((paragraph, index) => (
-                                                    <p key={index} className="[text-align:justify]">
-                                                        {paragraph}
-                                                    </p>
-                                                ))}
+                                                {(bioParagraphs.length > 1 ? bioParagraphs.slice(0, -1) : bioParagraphs).map(
+                                                    (paragraph, index) => (
+                                                        <p key={index} className="[text-align:justify]">
+                                                            {paragraph}
+                                                        </p>
+                                                    ),
+                                                )}
                                             </div>
-                                            {coordinator.bio.length > 1 && (
+                                            {bioParagraphs.length > 1 && (
                                                 <blockquote className="mt-6 max-w-3xl rounded-md border-l-2 border-gold-400 bg-background px-5 py-4 text-sm leading-relaxed text-foreground shadow-subtle">
-                                                    {coordinator.bio[coordinator.bio.length - 1]}
+                                                    {bioParagraphs[bioParagraphs.length - 1]}
                                                 </blockquote>
                                             )}
                                         </>
@@ -230,6 +245,7 @@ export default function Team({ coordinator, team }: TeamProps) {
                                         )}
                                     </div>
                                 </div>
+                                </Reveal>
                             </div>
                         </Reveal>
                     </Container>
