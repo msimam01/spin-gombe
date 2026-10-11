@@ -18,10 +18,11 @@ import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
 import { ProjectCard, type ProjectCardProject } from '@/components/shared/ProjectCard';
 import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
 import { ProjectsMap } from '@/components/shared/ProjectsMap';
+import { VideoEmbed, WatchLink } from '@/components/shared/VideoEmbed';
 import type { MapMarkerLocation } from '@/components/shared/ProjectsMap';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
-import type { Photo } from '@/types';
+import type { Photo, Video } from '@/types';
 
 /** Photos revealed per Load More click — three per row on desktop. */
 const PHOTO_STEP = 3;
@@ -55,13 +56,7 @@ interface ProjectDetail {
         published_on: string | null;
         file_url: string | null;
     }[];
-    videos: {
-        id: number;
-        title: string;
-        embed_url: string | null;
-        watch_url: string | null;
-        thumbnail_url: string | null;
-    }[];
+    videos: Video[];
     related: ProjectCardProject[];
 }
 
@@ -409,19 +404,11 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                                                     {video.embed_url ? (
                                                         /*
                                                          * Embedded player, the same media pattern
-                                                         * used across the site: privacy-enhanced
-                                                         * (youtube-nocookie), lazy-loaded, 16:9 and
-                                                         * never autoplaying. `?rel=0` only limits the
-                                                         * related videos shown after playback.
+                                                         * used across the site: provider-normalised
+                                                         * (privacy-enhanced for YouTube), lazy-loaded,
+                                                         * 16:9 and never autoplaying.
                                                          */
-                                                        <iframe
-                                                            src={`${video.embed_url}?rel=0`}
-                                                            title={video.title}
-                                                            loading="lazy"
-                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                            allowFullScreen
-                                                            className="aspect-video w-full"
-                                                        />
+                                                        <VideoEmbed video={video} />
                                                     ) : (
                                                         video.thumbnail_url && (
                                                             <img
@@ -438,21 +425,9 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                                                             {video.title}
                                                         </p>
                                                         {video.watch_url && (
-                                                            <a
-                                                                href={video.watch_url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-brand-700"
-                                                            >
-                                                                Watch on YouTube
-                                                                <ArrowUpRight
-                                                                    aria-hidden="true"
-                                                                    className="size-3"
-                                                                />
-                                                                <span className="sr-only">
-                                                                    (opens in a new tab)
-                                                                </span>
-                                                            </a>
+                                                            <div className="mt-2 [&_a]:text-xs [&_a]:font-medium [&_a]:mt-2">
+                                                                <WatchLink video={video} />
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </article>

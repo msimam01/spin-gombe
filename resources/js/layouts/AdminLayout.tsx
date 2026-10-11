@@ -4,6 +4,7 @@ import {
     FileText,
     FolderKanban,
     Images,
+    KeyRound,
     LayoutDashboard,
     LogOut,
     MapPin,
@@ -72,7 +73,8 @@ const NAV_GROUPS: NavGroup[] = [
         items: [
             { label: 'Team', routeName: 'admin.team.index', icon: Users },
             { label: 'Users', routeName: 'admin.users.index', icon: ShieldCheck },
-            { label: 'Settings', routeName: 'admin.settings.index', icon: Settings },
+            { label: 'Office Info', routeName: 'admin.settings.index', icon: Settings },
+            { label: 'My account', routeName: 'admin.account.edit', icon: KeyRound },
         ],
     },
 ];

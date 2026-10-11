@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateVideoRequest;
 use App\Models\Video;
 use App\Support\Toast;
+use App\Support\VideoUrl;
 use Illuminate\Http\RedirectResponse;
 
 /**
  * Updates an official YouTube video.
  *
  * When the URL changes, `youtube_id` is re-derived server-side from the
- * validated URL. A partial update without `related_to` never touches the
- * relationships.
+ * validated URL (any allowlisted provider). A partial update without
+ * `related_to` never touches the relationships.
  */
 class UpdateController extends Controller
 {
@@ -22,7 +23,7 @@ class UpdateController extends Controller
         $data = $request->validated();
 
         if (array_key_exists('youtube_url', $data)) {
-            $data['youtube_id'] = Video::extractYoutubeId($data['youtube_url']);
+            $data['youtube_id'] = (string) VideoUrl::parse($data['youtube_url'])['id'];
         }
 
         $video->update($data);

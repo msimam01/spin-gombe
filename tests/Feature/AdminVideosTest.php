@@ -119,16 +119,6 @@ class AdminVideosTest extends TestCase
     {
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.videos.store'), [
-                'title' => 'Vimeo attempt',
-                'youtube_url' => 'https://vimeo.com/123456789',
-                'related_to' => 'general',
-                'status' => 'draft',
-                'sort' => 0,
-            ])
-            ->assertSessionHasErrors('youtube_url');
-
-        $this->actingAs(User::factory()->administrator()->create())
-            ->post(route('admin.videos.store'), [
                 'title' => 'Garbage attempt',
                 'youtube_url' => 'not a url at all',
                 'related_to' => 'general',

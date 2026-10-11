@@ -4,17 +4,19 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\PublicationStatus;
 use App\Models\Video;
+use App\Support\VideoUrl;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 /**
- * Validation for creating an official YouTube video.
+ * Validation for creating an official video.
  *
- * Reuses the model's existing URL extraction — the same parser the public
- * site trusts — so only URLs the application already understands are
- * accepted, and `youtube_id` is always derived server-side, never taken
- * from the browser. The human "Related to" choice is normalised here:
+ * Reuses the shared allowlist parser — the same parser the public site
+ * trusts — so only URLs the application already understands (YouTube,
+ * Facebook, Vimeo) are accepted, and the video id is always derived
+ * server-side, never taken from the browser. The human "Related to" choice
+ * is normalised here:
  * Project/Activity sets `project_id`, Component sets `project_component_id`,
  * News article sets `news_post_id`, General/Independent sets all of them to
  * null. (The schema has no event relationship for videos — event media is
@@ -58,16 +60,17 @@ class StoreVideoRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
 
-            // The official YouTube URL. Validity is judged by the model's own
-            // extractor — watch, share, embed, shorts and live formats it
-            // already supports; anything unrecognised is rejected.
+            // The official video URL. Validity is judged by the shared,
+            // tested provider allowlist (YouTube including watch/share/embed/
+            // shorts/live, Facebook and Vimeo); anything unrecognised is
+            // rejected — never stored, never rendered.
             'youtube_url' => [
                 'required',
                 'string',
                 'max:500',
                 function (string $attribute, mixed $value, \Closure $fail) {
-                    if (is_string($value) && Video::extractYoutubeId($value) === null) {
-                        $fail('The YouTube URL is not recognised. Use a standard youtube.com or youtu.be link.');
+                    if (is_string($value) && VideoUrl::parse($value) === null) {
+                        $fail(VideoUrl::validationMessage());
                     }
                 },
             ],
@@ -104,7 +107,7 @@ class StoreVideoRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'youtube_url' => 'YouTube URL',
+            'youtube_url' => 'video URL',
             'published_on' => 'publication date',
             'related_to' => 'related to',
             'related_id' => 'related record',

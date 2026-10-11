@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\Auth\ForgotPasswordController;
 use App\Http\Controllers\Admin\Auth\ResetPasswordController;
 use App\Http\Controllers\Admin\AuthenticatedSessionController;
@@ -310,6 +311,19 @@ Route::middleware(AdminAuthenticate::class)->group(function () {
     */
     Route::get('settings', SettingsIndexController::class)->name('settings.index');
     Route::put('settings', SettingsUpdateController::class)->name('settings.update');
+
+    /*
+    |----------------------------------------------------------------------
+    | Account — the signed-in administrator's own password. Behind the same
+    | AdminAuthenticate middleware as every other admin route: unauthenticated
+    | visitors never reach it. The current password is always verified
+    | server-side before any change is accepted.
+    |----------------------------------------------------------------------
+    */
+    Route::get('account', [AccountController::class, 'edit'])->name('account.edit');
+    Route::put('account/password', [AccountController::class, 'updatePassword'])
+        ->middleware('throttle:5,1')
+        ->name('account.password.update');
 
     Route::prefix('media')->name('media.')->group(function () {
         Route::get('/', MediaDashboardController::class)->name('index');

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, ChevronRight, Clapperboard, ExternalLink, Play, SquarePlay } from 'lucide-react';
+import { ArrowRight, ChevronRight, Clapperboard, Play, SquarePlay } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Container } from '@/components/layout/Container';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -7,6 +7,7 @@ import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
 import { useProgressiveLoad } from '@/components/shared/useProgressiveLoad';
 import { Reveal } from '@/components/shared/Reveal';
 import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
+import { VideoEmbed, WatchLink } from '@/components/shared/VideoEmbed';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { SharedProps, Video } from '@/types';
@@ -113,22 +114,17 @@ export default function MediaVideos({ videos, video_total }: MediaVideosProps) {
                                     <li key={video.id}>
                                         <Reveal delay={Math.min(index * 60, 240)}>
                                             <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle transition-shadow duration-200 hover:shadow-raised">
-                                                {video.embed_url ? (
-                                                    <iframe
-                                                        src={`${video.embed_url}?rel=0`}
-                                                        title={video.title}
-                                                        loading="lazy"
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                        allowFullScreen
-                                                        className="aspect-video w-full"
-                                                    />
-                                                ) : (
-                                                    <MediaPlaceholder
-                                                        icon={<Play aria-hidden="true" className="size-3.5" />}
-                                                        label="Video"
-                                                        aspect="aspect-video"
-                                                    />
-                                                )}
+                                                {video.embed_url
+                                                    ? (
+                                                        <VideoEmbed video={video} />
+                                                    )
+                                                    : (
+                                                        <MediaPlaceholder
+                                                            icon={<Play aria-hidden="true" className="size-3.5" />}
+                                                            label="Video"
+                                                            aspect="aspect-video"
+                                                        />
+                                                    )}
 
                                                 <div className="p-6 sm:p-7">
                                                     {video.published_on && (
@@ -144,17 +140,7 @@ export default function MediaVideos({ videos, video_total }: MediaVideosProps) {
                                                             {video.description}
                                                         </p>
                                                     )}
-                                                    {video.watch_url && (
-                                                        <a
-                                                            href={video.watch_url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
-                                                        >
-                                                            Watch on YouTube
-                                                            <ExternalLink aria-hidden="true" className="size-3.5" />
-                                                        </a>
-                                                    )}
+                                                    <WatchLink video={video} />
                                                 </div>
                                             </article>
                                         </Reveal>

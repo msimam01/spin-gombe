@@ -17,6 +17,7 @@ import { useProgressiveLoad } from '@/components/shared/useProgressiveLoad';
 import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { Reveal } from '@/components/shared/Reveal';
+import { VideoEmbed, WatchLink } from '@/components/shared/VideoEmbed';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Gallery, Photo, SharedProps, Video } from '@/types';
@@ -305,14 +306,7 @@ export default function MediaIndex({
                                         <Reveal delay={Math.min(index * 60, 240)}>
                                             <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
                                                 {video.embed_url ? (
-                                                    <iframe
-                                                        src={`${video.embed_url}?rel=0`}
-                                                        title={video.title}
-                                                        loading="lazy"
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                        allowFullScreen
-                                                        className="aspect-video w-full"
-                                                    />
+                                                    <VideoEmbed video={video} />
                                                 ) : (
                                                     <MediaPlaceholder
                                                         icon={<Play aria-hidden="true" className="size-3.5" />}
@@ -329,17 +323,7 @@ export default function MediaIndex({
                                                             {video.description}
                                                         </p>
                                                     )}
-                                                    {video.watch_url && (
-                                                        <a
-                                                            href={video.watch_url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-brand-700"
-                                                        >
-                                                            Watch on YouTube
-                                                            <ExternalLink aria-hidden="true" className="size-3.5" />
-                                                        </a>
-                                                    )}
+                                                    {video.watch_url && <WatchLink video={video} />}
                                                 </div>
                                             </article>
                                         </Reveal>

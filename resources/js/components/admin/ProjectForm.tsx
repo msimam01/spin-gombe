@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { route } from '@/lib/routes';
+import { deriveSummary } from '@/lib/summary';
 import type { AdminProject, SelectOption } from '@/types/admin';
 
 interface ProjectFormProps {
@@ -84,6 +85,15 @@ export function ProjectForm({ project, statuses, typeOptions, components, locati
     });
 
     const [dirtyNotified, setDirtyNotified] = useState(false);
+
+    /**
+     * Live preview of the summary the backend will derive when the summary
+     * field is left blank. When a summary has been typed (or already exists on
+     * the record) it is shown in the field itself, so the preview disappears.
+     */
+    const derivedPreview = form.data.summary.trim() !== ''
+        ? null
+        : deriveSummary(form.data.description);
 
     // Unsaved-state awareness: warn before leaving with unsaved edits
     // (Inertia's own progress events stay untouched).
@@ -205,17 +215,6 @@ export function ProjectForm({ project, statuses, typeOptions, components, locati
                     />
 
                     <AdminTextareaField
-                        id="summary"
-                        name="summary"
-                        label="Summary"
-                        rows={2}
-                        hint="One or two sentences used in cards and listings."
-                        value={form.data.summary}
-                        onChange={(event) => form.setData('summary', event.target.value)}
-                        error={form.errors.summary}
-                    />
-
-                    <AdminTextareaField
                         id="description"
                         name="description"
                         label="Description"
@@ -225,6 +224,25 @@ export function ProjectForm({ project, statuses, typeOptions, components, locati
                         onChange={(event) => form.setData('description', event.target.value)}
                         error={form.errors.description}
                     />
+
+                    <AdminTextareaField
+                        id="summary"
+                        name="summary"
+                        label="Summary"
+                        rows={2}
+                        value={form.data.summary}
+                        onChange={(event) => form.setData('summary', event.target.value)}
+                        error={form.errors.summary}
+                        aria-describedby="summary-derived-preview"
+                    />
+
+                    {derivedPreview !== null && (
+                        <p id="summary-derived-preview" className="text-xs leading-relaxed text-muted-foreground">
+                            <span className="font-medium">Derived summary preview</span>
+                            {' — saved automatically when the summary is left blank:'}
+                            <span className="mt-0.5 block italic">“{derivedPreview}”</span>
+                        </p>
+                    )}
 
                     <AdminSelectField
                         id="project_component_id"

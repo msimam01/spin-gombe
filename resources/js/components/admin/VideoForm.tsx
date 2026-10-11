@@ -140,7 +140,7 @@ export function VideoForm({ video, statuses, projects, components, newsPosts }: 
                     <AdminTextField
                         id="youtube_url"
                         name="youtube_url"
-                        label="YouTube URL"
+                        label="Video URL"
                         required
                         hint="A standard youtube.com or youtu.be link. The video id is detected automatically."
                         value={form.data.youtube_url}

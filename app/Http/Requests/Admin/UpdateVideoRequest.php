@@ -3,19 +3,19 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\PublicationStatus;
-use App\Models\Video;
+use App\Support\VideoUrl;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 /**
- * Validation for updating an official YouTube video.
+ * Validation for updating an official video.
  *
  * Every field is `sometimes`: partial updates touch only the sent fields and
  * never clear anything they leave out. When `related_to` IS sent, the
- * relationship is re-normalised at the validation layer. The YouTube URL is
- * re-validated with the model's own extractor whenever it is sent, and the
- * stored `youtube_id` is always derived server-side.
+ * relationship is re-normalised at the validation layer. The video URL is
+ * re-validated with the shared provider allowlist whenever it is sent, and
+ * the stored `youtube_id` is always derived server-side.
  */
 class UpdateVideoRequest extends FormRequest
 {
@@ -74,8 +74,8 @@ class UpdateVideoRequest extends FormRequest
                 'string',
                 'max:500',
                 function (string $attribute, mixed $value, \Closure $fail) {
-                    if (is_string($value) && Video::extractYoutubeId($value) === null) {
-                        $fail('The YouTube URL is not recognised. Use a standard youtube.com or youtu.be link.');
+                    if (is_string($value) && VideoUrl::parse($value) === null) {
+                        $fail(VideoUrl::validationMessage());
                     }
                 },
             ],
@@ -112,7 +112,7 @@ class UpdateVideoRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'youtube_url' => 'YouTube URL',
+            'youtube_url' => 'video URL',
             'published_on' => 'publication date',
             'related_to' => 'related to',
             'related_id' => 'related record',

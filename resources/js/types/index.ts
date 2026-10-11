@@ -217,12 +217,15 @@ export interface TeamMember {
     public_phone: string | null;
 }
 
-/** A video as delivered by VideoResource (embed_url is always nocookie). */
+/** A video as delivered by VideoResource (embed/watch URLs are allowlist-derived, provider-aware). */
 export interface Video {
     id: number;
     title: string;
     description: string | null;
     youtube_id: string | null;
+    /** "youtube" | "facebook" | "vimeo" — null for legacy/unparsed URLs. */
+    provider?: 'youtube' | 'facebook' | 'vimeo' | null;
+    provider_label?: string | null;
     watch_url: string | null;
     embed_url: string | null;
     thumbnail_url: string | null;

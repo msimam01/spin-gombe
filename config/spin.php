@@ -276,11 +276,12 @@ return [
     /*
      * Official partner logos (client-supplied, September 2026). Rendered by
      * the homepage partner strip inside white chips, and by the About page
-     * institutions section. The SPIN project logo itself remains outstanding
-     * — set it here when it arrives.
+     * institutions section. `spin` is the official SPIN Gombe project emblem.
      */
     'logos' => [
-        'spin' => null,
+        // Official SPIN Gombe project logo (client-supplied, October 2026);
+        // squares cleanly inside the header emblem slot and the footer.
+        'spin' => '/images/logos/spin-logo.jpeg',
         'gombe' => '/images/logos/ministry-of-water-resources-gombe.jpg',
         'federal' => '/images/logos/federal-ministry-water-resources-sanitation.jpg',
         'power' => '/images/logos/federal-ministry-power.jpg',

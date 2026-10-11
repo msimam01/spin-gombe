@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { AdminSelectField, AdminTextField, AdminTextareaField } from '@/components/admin/FormControls';
 import { Button } from '@/components/ui/button';
+import { CurrentLocationButton } from '@/components/admin/CurrentLocationButton';
 import { route } from '@/lib/routes';
+import { useGeolocation } from '@/lib/useGeolocation';
 import type { AdminLocation } from '@/types/admin';
 
 interface LocationFormProps {
@@ -87,6 +89,16 @@ export function LocationForm({ location, statuses }: LocationFormProps) {
 
     const bothBlank = form.data.latitude === '' && form.data.longitude === '';
     const bothFilled = form.data.latitude !== '' && form.data.longitude !== '';
+
+    /**
+     * Fills the existing coordinate fields from the device's position (used
+     * only after an explicit button click and permission grant). Both fields
+     * are set together — a map marker needs the pair — and values stay
+     * editable; the form is never submitted automatically.
+     */
+    const geolocation = useGeolocation((latitude, longitude) => {
+        form.setData((data) => ({ ...data, latitude: String(latitude), longitude: String(longitude) }));
+    });
 
     return (
         <form onSubmit={submit} noValidate className="space-y-6">
@@ -194,6 +206,8 @@ export function LocationForm({ location, statuses }: LocationFormProps) {
                         will keep the location off the map.
                     </p>
                 )}
+
+                <CurrentLocationButton geolocation={geolocation} />
             </div>
 
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
