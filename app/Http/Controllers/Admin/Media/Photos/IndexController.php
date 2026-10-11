@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin\Media\Photos;
 use App\Enums\PublicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Photo;
+use App\Support\CoverImage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -83,9 +83,7 @@ class IndexController extends Controller
             return null;
         }
 
-        return Storage::disk('public')->exists($path)
-            ? asset('storage/'.$path)
-            : null;
+        return CoverImage::url($path);
     }
 
     /**

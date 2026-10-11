@@ -616,7 +616,7 @@ class AdminTeamTest extends TestCase
         $this->assertNotNull($member->photo_path);
         $this->assertStringStartsWith('team/photos/', $member->photo_path);
         $this->assertNotSame('portrait.jpg', basename((string) $member->photo_path), 'Original filenames are never used.');
-        Storage::disk('public')->assertExists($member->photo_path);
+        Storage::disk('public_web')->assertExists($member->photo_path);
     }
 
     public function test_an_invalid_image_is_rejected(): void
@@ -633,7 +633,7 @@ class AdminTeamTest extends TestCase
             ->assertSessionHasErrors('photo');
 
         $this->assertSame(20, TeamMember::count());
-        Storage::disk('public')->assertDirectoryEmpty('team/photos');
+        Storage::disk('public_web')->assertDirectoryEmpty('team/photos');
     }
 
     public function test_a_portrait_below_4mb_is_accepted(): void
@@ -652,7 +652,7 @@ class AdminTeamTest extends TestCase
 
         $member = TeamMember::query()->where('name', 'Standard Portrait')->firstOrFail();
 
-        Storage::disk('public')->assertExists($member->photo_path);
+        Storage::disk('public_web')->assertExists($member->photo_path);
     }
 
     public function test_a_portrait_just_under_the_8mb_limit_is_accepted(): void
@@ -673,7 +673,7 @@ class AdminTeamTest extends TestCase
 
         $member = TeamMember::query()->where('name', 'Large Portrait')->firstOrFail();
 
-        Storage::disk('public')->assertExists($member->photo_path);
+        Storage::disk('public_web')->assertExists($member->photo_path);
     }
 
     public function test_a_portrait_over_the_8mb_limit_is_rejected(): void
@@ -690,14 +690,14 @@ class AdminTeamTest extends TestCase
             ->assertSessionHasErrors('photo');
 
         $this->assertSame(20, TeamMember::count());
-        Storage::disk('public')->assertDirectoryEmpty('team/photos');
+        Storage::disk('public_web')->assertDirectoryEmpty('team/photos');
     }
 
     public function test_an_oversized_replacement_is_rejected_and_the_original_portrait_kept(): void
     {
         Storage::fake('public');
 
-        $originalPath = $this->jpeg()->store('team/photos', 'public');
+        $originalPath = $this->jpeg()->store('team/photos', 'public_web');
         $member = TeamMember::factory()->create(['photo_path' => $originalPath]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -713,14 +713,14 @@ class AdminTeamTest extends TestCase
         $member->refresh();
 
         $this->assertSame($originalPath, $member->photo_path);
-        Storage::disk('public')->assertExists($originalPath);
+        Storage::disk('public_web')->assertExists($originalPath);
     }
 
     public function test_a_portrait_can_be_replaced_and_the_old_file_removed(): void
     {
         Storage::fake('public');
 
-        $originalPath = $this->jpeg()->store('team/photos', 'public');
+        $originalPath = $this->jpeg()->store('team/photos', 'public_web');
         $member = TeamMember::factory()->create(['photo_path' => $originalPath]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -737,15 +737,15 @@ class AdminTeamTest extends TestCase
         $member->refresh();
 
         $this->assertNotSame($originalPath, $member->photo_path);
-        Storage::disk('public')->assertExists($member->photo_path);
-        Storage::disk('public')->assertMissing($originalPath, 'The replaced managed file must be removed.');
+        Storage::disk('public_web')->assertExists($member->photo_path);
+        Storage::disk('public_web')->assertMissing($originalPath, 'The replaced managed file must be removed.');
     }
 
     public function test_a_portrait_can_be_removed(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('team/photos', 'public');
+        $path = $this->jpeg()->store('team/photos', 'public_web');
         $member = TeamMember::factory()->create(['photo_path' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -762,14 +762,14 @@ class AdminTeamTest extends TestCase
         $member->refresh();
 
         $this->assertNull($member->photo_path);
-        Storage::disk('public')->assertMissing($path);
+        Storage::disk('public_web')->assertMissing($path);
     }
 
     public function test_a_plain_update_never_touches_the_portrait(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('team/photos', 'public');
+        $path = $this->jpeg()->store('team/photos', 'public_web');
         $member = TeamMember::factory()->create(['photo_path' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -785,14 +785,14 @@ class AdminTeamTest extends TestCase
         $member->refresh();
 
         $this->assertSame($path, $member->photo_path, 'A plain save must never clear the portrait.');
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('public_web')->assertExists($path);
     }
 
     public function test_a_failed_upload_leaves_the_existing_portrait_intact(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('team/photos', 'public');
+        $path = $this->jpeg()->store('team/photos', 'public_web');
         $member = TeamMember::factory()->create(['photo_path' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -808,7 +808,7 @@ class AdminTeamTest extends TestCase
         $member->refresh();
 
         $this->assertSame($path, $member->photo_path, 'A failed upload must not overwrite the portrait reference.');
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('public_web')->assertExists($path);
     }
 
     public function test_an_unmanaged_portrait_path_is_never_deleted(): void
@@ -818,7 +818,7 @@ class AdminTeamTest extends TestCase
         // A path outside every managed folder — e.g. a legacy file placed by
         // hand — must survive portrait removal.
         $path = 'external/team-archive/precious.jpg';
-        Storage::disk('public')->put($path, 'jpeg-bytes');
+        Storage::disk('public_web')->put($path, 'jpeg-bytes');
         $member = TeamMember::factory()->create(['photo_path' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -835,9 +835,9 @@ class AdminTeamTest extends TestCase
         $member->refresh();
 
         $this->assertNull($member->photo_path);
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('public_web')->assertExists($path);
         $this->assertStringEqualsFile(
-            Storage::disk('public')->path($path),
+            Storage::disk('public_web')->path($path),
             'jpeg-bytes',
             'Files outside the managed folders are never deleted.',
         );
@@ -847,7 +847,7 @@ class AdminTeamTest extends TestCase
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('team/photos', 'public');
+        $path = $this->jpeg()->store('team/photos', 'public_web');
         $member = TeamMember::factory()->create(['photo_path' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -855,20 +855,20 @@ class AdminTeamTest extends TestCase
             ->assertRedirect(route('admin.team.index'));
 
         $this->assertDatabaseMissing('team_members', ['id' => $member->id]);
-        Storage::disk('public')->assertMissing($path);
+        Storage::disk('public_web')->assertMissing($path);
     }
 
     public function test_the_public_team_page_shows_the_uploaded_portrait(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('team/photos', 'public');
+        $path = $this->jpeg()->store('team/photos', 'public_web');
         $member = TeamMember::factory()->published()->create(['photo_path' => $path]);
 
         $this->get(route('team'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->where('team.0.photo_url', asset('storage/'.$path)));
+                ->where('team.0.photo_url', Storage::disk('public_web')->url($path)));
     }
 
     public function test_the_public_team_page_falls_back_gracefully_when_the_file_is_missing(): void

@@ -172,7 +172,7 @@ class AdminPhotosTest extends TestCase
         $this->assertNull($photo->project_component_id);
         $this->assertNull($photo->gallery_id);
         $this->assertStringStartsWith('photos/', $photo->image_path);
-        Storage::disk('public')->assertExists($photo->image_path);
+        Storage::disk('public_web')->assertExists($photo->image_path);
     }
 
     public function test_a_photo_can_be_created_for_a_project(): void
@@ -348,7 +348,7 @@ class AdminPhotosTest extends TestCase
         Storage::fake('public');
         $photo = Photo::factory()->create();
         $originalPath = $photo->image_path;
-        Storage::disk('public')->put($originalPath, 'original bytes');
+        Storage::disk('public_web')->put($originalPath, 'original bytes');
 
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.photos.update', ['photo' => $photo->id]), [
@@ -359,8 +359,8 @@ class AdminPhotosTest extends TestCase
 
         $photo->refresh();
         $this->assertNotSame($originalPath, $photo->image_path);
-        Storage::disk('public')->assertExists($photo->image_path);
-        Storage::disk('public')->assertMissing($originalPath);
+        Storage::disk('public_web')->assertExists($photo->image_path);
+        Storage::disk('public_web')->assertMissing($originalPath);
     }
 
     public function test_the_image_cannot_be_removed_from_a_photo(): void
@@ -370,7 +370,7 @@ class AdminPhotosTest extends TestCase
         Storage::fake('public');
         $photo = Photo::factory()->create();
         $originalPath = $photo->image_path;
-        Storage::disk('public')->put($originalPath, 'bytes');
+        Storage::disk('public_web')->put($originalPath, 'bytes');
 
         $this->actingAs(User::factory()->administrator()->create())
             ->put(route('admin.photos.update', ['photo' => $photo->id]), [
@@ -380,7 +380,7 @@ class AdminPhotosTest extends TestCase
 
         $photo->refresh();
         $this->assertSame($originalPath, $photo->image_path);
-        Storage::disk('public')->assertExists($originalPath);
+        Storage::disk('public_web')->assertExists($originalPath);
     }
 
     public function test_a_failed_replacement_leaves_the_existing_image_intact(): void
@@ -388,7 +388,7 @@ class AdminPhotosTest extends TestCase
         Storage::fake('public');
         $photo = Photo::factory()->create();
         $originalPath = $photo->image_path;
-        Storage::disk('public')->put($originalPath, 'original bytes');
+        Storage::disk('public_web')->put($originalPath, 'original bytes');
 
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.photos.update', ['photo' => $photo->id]), [
@@ -399,21 +399,21 @@ class AdminPhotosTest extends TestCase
 
         $photo->refresh();
         $this->assertSame($originalPath, $photo->image_path);
-        Storage::disk('public')->assertExists($originalPath);
+        Storage::disk('public_web')->assertExists($originalPath);
     }
 
     public function test_deleting_a_photo_removes_its_managed_file(): void
     {
         Storage::fake('public');
         $photo = Photo::factory()->create();
-        Storage::disk('public')->put($photo->image_path, 'bytes');
+        Storage::disk('public_web')->put($photo->image_path, 'bytes');
 
         $this->actingAs(User::factory()->administrator()->create())
             ->delete(route('admin.photos.destroy', ['photo' => $photo->id]))
             ->assertRedirect(route('admin.photos.index'));
 
         $this->assertDatabaseMissing('photos', ['id' => $photo->id]);
-        Storage::disk('public')->assertMissing($photo->getOriginal('image_path'));
+        Storage::disk('public_web')->assertMissing($photo->getOriginal('image_path'));
     }
 
     public function test_supporting_photos_appear_with_their_published_owner(): void

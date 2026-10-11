@@ -26,6 +26,12 @@
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
+        <!-- Tests that touch the public_web disk expect the DEV default:
+             empty/unset => public_web falls back onto public_path('images')
+             (a plain test-writable directory, NOT the fake 'public' disk dummy
+             created behind Storage::fake()). Disk isolation inside those tests
+             is achieved by faking Scope::disk() per test OR by asserting
+             against the real filesystem through Storage::disk('public_web'). -->
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

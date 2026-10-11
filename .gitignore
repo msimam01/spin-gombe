@@ -12,10 +12,19 @@
 /.vscode
 /.zed
 /auth.json
+/dist
 /node_modules
 /public/build
 /public/hot
 /public/storage
+# Managed CMS images live inside the web root on production; local dev
+# uploads to the same place must never be committed.
+/public/images/events
+/public/images/projects
+/public/images/news
+/public/images/galleries
+/public/images/photos
+/public/images/team
 /storage/*.key
 /storage/pail
 /vendor

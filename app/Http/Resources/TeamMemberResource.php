@@ -3,9 +3,9 @@
 namespace App\Http\Resources;
 
 use App\Models\TeamMember;
+use App\Support\CoverImage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Public representation of a team member.
@@ -60,8 +60,6 @@ class TeamMemberResource extends JsonResource
             return null;
         }
 
-        return Storage::disk('public')->exists($this->photo_path)
-            ? asset('storage/'.$this->photo_path)
-            : null;
+        return CoverImage::url($this->photo_path);
     }
 }

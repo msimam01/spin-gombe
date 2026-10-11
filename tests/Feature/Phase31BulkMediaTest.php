@@ -94,7 +94,7 @@ class Phase31BulkMediaTest extends TestCase
 
         // Cover stored through the managed mechanism, independent of photos.
         $this->assertStringStartsWith('projects/covers/', $project->cover_image);
-        Storage::disk('public')->assertExists($project->cover_image);
+        Storage::disk('public_web')->assertExists($project->cover_image);
 
         // Both supporting images attached through the existing project_id.
         $this->assertSame(2, $project->photos()->count());
@@ -103,7 +103,7 @@ class Phase31BulkMediaTest extends TestCase
             $project->photos()->orderBy('id')->pluck('alt_text')->all(),
         );
         $project->photos->each(
-            fn ($photo) => Storage::disk('public')->assertExists($photo->image_path),
+            fn ($photo) => Storage::disk('public_web')->assertExists($photo->image_path),
         );
     }
 
@@ -124,8 +124,8 @@ class Phase31BulkMediaTest extends TestCase
         // The whole operation rolled back — no project, no orphaned files.
         $this->assertSame(0, Project::count());
         $this->assertSame(0, Photo::count());
-        Storage::disk('public')->assertDirectoryEmpty('projects/covers');
-        Storage::disk('public')->assertDirectoryEmpty('photos');
+        Storage::disk('public_web')->assertDirectoryEmpty('projects/covers');
+        Storage::disk('public_web')->assertDirectoryEmpty('photos');
     }
 
     public function test_editing_preserves_existing_images_and_adds_new_ones(): void
@@ -155,7 +155,7 @@ class Phase31BulkMediaTest extends TestCase
         $project = Project::factory()->create();
         $keeper = Photo::factory()->for($project, 'project')->create();
         $removed = Photo::factory()->for($project, 'project')->create();
-        Storage::disk('public')->put($removed->image_path, 'bytes');
+        Storage::disk('public_web')->put($removed->image_path, 'bytes');
 
         $otherProject = Project::factory()->create();
         $foreign = Photo::factory()->for($otherProject, 'project')->create();
@@ -173,7 +173,7 @@ class Phase31BulkMediaTest extends TestCase
         // The ticked photo is gone with its file; the keeper and the other
         // project's photo (crafted id) are untouched.
         $this->assertDatabaseMissing('photos', ['id' => $removed->id]);
-        Storage::disk('public')->assertMissing($removed->image_path);
+        Storage::disk('public_web')->assertMissing($removed->image_path);
         $this->assertDatabaseHas('photos', ['id' => $keeper->id]);
         $this->assertDatabaseHas('photos', ['id' => $foreign->id]);
     }
@@ -209,7 +209,7 @@ class Phase31BulkMediaTest extends TestCase
 
         $project->refresh();
         $this->assertNotSame($firstCover, $project->cover_image);
-        Storage::disk('public')->assertMissing($firstCover);
+        Storage::disk('public_web')->assertMissing($firstCover);
 
         // Explicit removal clears the column and the file.
         $current = $project->cover_image;
@@ -225,7 +225,7 @@ class Phase31BulkMediaTest extends TestCase
 
         $project->refresh();
         $this->assertNull($project->cover_image);
-        Storage::disk('public')->assertMissing($current);
+        Storage::disk('public_web')->assertMissing($current);
     }
 
     public function test_display_order_is_no_longer_required_on_projects(): void
@@ -245,14 +245,14 @@ class Phase31BulkMediaTest extends TestCase
     public function test_public_project_page_delivers_cover_and_supporting_images(): void
     {
         Storage::fake('public');
-        $path = $this->jpegNamed('public-cover.jpg')->store('projects/covers', 'public');
+        $path = $this->jpegNamed('public-cover.jpg')->store('projects/covers', 'public_web');
         $project = Project::factory()->published()->create(['cover_image' => $path]);
         Photo::factory()->for($project, 'project')->published()->create();
 
         $this->get(route('projects.show', ['slug' => $project->slug]))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->where('project.cover_image', asset('storage/'.$path))
+                ->where('project.cover_image', Storage::disk('public_web')->url($path))
                 ->has('project.photos', 1));
     }
 
@@ -314,7 +314,7 @@ class Phase31BulkMediaTest extends TestCase
         Storage::fake('public');
         $post = NewsPost::factory()->create();
         $removed = Photo::factory()->for($post, 'newsPost')->create();
-        Storage::disk('public')->put($removed->image_path, 'bytes');
+        Storage::disk('public_web')->put($removed->image_path, 'bytes');
 
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.news.update', ['post' => $post->slug]), [
@@ -326,7 +326,7 @@ class Phase31BulkMediaTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseMissing('photos', ['id' => $removed->id]);
-        Storage::disk('public')->assertMissing($removed->image_path);
+        Storage::disk('public_web')->assertMissing($removed->image_path);
     }
 
     /*
@@ -449,7 +449,7 @@ class Phase31BulkMediaTest extends TestCase
 
         // Nothing half-created: the valid file is not stored either.
         $this->assertSame(0, Photo::count());
-        Storage::disk('public')->assertDirectoryEmpty('photos');
+        Storage::disk('public_web')->assertDirectoryEmpty('photos');
     }
 
     public function test_generic_filenames_fall_back_to_the_related_content_title(): void
@@ -504,7 +504,7 @@ class Phase31BulkMediaTest extends TestCase
 
         // Individual removal with file cleanup.
         $removed = $gallery->photos()->first();
-        Storage::disk('public')->put($removed->image_path, 'bytes');
+        Storage::disk('public_web')->put($removed->image_path, 'bytes');
 
         $this->actingAs(User::factory()->administrator()->create())
             ->post(route('admin.galleries.update', ['gallery' => $gallery->slug]), [
@@ -516,7 +516,7 @@ class Phase31BulkMediaTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertSame(2, $gallery->photos()->count());
-        Storage::disk('public')->assertMissing($removed->image_path);
+        Storage::disk('public_web')->assertMissing($removed->image_path);
     }
 
     public function test_a_gallery_with_an_event_preserves_the_event_relationship(): void

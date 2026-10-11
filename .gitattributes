@@ -1,11 +1,49 @@
 * text=auto eol=lf
 
+# --- Source files: LF in the repository and the working tree ----------------
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
 *.md diff=markdown
 *.php diff=php
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.sh text eol=lf
+*.svg text eol=lf
+.env* text eol=lf
+.htaccess text eol=lf
+*.htaccess text eol=lf
 
+# --- Binary assets: never line-ending normalise (upload-safe deploys) ------
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.jfif binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.doc binary
+*.docx binary
+*.xls binary
+*.xlsx binary
+*.ppt binary
+*.pptx binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.mp4 binary
+*.webm binary
+*.zip binary
+
+# --- Export hygiene ----------------------------------------------------------
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore

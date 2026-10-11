@@ -1,59 +1,72 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SPIN Project Gombe
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Website + admin CMS for the SPIN Project Gombe, built with **Laravel 12**
+and a **React (Vite)** front end (single `app.blade.php` entry point, admin
+pages under `/admin`).
 
-## About Laravel
+## Requirements
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP >= 8.2 (extensions: `pdo_mysql`, `mbstring`, `openssl`, `gd`, `dom`)
+- Composer
+- Node.js >= 20 (front-end builds)
+- MySQL database
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Local development
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+composer install
+cp .env.example .env            # then fill in DB credentials
+php artisan key:generate
+php artisan migrate --seed      # creates tables + first admin
+npm install
+npm run dev                     # Vite dev server on :5173
+php artisan serve               # app on :8000 (or use Laragon/Herd)
+```
 
-## Learning Laravel
+The initial administrator account is created by the seeder from
+`ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`.
+Log in at `/admin`.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Testing & code style
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+composer test          # PHPUnit suite (~394 tests)
+./vendor/bin/pint      # auto-fix code style
+./vendor/bin/pint --test  # check code style without changing files
+```
 
-## Laravel Sponsors
+## Production deployment (cPanel / WhoGoHost)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+The app packages for shared hosting with **no SSH-tooling assumptions**:
 
-### Premium Partners
+1. Build the deploy package locally:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+   ```bash
+   bash scripts/make-deploy-package.sh
+   ```
 
-## Contributing
+   Output: `dist/spin-gombe-deploy/` (+ `.zip`) — web-ready code, pre-built
+   Vite assets, pruned `vendor/`, storage skeleton, root `.htaccess` shim.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2. Upload the package contents into `public_html` (or a subdomain folder).
 
-## Code of Conduct
+3. Copy `.env.production.example` to `.env`, fill in the `<REQUIRED>`
+   values (database, mail, `APP_URL`, first admin).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+4. Run on the server (SSH if available, else ask hosting support):
+   `migrate --force`, `storage:link`, `db:seed --force`, then
+   `config:cache && route:cache && view:cache`.
 
-## Security Vulnerabilities
+**Full, step-by-step walkthrough:** [docs/deployment-cpanel.md](docs/deployment-cpanel.md).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Configuration notes
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Trusted proxies** — the template ships with `TRUSTED_PROXIES=*` for
+  cPanel's TLS-terminating proxy; see `config/trustedproxy.php` and
+  `tests/Feature/TrustedProxyConfigTest.php`.
+- **Sessions / cache / queue** run on the **database** driver (no Redis on
+  shared hosting) — the tables come from the standard migrations.
+- **Storage** — images upload to a real directory inside the document
+  root (`public/images/…`, set via `PUBLIC_IMAGES_DIR` in `.env`) and are
+  served directly by Apache; `php artisan storage:link` is still required
+  for documents and any legacy `/storage/…` image URLs.

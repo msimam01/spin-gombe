@@ -139,7 +139,7 @@ class AdminGalleriesTest extends TestCase
     {
         Storage::fake('public');
         $originalPath = 'galleries/covers/original.jpg';
-        Storage::disk('public')->put($originalPath, 'original bytes');
+        Storage::disk('public_web')->put($originalPath, 'original bytes');
         $gallery = Gallery::factory()->create(['cover_image' => $originalPath]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -157,15 +157,15 @@ class AdminGalleriesTest extends TestCase
         $gallery->refresh();
         $this->assertNotSame($originalPath, $gallery->cover_image);
         $this->assertStringStartsWith('galleries/covers/', $gallery->cover_image);
-        Storage::disk('public')->assertExists($gallery->cover_image);
-        Storage::disk('public')->assertMissing($originalPath);
+        Storage::disk('public_web')->assertExists($gallery->cover_image);
+        Storage::disk('public_web')->assertMissing($originalPath);
     }
 
     public function test_the_cover_can_be_removed(): void
     {
         Storage::fake('public');
         $path = 'galleries/covers/doomed.jpg';
-        Storage::disk('public')->put($path, 'bytes');
+        Storage::disk('public_web')->put($path, 'bytes');
         $gallery = Gallery::factory()->create(['cover_image' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -176,7 +176,7 @@ class AdminGalleriesTest extends TestCase
 
         $gallery->refresh();
         $this->assertNull($gallery->cover_image);
-        Storage::disk('public')->assertMissing($path);
+        Storage::disk('public_web')->assertMissing($path);
     }
 
     public function test_deleting_a_gallery_with_photos_is_refused(): void
@@ -197,7 +197,7 @@ class AdminGalleriesTest extends TestCase
     {
         Storage::fake('public');
         $path = 'galleries/covers/gone.jpg';
-        Storage::disk('public')->put($path, 'bytes');
+        Storage::disk('public_web')->put($path, 'bytes');
         $gallery = Gallery::factory()->create(['cover_image' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -205,7 +205,7 @@ class AdminGalleriesTest extends TestCase
             ->assertRedirect(route('admin.galleries.index'));
 
         $this->assertDatabaseMissing('galleries', ['id' => $gallery->id]);
-        Storage::disk('public')->assertMissing($path);
+        Storage::disk('public_web')->assertMissing($path);
     }
 
     public function test_publishing_makes_a_gallery_public_and_unpublishing_hides_it(): void

@@ -1,3 +1,11 @@
+# |--------------------------------------------------------------------------
+# | Laravel front controller (public/ — the only web-served directory)
+# |--------------------------------------------------------------------------
+# | Stock Laravel rewrite rules, extended with shared-hosting hardening.
+# | Extra directives are wrapped in <IfModule> so the file stays portable
+# | across cPanel builds (Apache with/without mod_headers, LiteSpeed).
+# |--------------------------------------------------------------------------
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
@@ -18,8 +26,54 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
+    # Never execute files uploaded through the CMS under the managed
+    # storage symlink (served as downloads, never run or listed).
+    RewriteRule ^storage/.*\.(php[0-9]?|phtml|pht)$ - [F,L,NC]
+
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# --- Never serve dotfiles from the web root ---------------------------------
+<FilesMatch "^(\.env.*|\.git.*|\.htaccess\.bak|.*\.log|.*\.sqlite.*|.*~)$">
+    Require all denied
+</FilesMatch>
+
+# --- Long-lived caching + correct types for versioned Vite assets -----------
+<IfModule mod_mime.c>
+    AddType application/javascript .js .mjs
+    AddType text/css .css
+    AddType image/svg+xml .svg
+    AddType image/x-icon .ico
+    AddType font/woff2 .woff2
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Immutable, hashed filenames: safe to cache forever.
+    <FilesMatch "\-([A-Za-z0-9_\-]{8})\.(js|css|woff2)$">
+        Header always set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    # Anything else (images, favicon, robots, /storage files): revalidate.
+    Header always set Cache-Control "public, max-age=0, must-revalidate"
+</IfModule>
+
+# --- Compression ------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml \
+        application/javascript application/json image/svg+xml
 </IfModule>

@@ -3,17 +3,17 @@
 namespace App\Http\Resources;
 
 use App\Models\Photo;
+use App\Support\CoverImage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Public representation of a photograph.
  *
- * Only published photos reach the frontend. The resolved URL uses the
- * existing `asset('storage/...')` convention shared by every media resource;
- * a photo whose file is missing still resolves safely (the UI falls back to
- * its designed placeholder rather than a broken image).
+ * Only published photos reach the frontend. The resolved URL goes through
+ * `CoverImage::url()` (document-root disk with legacy fallback), shared by
+ * every media resource; a photo whose file is missing still resolves safely
+ * (the UI falls back to its designed placeholder rather than a broken image).
  *
  * @mixin Photo
  */
@@ -43,8 +43,6 @@ class PhotoResource extends JsonResource
             return null;
         }
 
-        return Storage::disk('public')->exists($this->image_path)
-            ? asset('storage/'.$this->image_path)
-            : null;
+        return CoverImage::url($this->image_path);
     }
 }

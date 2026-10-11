@@ -103,7 +103,7 @@ class NewsCoverImageTest extends TestCase
         $this->assertNotNull($post->cover_image);
         $this->assertStringStartsWith('news/covers/', $post->cover_image);
         $this->assertNotSame('cover.jpg', basename((string) $post->cover_image), 'Original filenames are never used.');
-        Storage::disk('public')->assertExists($post->cover_image);
+        Storage::disk('public_web')->assertExists($post->cover_image);
     }
 
     public function test_an_invalid_image_is_rejected(): void
@@ -120,7 +120,7 @@ class NewsCoverImageTest extends TestCase
             ->assertSessionHasErrors('cover');
 
         $this->assertSame(0, NewsPost::count());
-        Storage::disk('public')->assertDirectoryEmpty('news/covers');
+        Storage::disk('public_web')->assertDirectoryEmpty('news/covers');
     }
 
     public function test_an_oversized_image_is_rejected(): void
@@ -143,13 +143,13 @@ class NewsCoverImageTest extends TestCase
     {
         Storage::fake('public');
         $file = $this->jpeg();
-        $path = $file->store('news/covers', 'public');
+        $path = $file->store('news/covers', 'public_web');
 
         $post = NewsPost::factory()->published()->create(['cover_image' => $path]);
 
         $this->get(route('news.show', ['slug' => $post->slug]))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->where('post.cover_image', asset('storage/'.$path)));
+            ->assertInertia(fn ($page) => $page->where('post.cover_image', Storage::disk('public_web')->url($path)));
     }
 
     public function test_the_public_detail_page_falls_back_gracefully_when_the_file_is_missing(): void
@@ -166,7 +166,7 @@ class NewsCoverImageTest extends TestCase
         Storage::fake('public');
         $admin = User::factory()->administrator()->create();
 
-        $originalPath = $this->jpeg()->store('news/covers', 'public');
+        $originalPath = $this->jpeg()->store('news/covers', 'public_web');
         $post = NewsPost::factory()->create(['cover_image' => $originalPath]);
 
         $this->actingAs($admin)
@@ -182,15 +182,15 @@ class NewsCoverImageTest extends TestCase
         $post->refresh();
 
         $this->assertNotSame($originalPath, $post->cover_image);
-        Storage::disk('public')->assertExists($post->cover_image);
-        Storage::disk('public')->assertMissing($originalPath, 'The replaced managed file must be removed.');
+        Storage::disk('public_web')->assertExists($post->cover_image);
+        Storage::disk('public_web')->assertMissing($originalPath, 'The replaced managed file must be removed.');
     }
 
     public function test_a_cover_can_be_removed(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('news/covers', 'public');
+        $path = $this->jpeg()->store('news/covers', 'public_web');
         $post = NewsPost::factory()->create(['cover_image' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -206,14 +206,14 @@ class NewsCoverImageTest extends TestCase
         $post->refresh();
 
         $this->assertNull($post->cover_image);
-        Storage::disk('public')->assertMissing($path);
+        Storage::disk('public_web')->assertMissing($path);
     }
 
     public function test_a_partial_update_never_touches_the_cover(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('news/covers', 'public');
+        $path = $this->jpeg()->store('news/covers', 'public_web');
         $post = NewsPost::factory()->create(['cover_image' => $path]);
 
         // No cover, no remove_cover — a plain title edit.
@@ -229,14 +229,14 @@ class NewsCoverImageTest extends TestCase
         $post->refresh();
 
         $this->assertSame($path, $post->cover_image, 'A plain save must never clear the cover.');
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('public_web')->assertExists($path);
     }
 
     public function test_a_failed_upload_leaves_the_existing_cover_intact(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('news/covers', 'public');
+        $path = $this->jpeg()->store('news/covers', 'public_web');
         $post = NewsPost::factory()->create(['cover_image' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -251,14 +251,14 @@ class NewsCoverImageTest extends TestCase
         $post->refresh();
 
         $this->assertSame($path, $post->cover_image, 'A failed upload must not overwrite the cover reference.');
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('public_web')->assertExists($path);
     }
 
     public function test_deleting_the_article_removes_its_managed_cover_file(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('news/covers', 'public');
+        $path = $this->jpeg()->store('news/covers', 'public_web');
         $post = NewsPost::factory()->create(['cover_image' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -266,7 +266,7 @@ class NewsCoverImageTest extends TestCase
             ->assertRedirect(route('admin.news.index'));
 
         $this->assertDatabaseMissing('news_posts', ['id' => $post->id]);
-        Storage::disk('public')->assertMissing($path);
+        Storage::disk('public_web')->assertMissing($path);
     }
 
     public function test_an_unmanaged_cover_path_is_never_deleted(): void
@@ -277,7 +277,7 @@ class NewsCoverImageTest extends TestCase
         // galleries/covers, photos) — e.g. a legacy file placed by hand or a
         // future workflow — must survive cover removal.
         $path = 'external/team-archive/precious.jpg';
-        Storage::disk('public')->put($path, 'jpeg-bytes');
+        Storage::disk('public_web')->put($path, 'jpeg-bytes');
         $post = NewsPost::factory()->create(['cover_image' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -292,9 +292,9 @@ class NewsCoverImageTest extends TestCase
         $post->refresh();
 
         $this->assertNull($post->cover_image);
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('public_web')->assertExists($path);
         $this->assertStringEqualsFile(
-            Storage::disk('public')->path($path),
+            Storage::disk('public_web')->path($path),
             'jpeg-bytes',
             'Files outside the managed folders are never deleted.'
         );

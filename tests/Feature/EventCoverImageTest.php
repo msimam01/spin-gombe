@@ -94,7 +94,7 @@ class EventCoverImageTest extends TestCase
 
         $event = Event::query()->where('slug', 'featured-event-with-photo')->firstOrFail();
         $this->assertStringStartsWith('events/covers/', $event->cover_image);
-        Storage::disk('public')->assertExists($event->cover_image);
+        Storage::disk('public_web')->assertExists($event->cover_image);
     }
 
     public function test_an_invalid_image_is_rejected(): void
@@ -117,13 +117,13 @@ class EventCoverImageTest extends TestCase
     public function test_the_public_detail_page_displays_the_cover(): void
     {
         Storage::fake('public');
-        $path = $this->jpeg()->store('events/covers', 'public');
+        $path = $this->jpeg()->store('events/covers', 'public_web');
 
         $event = Event::factory()->upcoming()->create(['cover_image' => $path]);
 
         $this->get(route('events.show', ['slug' => $event->slug]))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->where('event.cover_image', asset('storage/'.$path)));
+            ->assertInertia(fn ($page) => $page->where('event.cover_image', Storage::disk('public_web')->url($path)));
     }
 
     public function test_a_missing_cover_file_resolves_to_null_so_the_fallback_applies(): void
@@ -149,7 +149,7 @@ class EventCoverImageTest extends TestCase
     {
         Storage::fake('public');
 
-        $originalPath = $this->jpeg()->store('events/covers', 'public');
+        $originalPath = $this->jpeg()->store('events/covers', 'public_web');
         $event = Event::factory()->create(['cover_image' => $originalPath]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -166,15 +166,15 @@ class EventCoverImageTest extends TestCase
         $event->refresh();
 
         $this->assertNotSame($originalPath, $event->cover_image);
-        Storage::disk('public')->assertExists($event->cover_image);
-        Storage::disk('public')->assertMissing($originalPath);
+        Storage::disk('public_web')->assertExists($event->cover_image);
+        Storage::disk('public_web')->assertMissing($originalPath);
     }
 
     public function test_a_cover_can_be_removed(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('events/covers', 'public');
+        $path = $this->jpeg()->store('events/covers', 'public_web');
         $event = Event::factory()->create(['cover_image' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -191,14 +191,14 @@ class EventCoverImageTest extends TestCase
         $event->refresh();
 
         $this->assertNull($event->cover_image);
-        Storage::disk('public')->assertMissing($path);
+        Storage::disk('public_web')->assertMissing($path);
     }
 
     public function test_a_partial_update_never_touches_the_cover(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('events/covers', 'public');
+        $path = $this->jpeg()->store('events/covers', 'public_web');
         $event = Event::factory()->create(['cover_image' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -214,14 +214,14 @@ class EventCoverImageTest extends TestCase
         $event->refresh();
 
         $this->assertSame($path, $event->cover_image);
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('public_web')->assertExists($path);
     }
 
     public function test_a_failed_upload_leaves_the_existing_cover_intact(): void
     {
         Storage::fake('public');
 
-        $path = $this->jpeg()->store('events/covers', 'public');
+        $path = $this->jpeg()->store('events/covers', 'public_web');
         $event = Event::factory()->create(['cover_image' => $path]);
 
         $this->actingAs(User::factory()->administrator()->create())
@@ -237,7 +237,7 @@ class EventCoverImageTest extends TestCase
         $event->refresh();
 
         $this->assertSame($path, $event->cover_image);
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('public_web')->assertExists($path);
     }
 
     public function test_unauthorized_users_cannot_mutate_covers(): void

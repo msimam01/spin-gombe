@@ -1,0 +1,64 @@
+# |--------------------------------------------------------------------------
+# | SPIN Project Gombe — document-root shim for cPanel / shared hosting
+# |--------------------------------------------------------------------------
+# | For the standard cPanel layout where the whole application was uploaded
+# | into public_html (or a subdomain folder) and the document root CANNOT
+# | be pointed at the Laravel public/ directory:
+# |
+# |     public_html/           <- document root = project root
+# |     ├── .htaccess          <- THIS FILE (rewrites everything into public/)
+# |     ├── public/            <- the only directory served to the web
+# |     ├── app/ bootstrap/ config/ … vendor/   (denied below)
+# |
+# | Upload it even when the host CAN point the document root at public/
+# | (e.g. a subdomain) — in that layout it sits above the web root and is
+# | simply never consulted. Do NOT upload it into public/ itself: that
+# | directory has its own .htaccess.
+# |
+# | Full walkthrough: docs/deployment-cpanel.md
+# |--------------------------------------------------------------------------
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # --- HTTPS -------------------------------------------------------------
+    # WhoGoHost issues AutoSSL certificates; force the encrypted scheme so
+    # secure cookies and generated URLs are consistent. Comment these two
+    # lines out if the certificate is not yet active.
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # --- Real files in public/ are served directly --------------------------
+    # Built assets, images, the favicon and files behind public/storage all
+    # exist as files under public/; anything else falls through to Laravel.
+    RewriteCond %{REQUEST_URI} !^/index\.php$
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # --- Never serve the framework or its secrets ---------------------------
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|tests|scripts|docs|node_modules|vendor)(/|$) - [F,L]
+
+    # --- Everything else: the Laravel front controller ----------------------
+    RewriteRule ^ public/index.php [L]
+</IfModule>
+
+<FilesMatch "^(\.env.*|\.git.*|composer\.(json|lock)|package(-lock)?\.json|phpunit\.xml|vite\.config\.js|tsconfig\.json|artisan|\.htaccess\.bak)$">
+    Require all denied
+</FilesMatch>
+
+# --- Basic hardening for whatever else is served ----------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# PHP upload limits (works with cPanel's mod_php and lsphp .htaccess support;
+# on some servers this must instead be set in MultiPHP INI Editor).
+<IfModule mod_php.c>
+    php_value upload_max_filesize 32M
+    php_value post_max_size 40M
+    php_value max_execution_time 120
+</IfModule>
