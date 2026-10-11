@@ -91,7 +91,7 @@ export function AboutCoordinator() {
 
                         <div className="mt-6 max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground">
                             {coordinator.bio.map((paragraph) => (
-                                <p key={paragraph.slice(0, 48)} className="[text-align:justify]">{paragraph}</p>
+                                <p key={paragraph.slice(0, 48)} >{paragraph}</p>
                             ))}
                         </div>
                     </Reveal>

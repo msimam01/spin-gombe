@@ -203,7 +203,7 @@ export default function Team({ coordinator, team }: TeamProps) {
                                             <div className="max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground">
                                                 {(bioParagraphs.length > 1 ? bioParagraphs.slice(0, -1) : bioParagraphs).map(
                                                     (paragraph, index) => (
-                                                        <p key={index} className="[text-align:justify]">
+                                                        <p key={index}>
                                                             {paragraph}
                                                         </p>
                                                     ),

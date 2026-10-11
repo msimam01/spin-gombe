@@ -181,7 +181,7 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                                         key={index}
                                         className={`text-base leading-relaxed sm:text-lg ${
                                             index === 0 ? 'font-medium text-foreground' : 'text-muted-foreground'
-                                        } [text-align:justify]`}
+                                        }`}
                                     >
                                         {lines.map((line, lineIndex) => (
                                             <span key={lineIndex}>

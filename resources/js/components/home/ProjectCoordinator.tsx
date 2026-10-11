@@ -87,10 +87,10 @@ export function ProjectCoordinator() {
                         </h2>
 
                         <div className="mt-5 max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground sm:space-y-5">
-                            <p className="text-foreground [text-align:justify]">{first}</p>
-                            <p className="[text-align:justify]">{second}</p>
+                            <p className="text-foreground">{first}</p>
+                            <p >{second}</p>
                             {middle.map((paragraph) => (
-                                <p key={paragraph.slice(0, 48)} className="[text-align:justify]">
+                                <p key={paragraph.slice(0, 48)} >
                                     {paragraph}
                                 </p>
                             ))}

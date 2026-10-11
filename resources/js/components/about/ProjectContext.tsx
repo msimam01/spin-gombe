@@ -50,7 +50,7 @@ export function ProjectContext() {
                                 <item.icon aria-hidden="true" className="size-5" />
                             </span>
                             <h3 className="mt-4 text-base font-semibold text-foreground">{item.title}</h3>
-                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground [text-align:justify]">{item.body}</p>
+                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
                         </article>
                     </Reveal>
                 ))}

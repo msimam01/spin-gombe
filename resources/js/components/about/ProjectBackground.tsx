@@ -31,7 +31,7 @@ export function ProjectBackground() {
             <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
                 <div className="lg:col-span-7">
                     <Reveal>
-                        <p className="text-lg leading-relaxed text-foreground sm:text-xl sm:leading-relaxed [text-align:justify]">
+                        <p className="text-lg leading-relaxed text-foreground sm:text-xl sm:leading-relaxed">
                             {balanga}
                         </p>
                     </Reveal>
@@ -60,7 +60,7 @@ export function ProjectBackground() {
                             <h3 className="text-xs font-semibold tracking-widest text-gold-700 uppercase">
                                 The project's response
                             </h3>
-                            <p className="mt-2 text-sm leading-relaxed text-foreground [text-align:justify]">
+                            <p className="mt-2 text-sm leading-relaxed text-foreground">
                                 SPIN was designed to address three big challenges at once, dam
                                 safety, irrigation and hydropower, strengthening water resources
                                 management, modernizing irrigation services and improving dam
@@ -88,7 +88,7 @@ export function ProjectBackground() {
                         <h3 className="font-display text-lg font-bold text-foreground">
                             Balanga Dam &amp; Irrigation Scheme
                         </h3>
-                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground [text-align:justify]">
+                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                             The selected area in Gombe State, originally developed to support
                             agricultural production through a controlled water supply for
                             dry-season farming, and now the focus of the project's

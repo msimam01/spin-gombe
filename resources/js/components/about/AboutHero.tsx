@@ -93,7 +93,7 @@ export function AboutHero() {
                         )}
 
                         {slide.text && (
-                            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-brand-100/90 [text-align:justify] sm:mt-5 sm:text-base">
+                            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-brand-100/90 sm:mt-5 sm:text-base">
                                 {slide.text}
                             </p>
                         )}

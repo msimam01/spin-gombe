@@ -13,16 +13,23 @@
 |
 | `TRUSTED_PROXIES` in the environment controls this:
 |
-|   `*`        — trust the immediately connected client (the standard
-|                cPanel proxy setup; the safe default there)
-|   a, b, c    — a comma-separated IP/CIDR allow-list
+|   `*`        — trust the immediately connected client. Only enable this
+|                when requests really reach PHP through the host's local
+|                TLS-terminating proxy (the standard cPanel topology);
+|                it is NOT universally safe and must NOT be enabled on a
+|                server that is directly reachable from the internet.
+|   a, b, c    — a comma-separated IP/CIDR allow-list (preferred when the
+|                proxy's addresses are known)
 |   unset      — trust nothing (direct connection; correct for a VPS
-|                or a host that does not proxy)
+|                or a host that is not proxied)
 |
-| This is read by the framework's `TrustProxies` middleware
-| (Illuminate\Http\Middleware\TrustProxies), which is part of the
-| framework's `web` middleware group and trusts the standard
-| `X-Forwarded-For/Host/Port/Proto/Prefix` headers.
+| The value reaches the framework's `TrustProxies` middleware
+| (Illuminate\Http\Middleware\TrustProxies, part of the default global
+| middleware stack) through two equivalent mechanisms: directly via
+| `TrustProxies::at()` from bootstrap/app.php, and via this file's
+| config lookup, which the middleware falls back to — so the setting
+| also works when the configuration cache is active (in which case
+| `env()` reads nothing).
 */
 
 return [

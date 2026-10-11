@@ -244,7 +244,7 @@ export default function ProjectsShow({ project }: { project: ProjectDetail }) {
                             <h2 id="overview" className="text-2xl font-bold text-foreground sm:text-3xl">
                                 About this {project.type === 'activity' ? 'activity' : 'project'}
                             </h2>
-                            <p className="mt-6 text-lg leading-relaxed [text-align:justify]   text-foreground sm:text-xl sm:leading-relaxed">
+                            <p className="mt-6 text-lg leading-relaxed text-foreground sm:text-xl sm:leading-relaxed">
                                 {project.description ?? project.summary}
                             </p>
                         </div>

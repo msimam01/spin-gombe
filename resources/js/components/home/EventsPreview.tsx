@@ -86,7 +86,7 @@ export function EventsPreview({ events }: { events: Event[] }) {
                                         {event.title}
                                     </h3>
                                     {event.description && (
-                                        <p className="mt-2 line-clamp-3 text-sm [text-align:justify] leading-relaxed text-muted-foreground">
+                                        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                                             {event.description}
                                         </p>
                                     )}

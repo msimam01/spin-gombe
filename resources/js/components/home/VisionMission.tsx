@@ -43,7 +43,7 @@ export function VisionMission() {
                             </h2>
                         </div>
 
-                        <p className="mt-6 text-base leading-relaxed text-white/90 [text-align:justify] sm:text-lg sm:leading-relaxed">
+                        <p className="mt-6 text-base leading-relaxed text-white/90 sm:text-lg sm:leading-relaxed">
                             {site.vision}
                         </p>
                     </Reveal>
@@ -58,7 +58,7 @@ export function VisionMission() {
                             </h2>
                         </div>
 
-                        <p className="mt-6 text-base leading-relaxed text-white/90 [text-align:justify] sm:text-lg sm:leading-relaxed">
+                        <p className="mt-6 text-base leading-relaxed text-white/90 sm:text-lg sm:leading-relaxed">
                             {site.mission}
                         </p>
 

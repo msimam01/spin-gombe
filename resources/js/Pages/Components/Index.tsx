@@ -68,7 +68,7 @@ export default function ComponentsIndex() {
                     Project Components
                 </h1>
 
-                <p className="mt-5 max-w-2xl text-base  text-brand-100  sm:text-lg">
+                <p className="mt-5 max-w-2xl text-base text-brand-100 sm:text-lg">
                     {site.acronym} is implemented through four official components covering water
                     resources management, dam operations and safety, irrigation and project
                     management.
@@ -127,7 +127,7 @@ export default function ComponentsIndex() {
                                                     )}
 
                                                     {component.summary && (
-                                                        <p className="mt-3 line-clamp-4 text-sm [text-align:justify] leading-relaxed text-muted-foreground">
+                                                        <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-muted-foreground">
                                                             {component.summary}
                                                         </p>
                                                     )}

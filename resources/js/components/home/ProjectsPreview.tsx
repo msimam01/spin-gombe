@@ -79,7 +79,7 @@ export function ProjectsPreview({ projects }: { projects: Project[] }) {
                                         </p>
                                     )}
                                     {project.summary && (
-                                        <p className="mt-2 line-clamp-3 text-sm [text-align:justify] leading-relaxed text-muted-foreground">
+                                        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                                             {project.summary}
                                         </p>
                                     )}

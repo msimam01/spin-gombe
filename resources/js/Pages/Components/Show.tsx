@@ -137,7 +137,7 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                 </h1>
 
                 {component.summary && (
-                    <p className="mt-5 max-w-2xl text-base leading-relaxed text-brand-100 [text-align:justify] sm:text-lg">
+                    <p className="mt-5 max-w-2xl text-base leading-relaxed text-brand-100 sm:text-lg">
                         {component.summary}
                     </p>
                 )}
@@ -156,7 +156,7 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                 What this component covers
                             </h2>
                             {component.description ? (
-                                <p className="mt-6 text-lg leading-relaxed text-foreground [text-align:justify] sm:text-xl sm:leading-relaxed">
+                                <p className="mt-6 text-lg leading-relaxed text-foreground sm:text-xl sm:leading-relaxed">
                                     {component.description}
                                 </p>
                             ) : (

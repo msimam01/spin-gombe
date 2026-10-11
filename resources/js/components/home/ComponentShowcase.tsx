@@ -91,7 +91,7 @@ export function ComponentShowcase({ components }: { components: ComponentEntry[]
                                                 )}
 
                                                 {component.summary && (
-                                                    <p className="mt-3 line-clamp-4 text-sm [text-align:justify] leading-relaxed text-muted-foreground">
+                                                    <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-muted-foreground">
                                                         {component.summary}
                                                     </p>
                                                 )}
