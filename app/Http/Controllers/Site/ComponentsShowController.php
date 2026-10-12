@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Site;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PhotoResource;
 use App\Http\Resources\ProjectComponentResource;
+use App\Http\Resources\VideoResource;
 use App\Models\Document;
 use App\Models\Photo;
 use App\Models\Project;
@@ -107,21 +108,18 @@ class ComponentsShowController extends Controller
                         ->get()
                 )->resolve(),
 
-                'videos' => Video::query()
-                    ->published()
-                    ->ordered()
-                    ->where('project_component_id', $component->id)
-                    ->get()
-                    ->map(fn (Video $video) => [
-                        'id' => $video->id,
-                        'title' => $video->title,
-                        'embed_url' => $video->embedUrl(),
-                        'watch_url' => $video->youtube_id
-                            ? "https://www.youtube.com/watch?v={$video->youtube_id}"
-                            : $video->youtube_url,
-                        'thumbnail_url' => $video->thumbnailUrl(),
-                    ])
-                    ->all(),
+                /*
+                 * The same provider-aware resource the homepage and media
+                 * centre use — embeds, watch links and labels are built in
+                 * one place instead of per-controller URL logic.
+                 */
+                'videos' => VideoResource::collection(
+                    Video::query()
+                        ->published()
+                        ->ordered()
+                        ->where('project_component_id', $component->id)
+                        ->get()
+                )->resolve(),
             ];
         } catch (\Throwable) {
             // A missing related table (fresh clone mid-migration) must not take
