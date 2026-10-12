@@ -256,7 +256,8 @@ export interface AdminVideo {
     /** Listing rows may omit the description. */
     description?: string | null;
     youtube_id: string | null;
-    /** Edit payload only: the raw stored URL. */
+    /** "youtube" | "facebook" | "vimeo" — null for legacy/unparsed URLs. */
+    provider?: string | null;
     youtube_url?: string | null;
     thumbnail_url: string | null;
     published_on: string | null;

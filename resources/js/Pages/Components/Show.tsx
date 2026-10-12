@@ -19,6 +19,7 @@ import { ImageHero } from '@/components/shared/ImageHero';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { ProjectCard } from '@/components/shared/ProjectCard';
 import { Reveal } from '@/components/shared/Reveal';
+import { VideoEmbed, WatchLink } from '@/components/shared/VideoEmbed';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Photo, ProjectComponent } from '@/types';
@@ -56,7 +57,7 @@ interface RelatedContent {
     projects_count: number;
     documents: { id: number; title: string; category: string | null; file_url: string | null; published_on: string | null }[];
     photos: Photo[];
-    videos: { id: number; title: string; embed_url: string | null; watch_url: string | null; thumbnail_url: string | null }[];
+    videos: { id: number; title: string; embed_url: string | null; watch_url: string | null; thumbnail_url: string | null; provider_label?: string | null }[];
 }
 
 interface ComponentsShowProps {
@@ -359,49 +360,13 @@ export default function ComponentsShow({ component, neighbours, related }: Compo
                                         {related.videos.map((video) => (
                                             <li key={video.id}>
                                                 <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
-                                                    {video.embed_url ? (
-                                                        /*
-                                                         * Embedded player, same pattern as the media
-                                                         * centre: privacy-enhanced (youtube-nocookie),
-                                                         * lazy-loaded, 16:9, never autoplaying.
-                                                         */
-                                                        <iframe
-                                                            src={`${video.embed_url}?rel=0`}
-                                                            title={video.title}
-                                                            loading="lazy"
-                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                            allowFullScreen
-                                                            className="aspect-video w-full"
-                                                        />
-                                                    ) : video.thumbnail_url ? (
-                                                        <a
-                                                            href={video.watch_url ?? '#'}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                        >
-                                                            <img
-                                                                src={video.thumbnail_url}
-                                                                alt={video.title}
-                                                                className="aspect-video w-full object-cover"
-                                                                loading="lazy"
-                                                            />
-                                                        </a>
-                                                    ) : null}
+                                                    <VideoEmbed video={video} />
 
                                                     <div className="p-4">
                                                         <p className="text-sm font-medium text-foreground">{video.title}</p>
-                                                        {video.watch_url && (
-                                                            <a
-                                                                href={video.watch_url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-brand-700"
-                                                            >
-                                                                Watch on YouTube
-                                                                <ArrowUpRight aria-hidden="true" className="size-3" />
-                                                                <span className="sr-only">(opens in a new tab)</span>
-                                                            </a>
-                                                        )}
+                                                        <div className="[&_a]:text-xs [&_a]:font-medium [&_a]:mt-2">
+                                                            <WatchLink video={video} />
+                                                        </div>
                                                     </div>
                                                 </article>
                                             </li>

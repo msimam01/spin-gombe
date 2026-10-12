@@ -2,6 +2,12 @@ import { ExternalLink, Play } from 'lucide-react';
 import { MediaPlaceholder } from '@/components/media/MediaPlaceholder';
 import type { Video } from '@/types';
 
+/** The embed/watch fields the shared player needs — local page shapes can carry more. */
+export type EmbeddableVideo = Pick<
+    Video,
+    'id' | 'title' | 'provider' | 'provider_label' | 'watch_url' | 'embed_url' | 'thumbnail_url'
+>;
+
 /**
  * Accessible embed parameters.
  *
@@ -29,7 +35,7 @@ const PROVIDER_LABELS: Record<NonNullable<Video['provider']>, string> = {
  * Facebook needs no referrer restriction on the iframe itself because it is
  * the official documented player endpoint.
  */
-export function VideoEmbed({ video, className }: { video: Video; className?: string }) {
+export function VideoEmbed({ video, className }: { video: EmbeddableVideo; className?: string }) {
     const label = video.provider ? PROVIDER_LABELS[video.provider] : null;
 
     if (!video.embed_url) {
@@ -64,7 +70,7 @@ export function VideoEmbed({ video, className }: { video: Video; className?: str
 }
 
 /** The provider-aware "Watch on {platform}" fallback link. */
-export function WatchLink({ video }: { video: Video }) {
+export function WatchLink({ video }: { video: EmbeddableVideo }) {
     const label = video.provider ? PROVIDER_LABELS[video.provider] : 'the source';
 
     if (!video.watch_url) {

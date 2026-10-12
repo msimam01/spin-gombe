@@ -3,7 +3,6 @@ import { useState } from 'react';
 import {
     ArrowLeft,
     ArrowRight,
-    ArrowUpRight,
     ChevronRight,
     Landmark,
     Newspaper,
@@ -13,6 +12,7 @@ import { Container } from '@/components/layout/Container';
 import { Reveal } from '@/components/shared/Reveal';
 import { PhotoGrid } from '@/components/media/PhotoGrid';
 import { LoadMoreButton } from '@/components/shared/LoadMoreButton';
+import { VideoEmbed, WatchLink } from '@/components/shared/VideoEmbed';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { route } from '@/lib/routes';
 import type { Photo } from '@/types';
@@ -36,6 +36,7 @@ interface NewsDetail {
         embed_url: string | null;
         watch_url: string | null;
         thumbnail_url: string | null;
+        provider_label?: string | null;
     }[];
     related: { slug: string; title: string; excerpt: string | null; cover_image: string | null; published_at: string | null }[];
 }
@@ -234,53 +235,20 @@ export default function NewsShow({ post }: { post: NewsDetail }) {
                                         {post.videos.map((video) => (
                                             <li key={video.id}>
                                                 <article className="overflow-hidden rounded-md border border-border bg-background shadow-subtle">
-                                                    {video.embed_url ? (
-                                                        /*
-                                                         * Embedded player, the same media pattern
-                                                         * used across the site: privacy-enhanced
-                                                         * (youtube-nocookie), lazy-loaded, 16:9 and
-                                                         * never autoplaying.
-                                                         */
-                                                        <iframe
-                                                            src={`${video.embed_url}?rel=0`}
-                                                            title={video.title}
-                                                            loading="lazy"
-                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                            allowFullScreen
-                                                            className="aspect-video w-full"
-                                                        />
-                                                    ) : (
-                                                        video.thumbnail_url && (
-                                                            <img
-                                                                src={video.thumbnail_url}
-                                                                alt=""
-                                                                className="aspect-video w-full object-cover"
-                                                                loading="lazy"
-                                                            />
-                                                        )
-                                                    )}
+                                                    <VideoEmbed video={video} />
 
                                                     <div className="p-4">
                                                         <p className="text-sm font-medium text-foreground">
                                                             {video.title}
                                                         </p>
-                                                        {video.watch_url && (
-                                                            <a
-                                                                href={video.watch_url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-brand-700"
-                                                            >
-                                                                Watch on YouTube
-                                                                <ArrowUpRight
-                                                                    aria-hidden="true"
-                                                                    className="size-3"
-                                                                />
-                                                                <span className="sr-only">
-                                                                    (opens in a new tab)
-                                                                </span>
-                                                            </a>
+                                                        {video.provider_label && (
+                                                            <span className="mt-2 block text-xs font-medium text-muted-foreground">
+                                                                {video.provider_label}
+                                                            </span>
                                                         )}
+                                                        <div className="[&_a]:text-xs [&_a]:font-medium [&_a]:mt-2">
+                                                            <WatchLink video={video} />
+                                                        </div>
                                                     </div>
                                                 </article>
                                             </li>

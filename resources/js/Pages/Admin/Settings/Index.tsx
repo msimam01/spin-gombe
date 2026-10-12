@@ -1,6 +1,7 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { MapPin } from 'lucide-react';
 import { AdminTextField, AdminTextareaField } from '@/components/admin/FormControls';
 import { Button } from '@/components/ui/button';
 import { AdminLayout } from '@/layouts/AdminLayout';
@@ -37,6 +38,16 @@ interface SettingsFormData {
 
 const EMPTY = '';
 
+/** Result of resolving the device's location, or the reason it failed. */
+type LocationStatus = 'idle' | 'locating' | 'ok' | 'denied' | 'unsupported' | 'unavailable';
+
+const LOCATION_MESSAGES: Record<Exclude<LocationStatus, 'idle' | 'locating' | 'ok'>, string> = {
+    denied: 'Location access was denied. Allow it in your browser settings and try again, or enter the coordinates manually.',
+    unsupported:
+        'This browser does not support location detection. Enter the coordinates manually.',
+    unavailable: 'Could not determine your location. Check your connection and try again, or enter the coordinates manually.',
+};
+
 /**
  * Site settings - the website-wide values an administrator may change after
  * deployment without a code release.
@@ -67,6 +78,7 @@ export default function SettingsIndex() {
     });
 
     const [dirtyNotified, setDirtyNotified] = useState(false);
+    const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
 
     // Unsaved-state awareness, matching the other admin forms.
     useEffect(() => {
@@ -99,6 +111,25 @@ export default function SettingsIndex() {
         form.put(route('admin.settings.update'), {
             preserveScroll: true,
         });
+    }
+
+    /** Reads the device location into the two coordinate fields - never auto-saves. */
+    function useMyLocation() {
+        if (!('geolocation' in navigator)) {
+            setLocationStatus('unsupported');
+            return;
+        }
+
+        setLocationStatus('locating');
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                form.setData('office_map_latitude', position.coords.latitude.toFixed(6));
+                form.setData('office_map_longitude', position.coords.longitude.toFixed(6));
+                setLocationStatus('ok');
+            },
+            () => setLocationStatus('denied'),
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+        );
     }
 
     return (
@@ -166,6 +197,28 @@ export default function SettingsIndex() {
                         </p>
                     </div>
                     <div className="grid gap-5 px-5 py-5 sm:grid-cols-2">
+                        <div className="flex items-start justify-between gap-4 sm:col-span-2">
+                            <div>
+                                <p className="text-xs text-muted-foreground">
+                                    Standing at the office? Capture the exact position from this
+                                    device.
+                                </p>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-2"
+                                    onClick={useMyLocation}
+                                    disabled={locationStatus === 'locating' || form.processing}
+                                >
+                                    <MapPin
+                                        aria-hidden="true"
+                                        className={locationStatus === 'locating' ? 'size-4 animate-pulse' : 'size-4'}
+                                    />
+                                    {locationStatus === 'locating' ? 'Locating…' : 'Use my location'}
+                                </Button>
+                            </div>
+                        </div>
                         <AdminTextField
                             id="office_map_latitude"
                             label="Latitude"
@@ -185,9 +238,13 @@ export default function SettingsIndex() {
                             error={form.errors.office_map_longitude}
                         />
                         <p className="sm:col-span-2 text-xs text-muted-foreground" aria-live="polite">
-                            {map_confirmed
-                                ? 'The office map is currently shown publicly with the saved pin.'
-                                : 'No confirmed office pin is saved - the public site shows the “to be confirmed” notice.'}
+                            {locationStatus === 'ok'
+                                ? 'Coordinates captured from this device - review them, then save.'
+                                : locationStatus !== 'idle' && locationStatus !== 'locating'
+                                  ? LOCATION_MESSAGES[locationStatus]
+                                  : map_confirmed
+                                    ? 'The office map is currently shown publicly with the saved pin.'
+                                    : 'No confirmed office pin is saved - the public site shows the “to be confirmed” notice.'}
                         </p>
                     </div>
                 </section>

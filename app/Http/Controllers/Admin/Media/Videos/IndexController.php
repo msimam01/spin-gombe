@@ -50,6 +50,7 @@ class IndexController extends Controller
                 'description' => $video->description,
                 'youtube_id' => $video->youtube_id,
                 'youtube_url' => $video->youtube_url,
+                'provider' => $video->provider(),
                 'thumbnail_url' => $video->thumbnailUrl(),
                 'published_on' => $video->published_on?->toDateString(),
                 'status' => $video->status->value,

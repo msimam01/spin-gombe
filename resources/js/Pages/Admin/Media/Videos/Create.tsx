@@ -26,7 +26,8 @@ export default function CreateVideo({ statuses, projects, components, newsPosts 
             <h1 className="mt-3 text-2xl font-bold text-foreground">Add a video</h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
                 New videos are saved as drafts so nothing appears on the public website before
-                review. Only official SPIN YouTube links should be added here.
+                review. Only official SPIN YouTube, Facebook or Vimeo links should
+                be added here.
             </p>
 
             <div className="mt-6 max-w-3xl">

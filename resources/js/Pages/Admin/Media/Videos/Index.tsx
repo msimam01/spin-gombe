@@ -314,7 +314,9 @@ export default function VideosIndex({ videos, filters, statuses }: VideosIndexPr
                                                     </span>
                                                     {video.youtube_id && (
                                                         <span className="mt-0.5 block max-w-xs truncate text-xs font-normal text-muted-foreground">
-                                                            youtube.com/watch?v={video.youtube_id}
+                                                            {video.provider === 'youtube' && `youtube.com/watch?v=${video.youtube_id}`}
+                                                            {video.provider === 'facebook' && `facebook.com/${video.youtube_id}`}
+                                                            {video.provider === 'vimeo' && `vimeo.com/${video.youtube_id}`}
                                                         </span>
                                                     )}
                                                 </span>

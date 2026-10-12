@@ -25,12 +25,14 @@ final class VideoUrl
 
     /**
      * Facebook accepts the page/post video permalink, the watch-permalink
-     * form, video.php, and the share short-permalinks (Share dialog / reel
-     * share) — the forms Facebook itself hands out.
+     * form, video.php, canonical /reel/{id} permalinks, and the share
+     * short-permalinks (Share dialog / reel share) — the forms Facebook
+     * itself hands out.
      */
     private const FACEBOOK_PATTERN = '~^https?://(?:(?:www|m|web|business)\.)?facebook\.com/(?:'
         .'(?:watch/?\?v=|watch/live/?\?v=)(?P<watch>[A-Za-z0-9_-]+)'
         .'|(?:[A-Za-z0-9.\-]+)/videos/(?:[A-Za-z0-9.\-]+/)?(?P<page>[A-Za-z0-9_-]+)'
+        .'|reel(?:/plugins/video)?s?/(?P<reel>[0-9]+)'
         .'|share/(?:v|r)/(?P<share>[A-Za-z0-9_-]+)'
         .'|video\.php\?(?:[^&]*&)*v=(?P<php>[A-Za-z0-9_-]+)'
         .')/??(?:\?.*)?$~i';
@@ -62,7 +64,9 @@ final class VideoUrl
         if (preg_match(self::FACEBOOK_PATTERN, $url, $matches) === 1) {
             // Non-participating named groups may be absent from $matches.
             $id = ($matches['watch'] ?? '')
-                ?: (($matches['page'] ?? '') ?: (($matches['share'] ?? '') ?: ($matches['php'] ?? '')));
+                ?: (($matches['page'] ?? '')
+                    ?: (($matches['share'] ?? '')
+                        ?: (($matches['reel'] ?? '') ?: ($matches['php'] ?? ''))));
 
             if (($matches['share'] ?? '') !== '') {
                 $kind = str_contains($url, 'share/r/') ? 'r' : 'v';
@@ -76,6 +80,10 @@ final class VideoUrl
 
             if (($matches['watch'] ?? '') !== '') {
                 return ['provider' => self::PROVIDER_FACEBOOK, 'id' => $id, 'href' => "https://www.facebook.com/watch/?v={$id}"];
+            }
+
+            if (($matches['reel'] ?? '') !== '') {
+                return ['provider' => self::PROVIDER_FACEBOOK, 'id' => $id, 'href' => "https://www.facebook.com/reel/{$id}"];
             }
 
             if (($matches['php'] ?? '') !== '') {

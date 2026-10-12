@@ -137,7 +137,9 @@ export function MediaHighlight({
                                                 {video.title}
                                             </span>
                                             <span className="mt-0.5 block text-xs text-muted-foreground">
-                                                Watch on YouTube
+                                                {video.provider_label
+                                                    ? `Watch on ${video.provider_label}`
+                                                    : 'Watch video'}
                                             </span>
                                         </span>
                                     </a>

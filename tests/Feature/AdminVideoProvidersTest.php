@@ -145,7 +145,7 @@ final class AdminVideoProvidersTest extends TestCase
 
         $this->assertSame('facebook', $resource['provider']);
         $this->assertSame('Facebook', $resource['provider_label']);
-        $this->assertSame('https://www.facebook.com/100000000000000', $resource['watch_url']);
+        $this->assertSame('https://www.facebook.com/watch/?v=100000000000000', $resource['watch_url']);
         $this->assertStringStartsWith('https://www.facebook.com/plugins/video.php?', $resource['embed_url']);
     }
 }

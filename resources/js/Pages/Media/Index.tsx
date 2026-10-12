@@ -4,7 +4,6 @@ import {
     Camera,
     ChevronRight,
     Clapperboard,
-    ExternalLink,
     Images,
     Play,
     SquarePlay,

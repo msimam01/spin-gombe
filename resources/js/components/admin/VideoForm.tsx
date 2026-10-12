@@ -121,7 +121,7 @@ export function VideoForm({ video, statuses, projects, components, newsPosts }: 
             <div className="rounded-sm border border-border bg-background p-5 sm:p-6">
                 <h2 className="text-base font-semibold text-foreground">Video details</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Official SPIN YouTube videos.
+                    Official SPIN videos — YouTube, Facebook or Vimeo links.
                 </p>
 
                 <div className="mt-5 space-y-5">
@@ -142,7 +142,7 @@ export function VideoForm({ video, statuses, projects, components, newsPosts }: 
                         name="youtube_url"
                         label="Video URL"
                         required
-                        hint="A standard youtube.com or youtu.be link. The video id is detected automatically."
+                        hint="A standard youtube.com, youtu.be, facebook.com or vimeo.com link. The video id is detected automatically."
                         value={form.data.youtube_url}
                         onChange={(event) => form.setData('youtube_url', event.target.value)}
                         error={form.errors.youtube_url}

@@ -34,6 +34,8 @@ final class VideoUrlTest extends TestCase
             'facebook share permalink' => ['https://web.facebook.com/share/v/1JP6HiRTrj/', 'facebook', '1JP6HiRTrj'],
             'facebook share on www, no trailing slash' => ['https://www.facebook.com/share/v/AbCdEf12345', 'facebook', 'AbCdEf12345'],
             'facebook reel share' => ['https://www.facebook.com/share/r/1AbCdEfGhI/', 'facebook', '1AbCdEfGhI'],
+            'facebook canonical reel' => ['https://www.facebook.com/reel/2054977148463399', 'facebook', '2054977148463399'],
+            'facebook reel on web host' => ['https://web.facebook.com/reel/2054977148463399?rdid=x', 'facebook', '2054977148463399'],
             'vimeo' => ['https://vimeo.com/76979871', 'vimeo', '76979871'],
             'vimeo www' => ['https://www.vimeo.com/76979871', 'vimeo', '76979871'],
             'vimeo with suffix path' => ['https://vimeo.com/76979871?foo=bar', 'vimeo', '76979871'],
@@ -118,6 +120,12 @@ final class VideoUrlTest extends TestCase
         // Facebook's canonical player endpoint instead.
         $share = VideoUrl::watch('facebook', 'https://www.facebook.com/share/v/1JP6HiRTrj/');
         $this->assertStringStartsWith('https://www.facebook.com/plugins/video.php?', $share);
+
+        // Canonical reel permalinks are openable watch pages.
+        $this->assertSame(
+            'https://www.facebook.com/reel/2054977148463399',
+            VideoUrl::watch('facebook', 'https://www.facebook.com/reel/2054977148463399'),
+        );
 
         $this->assertNull(VideoUrl::watch('tiktok', 'https://tiktok.com/@user/video/1'));
     }
